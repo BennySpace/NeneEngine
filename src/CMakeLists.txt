@@ -3,7 +3,7 @@
 #
 
 # Add source to this project's executable.
-add_executable (GameEngineArchitecture-Practice "GameEngineArchitecture-Practice.cpp" "GameEngineArchitecture-Practice.h")
+add_executable (GameEngineArchitecture-Practice "NeneEngineApp.cpp" "NeneEngineApp.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET GameEngineArchitecture-Practice PROPERTY CXX_STANDARD 20)

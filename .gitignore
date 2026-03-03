@@ -29,6 +29,7 @@ x86/
 [Aa][Rr][Mm]64/
 [Aa][Rr][Mm]64[Ee][Cc]/
 bld/
+build/
 [Oo]bj/
 [Oo]ut/
 [Ll]og/
@@ -430,3 +431,4 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+/CMakeUserPresets.json

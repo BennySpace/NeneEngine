@@ -12,6 +12,11 @@ list(FILTER SOURCES EXCLUDE REGEX
 
 add_executable(NeneEngine WIN32 ${SOURCES} "${CMAKE_SOURCE_DIR}/main.cpp")
 
+target_include_directories(NeneEngine 
+	PUBLIC 
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+)
+
 find_package(spdlog			CONFIG REQUIRED)
 find_package(nlohmann_json	CONFIG REQUIRED)
 find_package(EASTL			CONFIG REQUIRED)
@@ -26,3 +31,5 @@ target_link_libraries(NeneEngine
 )
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT NeneEngine)
+
+target_compile_features(NeneEngine PUBLIC cxx_std_23)

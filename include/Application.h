@@ -3,8 +3,9 @@
 #pragma once
 
 #include "WindowInterface.h"
+#include "GameTimer.h"
 
-#include <memory>
+#include <EASTL/unique_ptr.h>
 #include <atomic>
 
 namespace NeneEngine 
@@ -19,10 +20,13 @@ namespace NeneEngine
 		bool Init(uint32_t width = 1280, uint32_t height = 720, const std::string& title = "NeneEngine");
 		void Run();
 		void RequestShutdown();
+		void CalculateFrameStats();
 
 	private:
-		std::unique_ptr<WindowInterface> m_window;
+		eastl::unique_ptr<WindowInterface> m_window;
+		GameTimer m_timer;
 		std::atomic<bool> m_running{ false };
+		std::atomic<bool> m_isPaused{ false };
 	};
 
 } // namespace NeneEngine

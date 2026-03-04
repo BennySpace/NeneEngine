@@ -22,6 +22,7 @@ namespace NeneEngine
 		bool ShouldClose() const override { return m_shouldClose; }
 
 		HWND GetHWND() const override { return m_hwnd; }
+		std::string GetTitle() const override { return m_title; }
 		uint32_t GetWidth() const override { return m_width; }
 		uint32_t GetHeight() const override { return m_height; }
 

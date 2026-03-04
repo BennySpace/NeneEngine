@@ -1,6 +1,6 @@
 // Win32Window.cpp
 
-#include "../include/Win32Window.h"
+#include "Win32Window.h"
 
 #include <stdexcept>
 

@@ -2,18 +2,21 @@
 
 #pragma once
 
-#include "GameState.h"
+#include "GameStateInterface.h"
 
 namespace NeneEngine
 {
 
-	class PlayState final : public GameState
+	class PlayState final : public GameStateInterface
 	{
 	public:
 		void OnEnter() override;
 		void OnExit() override;
 		void Update(float dt) override;
 		void HandleInput() override;
+
+		bool IsTransparent() const override { return false; }
+		bool IsPausing() const override { return true; }
 	};
 
 } // namespace NeneEngine

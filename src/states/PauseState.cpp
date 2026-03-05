@@ -1,25 +1,25 @@
 // PauseState.cpp
 
-#include "PauseState.h"
+#include "states/PauseState.h"
 
 #include <spdlog/spdlog.h>
 
-void PauseState::OnEnter()
+void NeneEngine::PauseState::OnEnter()
 {
 	spdlog::info("PauseState entered");
 }
 
-void PauseState::OnExit()
+void NeneEngine::PauseState::OnExit()
 {
 	spdlog::info("PauseState exited");
 }
 
-void PauseState::Update(float /*dt*/)
+void NeneEngine::PauseState::Update(float /*dt*/)
 {
 	// TODO
 }
 
-void PauseState::HandleInput()
+void NeneEngine::PauseState::HandleInput()
 {
 	// TODO
 }

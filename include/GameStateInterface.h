@@ -11,7 +11,7 @@ namespace NeneEngine
 	class GameStateInterface
 	{
 	public:
-		virtual ~IGameState() = default;
+		virtual ~GameStateInterface() = default;
 
 		virtual void OnEnter() = 0;
 
@@ -20,6 +20,9 @@ namespace NeneEngine
 		virtual void Update(float deltaTime) = 0;
 
 		virtual void HandleInput() = 0;
-	}
+
+		virtual bool IsTransparent() const { return false; }
+		virtual bool IsPausing() const { return false; }
+	};
 
 } // namespace NeneEngine

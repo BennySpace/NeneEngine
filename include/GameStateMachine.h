@@ -34,6 +34,6 @@ namespace NeneEngine
 
 	private:
 		eastl::vector<eastl::unique_ptr<GameStateInterface>> m_states;
-	}
+	};
 
 } // namespace NeneEngine

@@ -9,14 +9,14 @@ namespace NeneEngine
 		}
 	}
 
-	void GameStateMachine::ChangeState(eastl::unique_ptr<IGameState> newState) {
+	void GameStateMachine::ChangeState(eastl::unique_ptr<GameStateInterface> newState) {
 		while (!m_states.empty()) {
 			PopState();
 		}
 		PushState(eastl::move(newState));
 	}
 
-	void GameStateMachine::PushState(eastl::unique_ptr<IGameState> newState) {
+	void GameStateMachine::PushState(eastl::unique_ptr<GameStateInterface> newState) {
 		if (!m_states.empty()) {
 			m_states.back()->OnExit();
 		}

@@ -1,25 +1,25 @@
 // PlayState.cpp
 
-#include "PlayState.h"
+#include "states/PlayState.h"
 
 #include <spdlog/spdlog.h>
 
-void PlayState::OnEnter()
+void NeneEngine::PlayState::OnEnter()
 {
 	spdlog::info("PlayState entered");
 }
 
-void PlayState::OnExit()
+void NeneEngine::PlayState::OnExit()
 {
 	spdlog::info("PlayState exited");
 }
 
-void PlayState::Update(float /*dt*/)
+void NeneEngine::PlayState::Update(float /*dt*/)
 {
 	// TODO
 }
 
-void PlayState::HandleInput()
+void NeneEngine::PlayState::HandleInput()
 {
 	// TODO
 }

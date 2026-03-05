@@ -1,25 +1,25 @@
 // MenuState.cpp
 
-#include "MenuState.h"
+#include "states/MenuState.h"
 
 #include <spdlog/spdlog.h>
 
-void MenuState::OnEnter()
+void NeneEngine::MenuState::OnEnter()
 {
 	spdlog::info("MenuState entered");
 }
 
-void MenuState::OnExit()
+void NeneEngine::MenuState::OnExit()
 {
 	spdlog::info("MenuState exited");
 }
 
-void MenuState::Update(float /*dt*/)
+void NeneEngine::MenuState::Update(float /*dt*/)
 {
 	// TODO
 }
 
-void MenuState::HandleInput()
+void NeneEngine::MenuState::HandleInput()
 {
 	// TODO
 }

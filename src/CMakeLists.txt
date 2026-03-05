@@ -28,7 +28,15 @@ target_link_libraries(NeneEngine
 		nlohmann_json::nlohmann_json
 		EASTL
 		EnTT::EnTT
+
+		Diligent-GraphicsEngineD3D12-shared
 )
+
+if(COMMAND copy_required_dlls)
+    copy_required_dlls(NeneEngine)
+else()
+    message(WARNING "copy_required_dlls не найдена — возможно, Diligent не подгрузился")
+endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT NeneEngine)
 

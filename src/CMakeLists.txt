@@ -15,6 +15,7 @@ add_executable(NeneEngine WIN32 ${SOURCES} "${CMAKE_SOURCE_DIR}/main.cpp")
 target_include_directories(NeneEngine 
 	PUBLIC 
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external>
 )
 
 find_package(spdlog			CONFIG REQUIRED)
@@ -40,4 +41,4 @@ endif()
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT NeneEngine)
 
-target_compile_features(NeneEngine PUBLIC cxx_std_23)
+target_compile_features(NeneEngine PUBLIC cxx_std_20)

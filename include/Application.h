@@ -4,6 +4,7 @@
 
 #include "WindowInterface.h"
 #include "GameTimer.h"
+#include "RenderAdapter.h"
 
 #include <EASTL/unique_ptr.h>
 #include <atomic>
@@ -24,6 +25,8 @@ namespace NeneEngine
 
 	private:
 		eastl::unique_ptr<WindowInterface> m_window;
+		eastl::unique_ptr<RenderAdapter> m_renderer;
+
 		GameTimer m_timer;
 		std::atomic<bool> m_running{ false };
 		std::atomic<bool> m_isPaused{ false };

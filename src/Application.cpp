@@ -2,6 +2,7 @@
 
 #include "Application.h"
 #include "Win32Window.h"
+#include "DiligentDX12Adapter.h"
 
 #include <stdexcept>
 
@@ -20,6 +21,11 @@ namespace NeneEngine
 		{
 			m_window = eastl::make_unique<Win32Window>();
 			if (!m_window->Create(width, height, title))
+			{
+				return false;
+			}
+			m_renderer = eastl::make_unique<DiligentDX12Adapter>();
+			if (!m_renderer->Init(m_window->GetHWND(), width, height))
 			{
 				return false;
 			}
@@ -92,6 +98,9 @@ namespace NeneEngine
 			m_timer.Tick();
 			if (!m_isPaused)
 			{
+				m_renderer->BeginFrame();
+				m_renderer->EndFrame();
+				m_renderer->Present();
 				CalculateFrameStats();
 				
 			}

@@ -1,6 +1,6 @@
-// Application.cpp
+// NeneEngineApp.cpp
 
-#include "Application.h"
+#include "NeneEngineApp.h"
 #include "CustomLogger.h"
 #include "Win32Window.h"
 #include "States/PlayState.h"
@@ -11,14 +11,14 @@
 namespace NeneEngine
 {
 	
-	Application::Application() = default;
+	NeneEngineApp::NeneEngineApp() = default;
 
-	Application::~Application()
+	NeneEngineApp::~NeneEngineApp()
 	{
 		if (m_running) RequestShutdown();
 	}
 
-	bool Application::Init(uint32_t width, uint32_t height, const std::string& title) {
+	bool NeneEngineApp::Init(uint32_t width, uint32_t height, const std::string& title) {
 		try
 		{
 			CustomLogger::GetInstance().Initialize("nene_engine.log", true, spdlog::level::info, true);
@@ -53,7 +53,7 @@ namespace NeneEngine
 		return std::wstring(buffer);
 	}
 
-	void Application::CalculateFrameStats()
+	void NeneEngineApp::CalculateFrameStats()
 	{
 		// Code computes the average frames per second, and also the 
 		// average time it takes to render one frame.  These stats 
@@ -91,7 +91,7 @@ namespace NeneEngine
 	}
 
 
-	void Application::Run() 
+	void NeneEngineApp::Run() 
 	{
 		m_running = true;
 		m_timer.Reset();
@@ -121,7 +121,7 @@ namespace NeneEngine
 		}
 	}
 
-	void Application::RequestShutdown()
+	void NeneEngineApp::RequestShutdown()
 	{
 		m_running = false;
 	}

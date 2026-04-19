@@ -13,11 +13,11 @@
 namespace NeneEngine 
 {
 
-	class Application 
+	class NeneEngineApp 
 	{
 	public:
-		Application();
-		~Application();
+		NeneEngineApp();
+		~NeneEngineApp();
 
 		bool Init(uint32_t width = 1280, uint32_t height = 720, const std::string& title = "NeneEngine");
 		void Run();

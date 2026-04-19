@@ -1,9 +1,9 @@
-#include "Application.h"
+#include "NeneEngineApp.h"
 #include <iostream>
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	try {
-		NeneEngine::Application app;
+		NeneEngine::NeneEngineApp app;
 		if (!app.Init(1280, 720, "NeneEngine")) {
 			std::cerr << "Failed to initialize application\n";
 			return -1;

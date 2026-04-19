@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.12)
 
 project (
 	NeneEngine
-	VERSION 0.1
+	VERSION 0.2
 	DESCRIPTION "Game engine"
 	LANGUAGES CXX
 )

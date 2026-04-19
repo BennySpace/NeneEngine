@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <spdlog/async_logger.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace NeneEngine
 {
@@ -81,4 +81,4 @@ namespace NeneEngine
 		}
 	}
 
-} // namespace engine
+} // namespace NeneEngine

@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include "WindowInterface.h"
+#include "IWindow.h"
 
 #include <Windows.h>
 
 namespace NeneEngine 
 {
 
-	class Win32Window final : public WindowInterface
+	class Win32Window final : public IWindow
 	{
 	public:
 		Win32Window();

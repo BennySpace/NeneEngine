@@ -1,7 +1,9 @@
+// EASTLAllocator.cpp
+
+#include <cstdarg>
+#include <cstdio>
 #include <EASTL/allocator.h>
 #include <new>
-#include <cstdio>
-#include <cstdarg>
 
 void* operator new[](size_t size, const char* /*pName*/, int /*flags*/, unsigned /*debugFlags*/, const char* /*file*/, int /*line*/)
 {
@@ -25,8 +27,7 @@ void operator delete[](void* p, size_t alignment, size_t /*alignmentOffset*/, co
 
 namespace EA::StdC
 {
-    int Vsnprintf(char* __restrict pDestination, unsigned __int64 n,
-        const char* __restrict pFormat, char* arguments)
+    int Vsnprintf(char* __restrict pDestination, unsigned __int64 n, const char* __restrict pFormat, char* arguments)
     {
         return ::vsnprintf(pDestination, static_cast<size_t>(n), pFormat, (va_list)arguments);
     }

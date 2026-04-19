@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include "WindowInterface.h"
+#include "GameStateMachine.h"
 #include "GameTimer.h"
-#include "RenderAdapter.h"
+#include "IWindow.h"
+#include "RenderAdapters/IRenderAdapter.h"
 
-#include <EASTL/unique_ptr.h>
 #include <atomic>
+#include <EASTL/unique_ptr.h>
 
 namespace NeneEngine 
 {
@@ -24,10 +25,12 @@ namespace NeneEngine
 		void CalculateFrameStats();
 
 	private:
-		eastl::unique_ptr<WindowInterface> m_window;
-		eastl::unique_ptr<RenderAdapter> m_renderer;
-
+		eastl::unique_ptr<IWindow>			m_window;
+		eastl::unique_ptr<IRenderAdapter>	m_renderer;
+		
 		GameTimer m_timer;
+		GameStateMachine m_gameStateMachine;
+
 		std::atomic<bool> m_running{ false };
 		std::atomic<bool> m_isPaused{ false };
 	};

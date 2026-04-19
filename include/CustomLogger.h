@@ -2,13 +2,13 @@
 
 #pragma once
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/async.h>
-#include <EASTL/string.h>
 #include <EASTL/memory.h>
+#include <EASTL/string.h>
 #include <memory>
+#include <spdlog/async.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 #include <string_view>
 
 namespace NeneEngine

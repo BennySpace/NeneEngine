@@ -1,8 +1,10 @@
 // Application.cpp
 
 #include "Application.h"
+#include "CustomLogger.h"
 #include "Win32Window.h"
-#include "DiligentDX12Adapter.h"
+#include "States/PlayState.h"
+#include "RenderAdapters/DiligentDX12Adapter.h"
 
 #include <stdexcept>
 
@@ -19,27 +21,30 @@ namespace NeneEngine
 	bool Application::Init(uint32_t width, uint32_t height, const std::string& title) {
 		try
 		{
+			CustomLogger::GetInstance().Initialize("nene_engine.log", true, spdlog::level::info, true);
+			spdlog::info("=== NeneEngine v0.1 starting ===");
+
 			m_window = eastl::make_unique<Win32Window>();
 			if (!m_window->Create(width, height, title))
-			{
 				return false;
-			}
+
 			m_renderer = eastl::make_unique<DiligentDX12Adapter>();
 			if (!m_renderer->Init(m_window->GetHWND(), width, height))
-			{
 				return false;
-			}
 
-			// spdlog::info("Application initialized ({0}x{1})", width, height);
+			m_gameStateMachine.PushState(eastl::make_unique<PlayState>());
+
+			spdlog::info("Application initialized successfully ({}x{})", width, height);
+
 			return true;
 		}
 		catch (const std::exception& e)
 		{
-			// spdlog::error("Init failed: {}", e.what());
+			spdlog::error("Init failed: {}", e.what());
+
 			return false;
 		}
 	}
-
 
 	inline std::wstring AnsiToWString(const std::string& str)
 	{
@@ -96,19 +101,23 @@ namespace NeneEngine
 			m_window->PumpMessages();
 
 			m_timer.Tick();
+			float deltaTime = m_timer.DeltaTime();
+
 			if (!m_isPaused)
 			{
+				m_gameStateMachine.HandleInput();
+				m_gameStateMachine.Update(deltaTime);
+
 				m_renderer->BeginFrame();
 				m_renderer->EndFrame();
 				m_renderer->Present();
+
 				CalculateFrameStats();
-				
 			}
 			else
 			{
 				Sleep(100);
 			}
-
 		}
 	}
 

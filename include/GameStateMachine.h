@@ -1,9 +1,9 @@
 #pragma once
 
-#include "GameStateInterface.h"
+#include "States/IGameState.h"
 
-#include <EASTL/vector.h>
 #include <EASTL/unique_ptr.h>
+#include <EASTL/vector.h>
 #include <memory>
 #include <spdlog/spdlog.h>
 
@@ -16,9 +16,9 @@ namespace NeneEngine
 		GameStateMachine() = default;
 		~GameStateMachine();
 
-		void ChangeState(eastl::unique_ptr<GameStateInterface> newState);
+		void ChangeState(eastl::unique_ptr<IGameState> newState);
 
-		void PushState(eastl::unique_ptr<GameStateInterface> newState);
+		void PushState(eastl::unique_ptr<IGameState> newState);
 
 		void PopState();
 
@@ -28,12 +28,12 @@ namespace NeneEngine
 
 		bool IsEmpty() const { return m_states.empty(); }
 
-		GameStateInterface* GetCurrentState() const {
+		IGameState* GetCurrentState() const {
 			return m_states.empty() ? nullptr : m_states.back().get();
 		}
 
 	private:
-		eastl::vector<eastl::unique_ptr<GameStateInterface>> m_states;
+		eastl::vector<eastl::unique_ptr<IGameState>> m_states;
 	};
 
 } // namespace NeneEngine

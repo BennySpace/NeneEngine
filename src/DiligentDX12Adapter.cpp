@@ -1,4 +1,6 @@
-#include "DiligentDX12Adapter.h"
+// DiligentDX12Adapter.cpp
+
+#include "RenderAdapters/DiligentDX12Adapter.h"
 
 #include "../external/DiligentEngine/DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h"
 #include <spdlog/spdlog.h>
@@ -54,6 +56,7 @@ namespace NeneEngine {
         CreateResources();
 
         spdlog::info("Diligent DX12 Adapter initialized successfully ({}x{})", width, height);
+
         return true;
     }
 

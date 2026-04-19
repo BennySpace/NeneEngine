@@ -1,3 +1,5 @@
+// GameTimer.cpp
+
 #include "GameTimer.h"
 
 GameTimer::GameTimer()

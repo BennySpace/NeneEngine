@@ -8,10 +8,10 @@ namespace NeneEngine
 
 	class Application;
 
-	class GameStateInterface
+	class IGameState
 	{
 	public:
-		virtual ~GameStateInterface() = default;
+		virtual ~IGameState() = default;
 
 		virtual void OnEnter() = 0;
 

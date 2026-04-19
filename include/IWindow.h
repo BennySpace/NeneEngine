@@ -9,10 +9,10 @@
 namespace NeneEngine
 {
 
-	class WindowInterface 
+	class IWindow 
 	{
 	public:
-		virtual ~WindowInterface() = default;
+		virtual ~IWindow() = default;
 
 		virtual bool Create(uint32_t width, uint32_t height, const std::string& title) = 0;
 		virtual void Destroy() = 0;

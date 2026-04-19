@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "GameStateInterface.h"
+#include "IGameState.h"
 
 namespace NeneEngine
 {
 
-	class MenuState final : public GameStateInterface
+	class MenuState final : public IGameState
 	{
 	public:
 		void OnEnter() override;

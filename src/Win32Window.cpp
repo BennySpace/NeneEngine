@@ -6,6 +6,7 @@
 
 namespace NeneEngine
 {
+
 	Win32Window::Win32Window() = default;
 
 	Win32Window::~Win32Window() {
@@ -69,6 +70,7 @@ namespace NeneEngine
 				m_shouldClose = true;
 				break;
 			}
+
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
@@ -78,6 +80,7 @@ namespace NeneEngine
 		if (msg == WM_NCCREATE) {
 			auto* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
 			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(cs->lpCreateParams));
+
 			return TRUE;
 		}
 
@@ -85,6 +88,7 @@ namespace NeneEngine
 		if (window) {
 			return window->WndProc(hwnd, msg, wParam, lParam);
 		}
+
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
@@ -93,6 +97,7 @@ namespace NeneEngine
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			m_shouldClose = true;
+
 			return 0;
 
 		case WM_SIZE:
@@ -101,6 +106,7 @@ namespace NeneEngine
 
 			return 0;
 		}
+
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 

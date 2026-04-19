@@ -23,6 +23,9 @@ namespace NeneEngine
 		{
 			CustomLogger::GetInstance().Initialize("nene_engine.log", true, spdlog::level::info, true);
 			spdlog::info("=== NeneEngine v0.1 starting ===");
+			// 1. Logger
+			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", true, spdlog::level::info, true);
+			spdlog::info("===== NeneEngine v0.2 starting =====");
 
 			m_window = eastl::make_unique<Win32Window>();
 			if (!m_window->Create(width, height, title))

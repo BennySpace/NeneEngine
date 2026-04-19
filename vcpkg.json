@@ -4,6 +4,7 @@
     "eastl",
     "entt",
     "nlohmann-json",
-    "spdlog"
+    "spdlog",
+    "glm"
   ]
 }

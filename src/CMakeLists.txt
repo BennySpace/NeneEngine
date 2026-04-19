@@ -22,6 +22,7 @@ find_package(spdlog			CONFIG REQUIRED)
 find_package(nlohmann_json	CONFIG REQUIRED)
 find_package(EASTL			CONFIG REQUIRED)
 find_package(EnTT			CONFIG REQUIRED)
+find_package(glm			CONFIG REQUIRED)
 
 target_link_libraries(NeneEngine 
 	PRIVATE
@@ -29,6 +30,8 @@ target_link_libraries(NeneEngine
 		nlohmann_json::nlohmann_json
 		EASTL
 		EnTT::EnTT
+		glm::glm
+		glm::glm-header-only
 
 		Diligent-GraphicsEngineD3D12-shared
 )

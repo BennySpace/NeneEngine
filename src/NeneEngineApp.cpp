@@ -1,10 +1,14 @@
 // NeneEngineApp.cpp
 
-#include "NeneEngineApp.h"
 #include "CustomLogger.h"
-#include "Win32Window.h"
-#include "States/PlayState.h"
+#include "ECS/Components/MeshRenderer.h"
+#include "ECS/Components/Tag.h"
+#include "ECS/Components/Transform.h"
+#include "ECS/Systems/RenderSystem.h"
+#include "NeneEngineApp.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
+#include "States/PlayState.h"
+#include "Win32Window.h"
 
 #include <stdexcept>
 
@@ -18,24 +22,29 @@ namespace NeneEngine
 		if (m_running) RequestShutdown();
 	}
 
-	bool NeneEngineApp::Init(uint32_t width, uint32_t height, const std::string& title) {
+	bool NeneEngineApp::Init(uint32_t width, uint32_t height, const std::string& title) 
+	{
 		try
 		{
-			CustomLogger::GetInstance().Initialize("nene_engine.log", true, spdlog::level::info, true);
-			spdlog::info("=== NeneEngine v0.1 starting ===");
 			// 1. Logger
 			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", true, spdlog::level::info, true);
 			spdlog::info("===== NeneEngine v0.2 starting =====");
 
+			// 2. Window
 			m_window = eastl::make_unique<Win32Window>();
 			if (!m_window->Create(width, height, title))
 				return false;
 
+			// 3. Renderer
 			m_renderer = eastl::make_unique<DiligentDX12Adapter>();
 			if (!m_renderer->Init(m_window->GetHWND(), width, height))
 				return false;
-
+			
+			// 4. States
 			m_gameStateMachine.PushState(eastl::make_unique<PlayState>());
+
+			// 5. ECS
+			m_world.AddSystem(std::make_unique<ECS::RenderSystem>(m_renderer.get()));
 
 			spdlog::info("Application initialized successfully ({}x{})", width, height);
 

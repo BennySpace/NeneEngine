@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "ECS/World.h"
 #include "GameStateMachine.h"
 #include "GameTimer.h"
 #include "IWindow.h"
@@ -22,17 +23,19 @@ namespace NeneEngine
 		bool Init(uint32_t width = 1280, uint32_t height = 720, const std::string& title = "NeneEngine");
 		void Run();
 		void RequestShutdown();
-		void CalculateFrameStats();
 
 	private:
 		eastl::unique_ptr<IWindow>			m_window;
 		eastl::unique_ptr<IRenderAdapter>	m_renderer;
 		
-		GameTimer m_timer;
-		GameStateMachine m_gameStateMachine;
+		GameTimer							m_timer;
+		GameStateMachine					m_gameStateMachine;
+		ECS::World							m_world;
 
-		std::atomic<bool> m_running{ false };
-		std::atomic<bool> m_isPaused{ false };
+		std::atomic<bool>					m_running{ false };
+		std::atomic<bool>					m_isPaused{ false };
+
+		void CalculateFrameStats();
 	};
 
 } // namespace NeneEngine

@@ -20,6 +20,11 @@ namespace NeneEngine
 	NeneEngineApp::~NeneEngineApp()
 	{
 		if (m_running) RequestShutdown();
+
+		if (spdlog::default_logger())
+			spdlog::default_logger()->flush();
+
+		spdlog::shutdown();
 	}
 
 	bool NeneEngineApp::Init(uint32_t width, uint32_t height, const std::string& title) 

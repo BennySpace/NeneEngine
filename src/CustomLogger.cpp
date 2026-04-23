@@ -60,7 +60,7 @@ namespace NeneEngine
 			}
 
 			m_logger->set_level(logLevel);
-			m_logger->flush_on(spdlog::level::err);
+			m_logger->flush_on(logLevel);
 
 			spdlog::set_default_logger(m_logger);
 			m_logger->info("Logger initialized (async={}, level={})", async, spdlog::level::to_string_view(logLevel));

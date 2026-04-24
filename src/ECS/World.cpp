@@ -25,31 +25,6 @@ namespace NeneEngine::ECS {
 			m_registry.destroy(entity);
 	}
 
-	// ===== Templates =====
-	template<typename Component, typename... Args>
-	Component& World::AddComponent(Entity entity, Args&&... args)
-	{
-		return m_registry.emplace<Component>(entity, std::forward<Args>(args)...);
-	}
-
-	template<typename Component>
-	Component* World::GetComponent(Entity entity)
-	{
-		return m_registry.try_get<Component>(entity);
-	}
-
-	template<typename Component>
-	bool World::HasComponent(Entity entity) const
-	{
-		return m_registry.any_of<Component>(entity);
-	}
-
-	template<typename Component>
-	void World::RemoveComponent(Entity entity)
-	{
-		m_registry.remove<Component>(entity);
-	}
-
 	void World::AddSystem(std::unique_ptr<ISystem> system)
 	{
 		m_systems.push_back(std::move(system));

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Rendering/RenderTypes.h"
+
 #include <cstdint>
 #include <Windows.h>
 
@@ -15,6 +17,7 @@ namespace NeneEngine {
         virtual void Shutdown() = 0;
 
         virtual void BeginFrame() = 0;
+        virtual void SubmitRenderItem(const RenderItem& item) = 0;
         virtual void EndFrame() = 0;
         virtual void Present() = 0;
 

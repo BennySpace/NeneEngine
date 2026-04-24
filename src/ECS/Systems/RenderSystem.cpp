@@ -1,37 +1,91 @@
 // RenderSystem.cpp
 
+#include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/MeshRenderer.h"
 #include "ECS/Components/Transform.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/World.h"
+#include "CustomLogger.h"
 
-#include <spdlog/spdlog.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace NeneEngine::ECS {
 
 	void RenderSystem::Update(World& /*world*/, float /*deltaTime*/)
 	{
-		// TODO
+		
 	}
 
 	void RenderSystem::Render(World& world)
 	{
-		auto view = world.GetRegistry().view<Transform, MeshRenderer>();
+		if (m_renderer == nullptr)
+		{
+			LOG_WARN("RenderSystem: render adapter is null");
+			return;
+		}
 
-		spdlog::debug("RenderSystem: starting render pass");
+		const auto cameraView = world.GetRegistry().view<const Transform, const CameraComponent>();
+
+		const Transform* activeCameraTransform = nullptr;
+		const CameraComponent* activeCamera = nullptr;
+
+		for (auto entity : cameraView)
+		{
+			const auto& camera = cameraView.get<CameraComponent>(entity);
+			if (!camera.isPrimary)
+				continue;
+
+			activeCameraTransform = &cameraView.get<Transform>(entity);
+			activeCamera = &camera;
+			break;
+		}
+
+		if (activeCameraTransform == nullptr || activeCamera == nullptr)
+		{
+			LOG_WARN("RenderSystem: no primary camera found");
+			return;
+		}
+
+		const glm::mat4 viewMatrix = glm::inverse(activeCameraTransform->GetModelMatrix());
+		const glm::mat4 projectionMatrix = glm::perspective(
+			glm::radians(activeCamera->fovDegrees),
+			activeCamera->aspectRatio,
+			activeCamera->nearPlane,
+			activeCamera->farPlane);
+		const glm::mat4 viewProjectionMatrix = projectionMatrix * viewMatrix;
+
+		auto view = world.GetRegistry().view<const Transform, const MeshRenderer>();
+
+		LOG_DEBUG("RenderSystem: starting render pass");
 
 		for (auto entity : view)
 		{
 			const auto& transform = view.get<Transform>(entity);
-			const auto& mesh = view.get<MeshRenderer>(entity);
+			const auto& meshRenderer = view.get<MeshRenderer>(entity);
 
-			const auto* tag = world.GetRegistry().try_get<Tag>(entity);
-			std::string name = tag ? tag->name : "Unnamed";
+			if (!meshRenderer.visible)
+				continue;
 
-			spdlog::debug("Entity '{}' | pos: ({:.2f}, {:.2f}, {:.2f}) | color: ({:.2f}, {:.2f}, {:.2f})",
-				name,
-				transform.position.x, transform.position.y, transform.position.z,
-				mesh.color.r, mesh.color.g, mesh.color.b);
+			RenderItem item{};
+			item.modelMatrix = transform.GetModelMatrix();
+			item.viewMatrix = viewMatrix;
+			item.projectionMatrix = projectionMatrix;
+			item.viewProjectionMatrix = viewProjectionMatrix;
+			item.modelViewProjectionMatrix = viewProjectionMatrix * item.modelMatrix;
+			item.primitiveType = meshRenderer.primitiveType;
+			item.meshId = meshRenderer.meshId;
+			item.materialId = meshRenderer.material.materialId;
+			item.shaderId = meshRenderer.material.shaderId;
+			item.tint = meshRenderer.material.tint;
+
+			m_renderer->SubmitRenderItem(item);
+
+			LOG_DEBUG("RenderSystem: submitted entity {} | primitive={} | mesh={} | material={} | shader={}",
+				static_cast<uint32_t>(entt::to_integral(entity)),
+				static_cast<int>(item.primitiveType),
+				item.meshId.value,
+				item.materialId.value,
+				item.shaderId.value);
 		}
 	}
 

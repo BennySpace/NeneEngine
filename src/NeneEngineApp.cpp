@@ -1,14 +1,11 @@
 // NeneEngineApp.cpp
 
-#include "ECS/Components/CameraComponent.h"
-#include "ECS/Components/MeshRenderer.h"
-#include "ECS/Components/MovementComponent.h"
-#include "ECS/Components/Tag.h"
-#include "ECS/Components/Transform.h"
+#include "ECS/Systems/CameraControllerSystem.h"
 #include "ECS/Systems/MovementSystem.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "NeneEngineApp.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
+#include "Scene/TestScene.h"
 #include "States/PlayState.h"
 #include "Win32Window.h"
 #include "CustomLogger.h"
@@ -17,101 +14,6 @@
 
 namespace NeneEngine
 {
-	namespace {
-
-		ECS::Entity CreatePrimitiveEntity(
-			ECS::World& world,
-			std::string_view name,
-			PrimitiveType primitiveType,
-			const glm::vec3& position,
-			const glm::vec3& scale,
-			const glm::vec4& tint,
-			MeshId meshId,
-			MaterialId materialId,
-			ShaderId shaderId)
-		{
-			const ECS::Entity entity = world.CreateEntity(std::string(name));
-			auto& transform = world.AddComponent<ECS::Transform>(entity);
-			transform.position = position;
-			transform.scale = scale;
-
-			auto& renderer = world.AddComponent<ECS::MeshRenderer>(entity);
-			renderer.primitiveType = primitiveType;
-			renderer.meshId = meshId;
-			renderer.material.materialId = materialId;
-			renderer.material.shaderId = shaderId;
-			renderer.material.tint = tint;
-
-			return entity;
-		}
-
-		void CreateTestScene(ECS::World& world, uint32_t width, uint32_t height)
-		{
-			const ECS::Entity cameraEntity = world.CreateEntity("MainCamera");
-			auto& cameraTransform = world.AddComponent<ECS::Transform>(cameraEntity);
-			cameraTransform.position = { 0.0f, 0.0f, 8.0f };
-
-			auto& camera = world.AddComponent<ECS::CameraComponent>(cameraEntity);
-			camera.aspectRatio = height == 0 ? 1.0f : static_cast<float>(width) / static_cast<float>(height);
-			camera.fovDegrees = 60.0f;
-			camera.nearPlane = 0.1f;
-			camera.farPlane = 100.0f;
-			camera.isPrimary = true;
-
-			CreatePrimitiveEntity(
-				world,
-				"SceneLine",
-				PrimitiveType::Line,
-				{ -3.5f, 1.8f, 0.0f },
-				{ 2.5f, 1.0f, 1.0f },
-				{ 1.0f, 0.35f, 0.35f, 1.0f },
-				MeshId{},
-				MaterialId{ 1u },
-				ShaderId{ 1u });
-
-			CreatePrimitiveEntity(
-				world,
-				"SceneTriangle",
-				PrimitiveType::Triangle,
-				{ -1.2f, -1.4f, 0.0f },
-				{ 1.4f, 1.4f, 1.0f },
-				{ 0.35f, 1.0f, 0.45f, 1.0f },
-				MeshId{},
-				MaterialId{ 2u },
-				ShaderId{ 1u });
-
-			const ECS::Entity movingQuad = CreatePrimitiveEntity(
-				world,
-				"SceneQuad",
-				PrimitiveType::Quad,
-				{ 1.4f, 1.0f, 0.0f },
-				{ 2.1f, 1.2f, 1.0f },
-				{ 0.25f, 0.75f, 1.0f, 1.0f },
-				MeshId{},
-				MaterialId{ 3u },
-				ShaderId{ 1u });
-
-			auto& movement = world.AddComponent<ECS::MovementComponent>(movingQuad);
-			movement.origin = { 1.4f, 1.0f, 0.0f };
-			movement.oscillationAxis = { 1.0f, 0.0f, 0.0f };
-			movement.oscillationAmplitude = 1.25f;
-			movement.oscillationSpeed = 1.5f;
-			movement.useOscillation = true;
-
-			CreatePrimitiveEntity(
-				world,
-				"SceneCube",
-				PrimitiveType::Cube,
-				{ 3.6f, -0.7f, 0.0f },
-				{ 1.6f, 1.6f, 1.6f },
-				{ 1.0f, 0.85f, 0.3f, 1.0f },
-				MeshId{},
-				MaterialId{ 4u },
-				ShaderId{ 1u });
-		}
-
-	} // namespace
-	
 	NeneEngineApp::NeneEngineApp() = default;
 
 	NeneEngineApp::~NeneEngineApp()
@@ -146,9 +48,11 @@ namespace NeneEngine
 			m_gameStateMachine.PushState(eastl::make_unique<PlayState>());
 
 			// 5. ECS
+			m_world.AddSystem(std::make_unique<ECS::CameraControllerSystem>(m_window->GetInput()));
 			m_world.AddSystem(std::make_unique<ECS::MovementSystem>());
 			m_world.AddSystem(std::make_unique<ECS::RenderSystem>(m_renderer.get()));
-			CreateTestScene(m_world, width, height);
+			TestScene::LoadOrCreate(m_world, width, height);
+			LOG_INFO("Test scene loaded from {}", TestScene::DefaultScenePath().string());
 
 			LOG_INFO("Application initialized successfully ({}x{})", width, height);
 

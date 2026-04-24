@@ -2,8 +2,10 @@
 
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/MeshRenderer.h"
+#include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/Tag.h"
 #include "ECS/Components/Transform.h"
+#include "ECS/Systems/MovementSystem.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "NeneEngineApp.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
@@ -78,7 +80,7 @@ namespace NeneEngine
 				MaterialId{ 2u },
 				ShaderId{ 1u });
 
-			CreatePrimitiveEntity(
+			const ECS::Entity movingQuad = CreatePrimitiveEntity(
 				world,
 				"SceneQuad",
 				PrimitiveType::Quad,
@@ -88,6 +90,13 @@ namespace NeneEngine
 				MeshId{},
 				MaterialId{ 3u },
 				ShaderId{ 1u });
+
+			auto& movement = world.AddComponent<ECS::MovementComponent>(movingQuad);
+			movement.origin = { 1.4f, 1.0f, 0.0f };
+			movement.oscillationAxis = { 1.0f, 0.0f, 0.0f };
+			movement.oscillationAmplitude = 1.25f;
+			movement.oscillationSpeed = 1.5f;
+			movement.useOscillation = true;
 
 			CreatePrimitiveEntity(
 				world,
@@ -137,6 +146,7 @@ namespace NeneEngine
 			m_gameStateMachine.PushState(eastl::make_unique<PlayState>());
 
 			// 5. ECS
+			m_world.AddSystem(std::make_unique<ECS::MovementSystem>());
 			m_world.AddSystem(std::make_unique<ECS::RenderSystem>(m_renderer.get()));
 			CreateTestScene(m_world, width, height);
 

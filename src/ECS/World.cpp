@@ -3,8 +3,6 @@
 #include "ECS/World.h"
 #include "ECS/Components/Tag.h"
 
-#include <spdlog/spdlog.h>
-
 namespace NeneEngine::ECS {
 
 	World::World() = default;

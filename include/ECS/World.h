@@ -2,10 +2,6 @@
 
 #pragma once
 
-#include "Components/CameraComponent.h"
-#include "Components/MeshRenderer.h"
-#include "Components/Tag.h"
-#include "Components/Transform.h"
 #include "Entity.h"
 #include "Systems/ISystem.h"
 

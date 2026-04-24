@@ -2,21 +2,16 @@
 
 #pragma once
 
-#include <glm/glm.hpp>
+#include "Rendering/RenderTypes.h"
 
 namespace NeneEngine::ECS {
-
-	enum class PrimitiveType
-	{
-		Triangle,
-		Quad,
-		Cube
-	};
-
+	
 	struct MeshRenderer
 	{
-		PrimitiveType primitive = PrimitiveType::Triangle;
-		glm::vec4     color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		PrimitiveType primitiveType = PrimitiveType::Triangle;
+		bool          visible = true;
+		MeshId        meshId{};
+		Material      material{};
 	};
 
 } // namespace NeneEngine::ECS

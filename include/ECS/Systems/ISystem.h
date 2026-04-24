@@ -12,7 +12,7 @@ namespace NeneEngine::ECS {
 
 		virtual void Update(World& world, float deltaTime) = 0;
 
-		virtual void Render(World& world) = 0;
+		virtual void Render(World& world) {}
 	};
 
 } // namespace NeneEngine::ECS

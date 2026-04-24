@@ -36,37 +36,37 @@ namespace NeneEngine
 		template<typename... Args>
 		void Trace(std::string_view fmt, Args&&... args) const
 		{
-			if (m_logger) m_logger->trace(fmt, std::forward<Args>(args)...);
+			if (m_logger) m_logger->trace(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
 		template<typename... Args>
 		void Debug(std::string_view fmt, Args&&... args) const
 		{
-			if (m_logger) m_logger->debug(fmt, std::forward<Args>(args)...);
+			if (m_logger) m_logger->debug(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
 		template<typename... Args>
 		void Info(std::string_view fmt, Args&&... args) const
 		{
-			if (m_logger) m_logger->info(fmt, std::forward<Args>(args)...);
+			if (m_logger) m_logger->info(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
 		template<typename... Args>
 		void Warn(std::string_view fmt, Args&&... args) const
 		{
-			if (m_logger) m_logger->warn(fmt, std::forward<Args>(args)...);
+			if (m_logger) m_logger->warn(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
 		template<typename... Args>
 		void Error(std::string_view fmt, Args&&... args) const
 		{
-			if (m_logger) m_logger->error(fmt, std::forward<Args>(args)...);
+			if (m_logger) m_logger->error(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
 		template<typename... Args>
 		void Critical(std::string_view fmt, Args&&... args) const
 		{
-			if (m_logger) m_logger->critical(fmt, std::forward<Args>(args)...);
+			if (m_logger) m_logger->critical(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
 		std::shared_ptr<spdlog::logger> GetRawLogger() const
@@ -83,9 +83,29 @@ namespace NeneEngine
 
 } // namespace NeneEngine
 
-#define LOG_TRACE(...)   ::NeneEngine::CustomLogger::Instance().Trace(__VA_ARGS__)
-#define LOG_DEBUG(...)   ::NeneEngine::CustomLogger::Instance().Debug(__VA_ARGS__)
-#define LOG_INFO(...)    ::NeneEngine::CustomLogger::Instance().Info(__VA_ARGS__)
-#define LOG_WARN(...)    ::NeneEngine::CustomLogger::Instance().Warn(__VA_ARGS__)
-#define LOG_ERROR(...)   ::NeneEngine::CustomLogger::Instance().Error(__VA_ARGS__)
-#define LOG_CRITICAL(...)::NeneEngine::CustomLogger::Instance().Critical(__VA_ARGS__)
+#ifdef LOG_TRACE
+#undef LOG_TRACE
+#endif
+#ifdef LOG_DEBUG
+#undef LOG_DEBUG
+#endif
+#ifdef LOG_INFO
+#undef LOG_INFO
+#endif
+#ifdef LOG_WARN
+#undef LOG_WARN
+#endif
+// Fix define conflict with DiligentEngine
+#ifdef LOG_ERROR
+#undef LOG_ERROR
+#endif
+#ifdef LOG_CRITICAL
+#undef LOG_CRITICAL
+#endif
+
+#define LOG_TRACE(...)   ::NeneEngine::CustomLogger::GetInstance().Trace(__VA_ARGS__)
+#define LOG_DEBUG(...)   ::NeneEngine::CustomLogger::GetInstance().Debug(__VA_ARGS__)
+#define LOG_INFO(...)    ::NeneEngine::CustomLogger::GetInstance().Info(__VA_ARGS__)
+#define LOG_WARN(...)    ::NeneEngine::CustomLogger::GetInstance().Warn(__VA_ARGS__)
+#define LOG_ERROR(...)   ::NeneEngine::CustomLogger::GetInstance().Error(__VA_ARGS__)
+#define LOG_CRITICAL(...)::NeneEngine::CustomLogger::GetInstance().Critical(__VA_ARGS__)

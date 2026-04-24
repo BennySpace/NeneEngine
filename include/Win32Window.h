@@ -3,6 +3,7 @@
 #pragma once
 
 #include "IWindow.h"
+#include "Input/InputDevice.h"
 
 #include <Windows.h>
 
@@ -25,6 +26,8 @@ namespace NeneEngine
 		std::string GetTitle() const override { return m_title; }
 		uint32_t GetWidth() const override { return m_width; }
 		uint32_t GetHeight() const override { return m_height; }
+		InputDevice& GetInput() override { return m_input; }
+		const InputDevice& GetInput() const override { return m_input; }
 
 	private:
 		static LRESULT CALLBACK WndProcStatic(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -35,6 +38,7 @@ namespace NeneEngine
 		uint32_t m_height = 0;
 		bool m_shouldClose = false;
 		std::string m_title;
+		InputDevice m_input;
 	};
 
 } // namespace NeneEngine

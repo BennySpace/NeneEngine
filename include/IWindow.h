@@ -8,6 +8,7 @@
 
 namespace NeneEngine
 {
+	class InputDevice;
 
 	class IWindow 
 	{
@@ -24,6 +25,8 @@ namespace NeneEngine
 		virtual std::string GetTitle() const = 0;
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
+		virtual InputDevice& GetInput() = 0;
+		virtual const InputDevice& GetInput() const = 0;
 	};
 
 } // namespace NeneEngine

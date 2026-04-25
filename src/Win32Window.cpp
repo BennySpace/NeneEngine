@@ -257,6 +257,8 @@ namespace NeneEngine
 		case WM_SIZE:
 			m_width = LOWORD(lParam);
 			m_height = HIWORD(lParam);
+			if (wParam != SIZE_MINIMIZED && m_width > 0 && m_height > 0)
+				m_onResized.Broadcast(m_width, m_height);
 
 			return 0;
 		}

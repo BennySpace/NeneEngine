@@ -34,6 +34,7 @@ namespace NeneEngine {
         SCDesc.Width = width;
         SCDesc.Height = height;
         SCDesc.BufferCount = 2;                     // Double buffering
+        SCDesc.DepthBufferFormat = TEX_FORMAT_D32_FLOAT;
 
         pFactory->CreateDeviceAndContextsD3D12(EngineCI, &m_pDevice, &m_pImmediateContext);
 
@@ -86,12 +87,20 @@ namespace NeneEngine {
 
         ITextureView* pRTV = m_pSwapChain->GetCurrentBackBufferRTV();
         ITextureView* pDSV = m_pSwapChain->GetDepthBufferDSV();
+        if (pRTV == nullptr)
+        {
+            LOG_WARN("DiligentDX12Adapter: current back buffer RTV is missing");
+            return;
+        }
 
         m_pImmediateContext->SetRenderTargets(1, &pRTV, pDSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
         const float ClearColor[] = { 0.1f, 0.1f, 0.2f, 1.0f };
         m_pImmediateContext->ClearRenderTarget(pRTV, ClearColor, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-        m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.0f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        if (pDSV != nullptr)
+            m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.0f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        else
+            LOG_WARN("DiligentDX12Adapter: depth buffer DSV is missing");
 
         m_renderQueue.clear();
     }
@@ -173,8 +182,17 @@ namespace NeneEngine {
 
     void DiligentDX12Adapter::Resize(uint32_t width, uint32_t height)
     {
+        if (width == 0 || height == 0)
+            return;
+
+        if (m_pImmediateContext)
+            m_pImmediateContext->Flush();
+
         if (m_pSwapChain)
+        {
             m_pSwapChain->Resize(width, height);
+            LOG_INFO("DiligentDX12Adapter: swap chain resized to {}x{}", width, height);
+        }
     }
 
     // Create all resources for app
@@ -216,7 +234,9 @@ namespace NeneEngine {
             PSOCreateInfo.GraphicsPipeline.PrimitiveTopology =
                 primitiveType == PrimitiveType::Line ? PRIMITIVE_TOPOLOGY_LINE_LIST : PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
             PSOCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = CULL_MODE_NONE;
-            PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = false;
+            PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = true;
+            PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthWriteEnable = true;
+            PSOCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthFunc = COMPARISON_FUNC_LESS;
 
             ShaderResourceVariableDesc variables[] =
             {

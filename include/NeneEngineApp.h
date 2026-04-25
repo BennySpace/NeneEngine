@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Core/Delegate.h"
 #include "ECS/World.h"
 #include "GameStateMachine.h"
 #include "GameTimer.h"
@@ -34,8 +35,10 @@ namespace NeneEngine
 
 		std::atomic<bool>					m_running{ false };
 		std::atomic<bool>					m_isPaused{ false };
+		DelegateHandle						m_windowResizeHandle;
 
 		void CalculateFrameStats();
+		void HandleWindowResize(uint32_t width, uint32_t height);
 	};
 
 } // namespace NeneEngine

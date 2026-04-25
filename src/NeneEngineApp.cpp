@@ -5,6 +5,7 @@
 #include "ECS/Systems/RenderSystem.h"
 #include "NeneEngineApp.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
+#include "Rendering/RenderResizeHandler.h"
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
 #include "Win32Window.h"
@@ -19,6 +20,12 @@ namespace NeneEngine
 	NeneEngineApp::~NeneEngineApp()
 	{
 		if (m_running) RequestShutdown();
+
+		if (m_window && m_windowResizeHandle.IsValid())
+		{
+			m_window->OnResized().Remove(m_windowResizeHandle);
+			m_windowResizeHandle.Reset();
+		}
 
 		if (spdlog::default_logger())
 			spdlog::default_logger()->flush();
@@ -43,6 +50,9 @@ namespace NeneEngine
 			m_renderer = eastl::make_unique<DiligentDX12Adapter>();
 			if (!m_renderer->Init(m_window->GetHWND(), width, height))
 				return false;
+			m_windowResizeHandle = m_window->OnResized().AddLambda([this](uint32_t newWidth, uint32_t newHeight) {
+				HandleWindowResize(newWidth, newHeight);
+			});
 			
 			// 4. States
 			m_gameStateMachine.PushState(eastl::make_unique<PlayState>());
@@ -64,6 +74,15 @@ namespace NeneEngine
 
 			return false;
 		}
+	}
+
+	void NeneEngineApp::HandleWindowResize(uint32_t width, uint32_t height)
+	{
+		if (!m_renderer)
+			return;
+
+		ResizeRenderResources(*m_renderer, m_world, width, height);
+		LOG_INFO("Application resized to {}x{}", width, height);
 	}
 
 	inline std::wstring AnsiToWString(const std::string& str)

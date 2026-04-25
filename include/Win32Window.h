@@ -28,6 +28,7 @@ namespace NeneEngine
 		uint32_t GetHeight() const override { return m_height; }
 		InputDevice& GetInput() override { return m_input; }
 		const InputDevice& GetInput() const override { return m_input; }
+		MulticastDelegate<uint32_t, uint32_t>& OnResized() override { return m_onResized; }
 
 	private:
 		static LRESULT CALLBACK WndProcStatic(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -39,6 +40,7 @@ namespace NeneEngine
 		bool m_shouldClose = false;
 		std::string m_title;
 		InputDevice m_input;
+		MulticastDelegate<uint32_t, uint32_t> m_onResized;
 	};
 
 } // namespace NeneEngine

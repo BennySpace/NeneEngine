@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Core/Delegate.h"
+
 #include <string>
 #include <cstdint>
 #include <wtypes.h>
@@ -27,6 +29,7 @@ namespace NeneEngine
 		virtual uint32_t GetHeight() const = 0;
 		virtual InputDevice& GetInput() = 0;
 		virtual const InputDevice& GetInput() const = 0;
+		virtual MulticastDelegate<uint32_t, uint32_t>& OnResized() = 0;
 	};
 
 } // namespace NeneEngine

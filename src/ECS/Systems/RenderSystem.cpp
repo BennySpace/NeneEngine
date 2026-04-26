@@ -1,8 +1,8 @@
 // RenderSystem.cpp
 
 #include "ECS/Components/CameraComponent.h"
-#include "ECS/Components/MeshRenderer.h"
-#include "ECS/Components/Transform.h"
+#include "ECS/Components/MeshRendererComponent.h"
+#include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/World.h"
 #include "CustomLogger.h"
@@ -24,9 +24,9 @@ namespace NeneEngine::ECS {
 			return;
 		}
 
-		const auto cameraView = world.GetRegistry().view<const Transform, const CameraComponent>();
+		const auto cameraView = world.GetRegistry().view<const TransformComponent, const CameraComponent>();
 
-		const Transform* activeCameraTransform = nullptr;
+		const TransformComponent* activeCameraTransform = nullptr;
 		const CameraComponent* activeCamera = nullptr;
 
 		for (auto entity : cameraView)
@@ -35,7 +35,7 @@ namespace NeneEngine::ECS {
 			if (!camera.isPrimary)
 				continue;
 
-			activeCameraTransform = &cameraView.get<Transform>(entity);
+			activeCameraTransform = &cameraView.get<TransformComponent>(entity);
 			activeCamera = &camera;
 			break;
 		}
@@ -54,14 +54,14 @@ namespace NeneEngine::ECS {
 			activeCamera->farPlane);
 		const glm::mat4 viewProjectionMatrix = projectionMatrix * viewMatrix;
 
-		auto view = world.GetRegistry().view<const Transform, const MeshRenderer>();
+		auto view = world.GetRegistry().view<const TransformComponent, const MeshRendererComponent>();
 
 		LOG_DEBUG("RenderSystem: starting render pass");
 
 		for (auto entity : view)
 		{
-			const auto& transform = view.get<Transform>(entity);
-			const auto& meshRenderer = view.get<MeshRenderer>(entity);
+			const auto& transform = view.get<TransformComponent>(entity);
+			const auto& meshRenderer = view.get<MeshRendererComponent>(entity);
 
 			if (!meshRenderer.visible)
 				continue;

@@ -1,4 +1,4 @@
-// MeshRenderer.h
+// MeshRendererComponent.h
 
 #pragma once
 
@@ -6,7 +6,7 @@
 
 namespace NeneEngine::ECS {
 	
-	struct MeshRenderer
+	struct MeshRendererComponent
 	{
 		PrimitiveType primitiveType = PrimitiveType::Triangle;
 		bool          visible = true;

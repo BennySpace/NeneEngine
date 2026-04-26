@@ -2,7 +2,7 @@
 
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
-#include "ECS/Components/Transform.h"
+#include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/CameraControllerSystem.h"
 #include "ECS/World.h"
 #include "Input/InputDevice.h"
@@ -15,7 +15,7 @@ namespace NeneEngine::ECS {
 
 	void CameraControllerSystem::Update(World& world, float deltaTime)
 	{
-		auto view = world.GetRegistry().view<Transform, const CameraComponent, CameraControllerComponent>();
+		auto view = world.GetRegistry().view<TransformComponent, const CameraComponent, CameraControllerComponent>();
 
 		for (auto entity : view)
 		{
@@ -23,7 +23,7 @@ namespace NeneEngine::ECS {
 			if (!camera.isPrimary)
 				continue;
 
-			auto& transform = view.get<Transform>(entity);
+			auto& transform = view.get<TransformComponent>(entity);
 			auto& controller = view.get<CameraControllerComponent>(entity);
 
 			const bool canRotate = !controller.rotateWithRightMouse || m_input.IsKeyDown(KeyCode::MouseRight);

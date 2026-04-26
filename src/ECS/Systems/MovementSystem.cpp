@@ -1,7 +1,7 @@
 // MovementSystem.cpp
 
 #include "ECS/Components/MovementComponent.h"
-#include "ECS/Components/Transform.h"
+#include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/MovementSystem.h"
 #include "ECS/World.h"
 
@@ -11,11 +11,11 @@ namespace NeneEngine::ECS {
 
 	void MovementSystem::Update(World& world, float deltaTime)
 	{
-		auto view = world.GetRegistry().view<Transform, MovementComponent>();
+		auto view = world.GetRegistry().view<TransformComponent, MovementComponent>();
 
 		for (auto entity : view)
 		{
-			auto& transform = view.get<Transform>(entity);
+			auto& transform = view.get<TransformComponent>(entity);
 			auto& movement = view.get<MovementComponent>(entity);
 
 			if (movement.useOscillation && movement.oscillationAmplitude > 0.0f)

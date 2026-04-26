@@ -4,10 +4,10 @@
 
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
-#include "ECS/Components/MeshRenderer.h"
+#include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/MovementComponent.h"
-#include "ECS/Components/Tag.h"
-#include "ECS/Components/Transform.h"
+#include "ECS/Components/TagComponent.h"
+#include "ECS/Components/TransformComponent.h"
 
 #include <fstream>
 #include <glm/gtc/quaternion.hpp>
@@ -91,12 +91,12 @@ namespace NeneEngine {
 			throw std::runtime_error("Unknown PrimitiveType: " + value);
 		}
 
-		nlohmann::json SerializeTag(const ECS::Tag& tag)
+		nlohmann::json SerializeTag(const ECS::TagComponent& tag)
 		{
 			return { { "name", tag.name } };
 		}
 
-		nlohmann::json SerializeTransform(const ECS::Transform& transform)
+		nlohmann::json SerializeTransform(const ECS::TransformComponent& transform)
 		{
 			return {
 				{ "position", ToJson(transform.position) },
@@ -128,7 +128,7 @@ namespace NeneEngine {
 			};
 		}
 
-		nlohmann::json SerializeMeshRenderer(const ECS::MeshRenderer& renderer)
+		nlohmann::json SerializeMeshRenderer(const ECS::MeshRendererComponent& renderer)
 		{
 			return {
 				{ "primitiveType", ToString(renderer.primitiveType) },
@@ -157,15 +157,15 @@ namespace NeneEngine {
 
 		void DeserializeTag(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
 		{
-			auto& tag = world.HasComponent<ECS::Tag>(entity)
-				? *world.GetComponent<ECS::Tag>(entity)
-				: world.AddComponent<ECS::Tag>(entity);
+			auto& tag = world.HasComponent<ECS::TagComponent>(entity)
+				? *world.GetComponent<ECS::TagComponent>(entity)
+				: world.AddComponent<ECS::TagComponent>(entity);
 			tag.name = value.at("name").get<std::string>();
 		}
 
 		void DeserializeTransform(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
 		{
-			auto& transform = world.AddComponent<ECS::Transform>(entity);
+			auto& transform = world.AddComponent<ECS::TransformComponent>(entity);
 			transform.position = ReadVec3(value.at("position"));
 			transform.rotation = ReadQuat(value.at("rotation"));
 			transform.scale = ReadVec3(value.at("scale"));
@@ -194,7 +194,7 @@ namespace NeneEngine {
 
 		void DeserializeMeshRenderer(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
 		{
-			auto& renderer = world.AddComponent<ECS::MeshRenderer>(entity);
+			auto& renderer = world.AddComponent<ECS::MeshRendererComponent>(entity);
 			renderer.primitiveType = ReadPrimitiveType(value.at("primitiveType").get<std::string>());
 			renderer.visible = value.at("visible").get<bool>();
 			renderer.meshId = MeshId{ value.at("meshId").get<uint32_t>() };
@@ -233,11 +233,11 @@ namespace NeneEngine {
 				{ "components", nlohmann::json::object() }
 			};
 
-			const auto* tag = world.GetRegistry().try_get<ECS::Tag>(entity);
+			const auto* tag = world.GetRegistry().try_get<ECS::TagComponent>(entity);
 			if (tag != nullptr)
 				entityJson["components"]["Tag"] = SerializeTag(*tag);
 
-			const auto* transform = world.GetRegistry().try_get<ECS::Transform>(entity);
+			const auto* transform = world.GetRegistry().try_get<ECS::TransformComponent>(entity);
 			if (transform != nullptr)
 				entityJson["components"]["Transform"] = SerializeTransform(*transform);
 
@@ -249,7 +249,7 @@ namespace NeneEngine {
 			if (cameraController != nullptr)
 				entityJson["components"]["CameraControllerComponent"] = SerializeCameraController(*cameraController);
 
-			const auto* meshRenderer = world.GetRegistry().try_get<ECS::MeshRenderer>(entity);
+			const auto* meshRenderer = world.GetRegistry().try_get<ECS::MeshRendererComponent>(entity);
 			if (meshRenderer != nullptr)
 				entityJson["components"]["MeshRenderer"] = SerializeMeshRenderer(*meshRenderer);
 

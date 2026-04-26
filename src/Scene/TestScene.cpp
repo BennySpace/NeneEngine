@@ -4,9 +4,9 @@
 
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
-#include "ECS/Components/MeshRenderer.h"
+#include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/MovementComponent.h"
-#include "ECS/Components/Transform.h"
+#include "ECS/Components/TransformComponent.h"
 #include "Scene/SceneSerializer.h"
 
 namespace NeneEngine::TestScene {
@@ -24,11 +24,11 @@ namespace NeneEngine::TestScene {
 			ShaderId shaderId)
 		{
 			const ECS::Entity entity = world.CreateEntity(std::string(name));
-			auto& transform = world.AddComponent<ECS::Transform>(entity);
+			auto& transform = world.AddComponent<ECS::TransformComponent>(entity);
 			transform.position = position;
 			transform.scale = scale;
 
-			auto& renderer = world.AddComponent<ECS::MeshRenderer>(entity);
+			auto& renderer = world.AddComponent<ECS::MeshRendererComponent>(entity);
 			renderer.primitiveType = primitiveType;
 			renderer.meshId = meshId;
 			renderer.material.materialId = materialId;
@@ -50,7 +50,7 @@ namespace NeneEngine::TestScene {
 		world.GetRegistry().clear();
 
 		const ECS::Entity cameraEntity = world.CreateEntity("MainCamera");
-		auto& cameraTransform = world.AddComponent<ECS::Transform>(cameraEntity);
+		auto& cameraTransform = world.AddComponent<ECS::TransformComponent>(cameraEntity);
 		cameraTransform.position = { 0.0f, 0.0f, 8.0f };
 
 		auto& camera = world.AddComponent<ECS::CameraComponent>(cameraEntity);

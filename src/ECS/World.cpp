@@ -1,7 +1,7 @@
 // World.cpp
 
 #include "ECS/World.h"
-#include "ECS/Components/Tag.h"
+#include "ECS/Components/TagComponent.h"
 
 namespace NeneEngine::ECS {
 
@@ -12,7 +12,7 @@ namespace NeneEngine::ECS {
 		Entity entity = m_registry.create();
 
 		if (!name.empty())
-			m_registry.emplace<Tag>(entity, name);
+			m_registry.emplace<TagComponent>(entity, name);
 
 		return entity;
 	}

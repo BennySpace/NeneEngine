@@ -1,4 +1,4 @@
-#include "NeneEngineApp.h"
+#include "App/NeneEngineApp.h"
 #include <iostream>
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {

@@ -1,6 +1,6 @@
 // MenuState.cpp
 
-#include "states/MenuState.h"
+#include "States/MenuState.h"
 
 #include <spdlog/spdlog.h>
 

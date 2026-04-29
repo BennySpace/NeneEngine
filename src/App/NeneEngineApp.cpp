@@ -3,13 +3,13 @@
 #include "ECS/Systems/CameraControllerSystem.h"
 #include "ECS/Systems/MovementSystem.h"
 #include "ECS/Systems/RenderSystem.h"
-#include "NeneEngineApp.h"
+#include "App/NeneEngineApp.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
 #include "Rendering/RenderResizeHandler.h"
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
-#include "Win32Window.h"
-#include "CustomLogger.h"
+#include "Platform/Win32/Win32Window.h"
+#include "Core/CustomLogger.h"
 
 #include <stdexcept>
 

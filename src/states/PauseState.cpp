@@ -1,6 +1,6 @@
 // PauseState.cpp
 
-#include "states/PauseState.h"
+#include "States/PauseState.h"
 
 #include <spdlog/spdlog.h>
 

@@ -5,7 +5,7 @@
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/World.h"
-#include "CustomLogger.h"
+#include "Core/CustomLogger.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 

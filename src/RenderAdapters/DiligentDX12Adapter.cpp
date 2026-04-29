@@ -5,7 +5,7 @@
 #include "../external/DiligentEngine/DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h"
 #include "../external/DiligentEngine/DiligentCore/Graphics/GraphicsEngine/interface/Shader.h"
 
-#include "CustomLogger.h"
+#include "Core/CustomLogger.h"
 
 namespace NeneEngine {
 

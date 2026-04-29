@@ -2,7 +2,7 @@
 
 #include "Rendering/RenderResizeHandler.h"
 
-#include "CustomLogger.h"
+#include "Core/CustomLogger.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/World.h"
 #include "RenderAdapters/IRenderAdapter.h"

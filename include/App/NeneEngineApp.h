@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include "App/GameStateMachine.h"
 #include "Core/Delegate.h"
+#include "Core/GameTimer.h"
 #include "ECS/World.h"
-#include "GameStateMachine.h"
-#include "GameTimer.h"
-#include "IWindow.h"
+#include "Platform/IWindow.h"
 #include "RenderAdapters/IRenderAdapter.h"
 
 #include <atomic>

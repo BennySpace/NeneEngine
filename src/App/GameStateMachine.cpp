@@ -1,6 +1,6 @@
 // GameStateMachine.cpp
 
-#include "GameStateMachine.h"
+#include "App/GameStateMachine.h"
 
 namespace NeneEngine
 {

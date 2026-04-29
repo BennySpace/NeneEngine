@@ -2,6 +2,7 @@
 
 #include "Win32Window.h"
 #include "CustomLogger.h"
+#include "Resource.h"
 
 #include <array>
 #include <stdexcept>
@@ -86,6 +87,8 @@ namespace NeneEngine
 		wc.lpfnWndProc = WndProcStatic;
 		wc.hInstance = hInstance;
 		wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+		wc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
+		wc.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APP_ICON));
 		wc.lpszClassName = "NeneEngineWindowClass";
 
 		if (!RegisterClassEx(&wc)) {
@@ -109,6 +112,9 @@ namespace NeneEngine
 		if (!m_hwnd) {
 			throw std::runtime_error("Failed to create window");
 		}
+
+		SendMessage(m_hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(wc.hIcon));
+		SendMessage(m_hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(wc.hIconSm));
 
 		ShowWindow(m_hwnd, SW_SHOW);
 		UpdateWindow(m_hwnd);

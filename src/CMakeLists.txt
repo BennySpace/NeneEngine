@@ -10,7 +10,7 @@ list(FILTER SOURCES EXCLUDE REGEX
     "(.*_test\\.cpp$|.*Test\\.cpp$|.*\\.t\\.cpp$|.*main_test\\.cpp$)"
 )
 
-add_executable(NeneEngine WIN32 ${SOURCES} "../WinMain.cpp")
+add_executable(NeneEngine WIN32 ${SOURCES} "../WinMain.cpp" "../NeneEngine.rc")
 
 target_include_directories(NeneEngine 
 	PUBLIC 

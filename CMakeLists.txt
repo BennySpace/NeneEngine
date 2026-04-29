@@ -1,12 +1,12 @@
 ﻿# NeneEngine/CMakeList.txt : Top-level CMake project file, do global configuration
 
-cmake_minimum_required (VERSION 3.12)
+cmake_minimum_required(VERSION 3.19)
 
-project (
-	NeneEngine
-	VERSION 0.2
-	DESCRIPTION "Game engine"
-	LANGUAGES CXX
+project(
+    NeneEngine
+    VERSION 0.2
+    DESCRIPTION "Game engine"
+    LANGUAGES CXX
 )
 
 set(CMAKE_CXX_STANDARD          20)
@@ -26,7 +26,7 @@ set(DILIGENT_NO_GLES       ON  CACHE BOOL "" FORCE)
 set(DILIGENT_NO_METAL      ON  CACHE BOOL "" FORCE)
 set(DILIGENT_NO_DIRECT3D12 OFF CACHE BOOL "" FORCE)
 
-add_subdirectory ("external/DiligentEngine/DiligentCore")
+add_subdirectory("external/DiligentEngine/DiligentCore")
 
 foreach(target_name SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-core)
     if(TARGET ${target_name})
@@ -43,5 +43,5 @@ foreach(target_name SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-core)
     endif()
 endforeach()
 
-add_subdirectory ("src")
-# add_subdirectory(tests)
+add_subdirectory("src")
+set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT NeneEngine)

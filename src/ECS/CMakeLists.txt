@@ -1,0 +1,18 @@
+target_sources(NeneEngine PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Entity.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/World.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/CameraComponent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/CameraControllerComponent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/MeshRendererComponent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/MovementComponent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/TagComponent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/TransformComponent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Systems/CameraControllerSystem.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Systems/ISystem.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Systems/MovementSystem.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Systems/RenderSystem.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/World.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Systems/CameraControllerSystem.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Systems/MovementSystem.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Systems/RenderSystem.cpp"
+)

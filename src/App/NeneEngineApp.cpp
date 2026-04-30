@@ -154,6 +154,7 @@ namespace NeneEngine
 				m_renderer->Present();
 
 				CalculateFrameStats();
+				m_window->GetInput().EndFrame();
 			}
 			else
 			{

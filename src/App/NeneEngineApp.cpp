@@ -9,7 +9,7 @@
 #include "Rendering/RenderResizeHandler.h"
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
-#include "Platform/Win32/Win32Window.h"
+#include "Platform/Windows32/Windows32Window.h"
 #include "Core/CustomLogger.h"
 
 #include <stdexcept>
@@ -53,7 +53,7 @@ namespace NeneEngine
 				m_appConfigLastWriteTime = std::filesystem::last_write_time(m_appConfigPath);
 
 			// 2. Window
-			m_window = eastl::make_unique<Win32Window>();
+			m_window = eastl::make_unique<Windows32Window>();
 			if (!m_window->Create(width, height, title))
 				return false;
 

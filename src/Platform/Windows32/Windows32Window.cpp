@@ -1,0 +1,236 @@
+#include "Platform/Windows32/Windows32Window.h"
+
+#include <windowsx.h>
+
+namespace
+{
+	constexpr wchar_t kWindowClassName[] = L"NeneEngineWindowClass";
+
+	ATOM EnsureWindowClassRegistered()
+	{
+		static ATOM atom = []() {
+			WNDCLASSEXW windowClass{};
+			windowClass.cbSize = sizeof(windowClass);
+			windowClass.style = CS_HREDRAW | CS_VREDRAW;
+			windowClass.lpfnWndProc = NeneEngine::Windows32Window::WndProc;
+			windowClass.hInstance = GetModuleHandleW(nullptr);
+			windowClass.hCursor = LoadCursorW(nullptr, MAKEINTRESOURCEW(32512));
+			windowClass.lpszClassName = kWindowClassName;
+			return RegisterClassExW(&windowClass);
+		}();
+
+		return atom;
+	}
+}
+
+namespace NeneEngine
+{
+	namespace
+	{
+		std::wstring ToWideString(const std::string& value)
+		{
+			if (value.empty())
+				return {};
+
+			const int length = MultiByteToWideChar(CP_UTF8, 0, value.c_str(), -1, nullptr, 0);
+			if (length <= 0)
+				return std::wstring(value.begin(), value.end());
+
+			std::wstring wideValue(static_cast<size_t>(length), L'\0');
+			MultiByteToWideChar(CP_UTF8, 0, value.c_str(), -1, wideValue.data(), length);
+			wideValue.pop_back();
+			return wideValue;
+		}
+	}
+
+	Windows32Window::~Windows32Window()
+	{
+		Destroy();
+	}
+
+	bool Windows32Window::Create(uint32_t width, uint32_t height, const std::string& title)
+	{
+		if (!EnsureWindowClassRegistered())
+			return false;
+
+		Destroy();
+
+		m_title = title;
+		m_width = width;
+		m_height = height;
+		m_shouldClose = false;
+
+		RECT windowRect{ 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+		const DWORD style = WS_OVERLAPPEDWINDOW;
+		AdjustWindowRect(&windowRect, style, FALSE);
+
+		const std::wstring wideTitle = ToWideString(title);
+		m_hwnd = CreateWindowExW(
+			0,
+			kWindowClassName,
+			wideTitle.c_str(),
+			style,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			windowRect.right - windowRect.left,
+			windowRect.bottom - windowRect.top,
+			nullptr,
+			nullptr,
+			GetModuleHandleW(nullptr),
+			this);
+
+		if (!m_hwnd)
+			return false;
+
+		ShowWindow(m_hwnd, SW_SHOW);
+		UpdateWindow(m_hwnd);
+		return true;
+	}
+
+	void Windows32Window::Destroy()
+	{
+		if (!m_hwnd)
+			return;
+
+		HWND hwnd = m_hwnd;
+		m_hwnd = nullptr;
+		DestroyWindow(hwnd);
+	}
+
+	void Windows32Window::PumpMessages()
+	{
+		MSG message{};
+		while (PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&message);
+			DispatchMessageW(&message);
+		}
+	}
+
+	LRESULT CALLBACK Windows32Window::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		if (message == WM_NCCREATE)
+		{
+			const auto* createStruct = reinterpret_cast<CREATESTRUCTW*>(lParam);
+			auto* window = static_cast<Windows32Window*>(createStruct->lpCreateParams);
+			SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
+			window->m_hwnd = hwnd;
+		}
+
+		auto* window = reinterpret_cast<Windows32Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+		if (!window)
+			return DefWindowProcW(hwnd, message, wParam, lParam);
+
+		return window->HandleMessage(message, wParam, lParam);
+	}
+
+	LRESULT Windows32Window::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		switch (message)
+		{
+		case WM_CLOSE:
+			m_shouldClose = true;
+			DestroyWindow(m_hwnd);
+			return 0;
+
+		case WM_DESTROY:
+			m_shouldClose = true;
+			PostQuitMessage(0);
+			return 0;
+
+		case WM_SIZE:
+			m_width = static_cast<uint32_t>(LOWORD(lParam));
+			m_height = static_cast<uint32_t>(HIWORD(lParam));
+			if (wParam != SIZE_MINIMIZED)
+				m_resized.Broadcast(m_width, m_height);
+			return 0;
+
+		case WM_MOUSEMOVE:
+			m_input.NotifyMouseMove({
+				static_cast<float>(GET_X_LPARAM(lParam)),
+				static_cast<float>(GET_Y_LPARAM(lParam))
+			});
+			return 0;
+
+		case WM_MOUSEWHEEL:
+			m_input.NotifyMouseWheel(static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA));
+			return 0;
+
+		case WM_LBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_XBUTTONDOWN:
+		{
+			const KeyCode key = TranslateMouseButton(message, wParam);
+			if (key != KeyCode::None)
+				m_input.NotifyKeyDown(key);
+			return 0;
+		}
+
+		case WM_LBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_XBUTTONUP:
+		{
+			const KeyCode key = TranslateMouseButton(message, wParam);
+			if (key != KeyCode::None)
+				m_input.NotifyKeyUp(key);
+			return 0;
+		}
+
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+			if ((lParam & (1LL << 30)) == 0)
+				m_input.NotifyKeyDown(TranslateKey(wParam, lParam));
+			return 0;
+
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+			m_input.NotifyKeyUp(TranslateKey(wParam, lParam));
+			return 0;
+		}
+
+		return DefWindowProcW(m_hwnd, message, wParam, lParam);
+	}
+
+	KeyCode Windows32Window::TranslateKey(WPARAM wParam, LPARAM lParam)
+	{
+		switch (wParam)
+		{
+		case VK_SHIFT:
+			return (MapVirtualKeyW((lParam >> 16) & 0xFF, MAPVK_VSC_TO_VK_EX) == VK_RSHIFT) ? KeyCode::RightShift : KeyCode::LeftShift;
+		case VK_CONTROL:
+			return (lParam & (1LL << 24)) ? KeyCode::RightControl : KeyCode::LeftControl;
+		case VK_MENU:
+			return (lParam & (1LL << 24)) ? KeyCode::RightAlt : KeyCode::LeftAlt;
+		default:
+			break;
+		}
+
+		if (wParam >= static_cast<WPARAM>(KeyCode::Backspace) && wParam <= static_cast<WPARAM>(KeyCode::RightAlt))
+			return static_cast<KeyCode>(wParam);
+
+		return KeyCode::None;
+	}
+
+	KeyCode Windows32Window::TranslateMouseButton(UINT message, WPARAM wParam)
+	{
+		switch (message)
+		{
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+			return KeyCode::MouseLeft;
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONUP:
+			return KeyCode::MouseRight;
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONUP:
+			return KeyCode::MouseMiddle;
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONUP:
+			return HIWORD(wParam) == XBUTTON1 ? KeyCode::MouseX1 : KeyCode::MouseX2;
+		default:
+			return KeyCode::None;
+		}
+	}
+} // namespace NeneEngine

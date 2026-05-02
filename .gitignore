@@ -432,3 +432,9 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 /CMakeUserPresets.json
+
+# Generated documentation
+[dD]ocs/generated/*
+
+# Tests
+[tT]ests/*

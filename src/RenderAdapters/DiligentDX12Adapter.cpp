@@ -56,6 +56,12 @@ namespace NeneEngine {
             return false;
         }
 
+        const auto& swapChainDesc = m_pSwapChain->GetDesc();
+        LOG_INFO(
+            "DiligentDX12Adapter: swap chain formats color={} depth={}",
+            static_cast<int>(swapChainDesc.ColorBufferFormat),
+            static_cast<int>(swapChainDesc.DepthBufferFormat));
+
         CreateResources();
 
         LOG_INFO("Diligent DX12 Adapter initialized successfully ({}x{})", width, height);
@@ -95,7 +101,7 @@ namespace NeneEngine {
 
         m_pImmediateContext->SetRenderTargets(1, &pRTV, pDSV, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
-        const float ClearColor[] = { 0.1f, 0.1f, 0.2f, 1.0f };
+        const float ClearColor[] = { m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a };
         m_pImmediateContext->ClearRenderTarget(pRTV, ClearColor, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         if (pDSV != nullptr)
             m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.0f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
@@ -193,6 +199,17 @@ namespace NeneEngine {
             m_pSwapChain->Resize(width, height);
             LOG_INFO("DiligentDX12Adapter: swap chain resized to {}x{}", width, height);
         }
+    }
+
+    void DiligentDX12Adapter::SetClearColor(const glm::vec4& color)
+    {
+        m_clearColor = color;
+        LOG_INFO(
+            "DiligentDX12Adapter: clear color set to ({:.2f}, {:.2f}, {:.2f}, {:.2f})",
+            m_clearColor.r,
+            m_clearColor.g,
+            m_clearColor.b,
+            m_clearColor.a);
     }
 
     // Create all resources for app

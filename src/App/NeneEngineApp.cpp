@@ -1,5 +1,6 @@
 // NeneEngineApp.cpp
 
+#include "App/AppConfig.h"
 #include "ECS/Systems/CameraControllerSystem.h"
 #include "ECS/Systems/MovementSystem.h"
 #include "ECS/Systems/RenderSystem.h"
@@ -15,6 +16,11 @@
 
 namespace NeneEngine
 {
+	namespace
+	{
+		constexpr float kConfigReloadIntervalSeconds = 0.5f;
+	}
+
 	NeneEngineApp::NeneEngineApp() = default;
 
 	NeneEngineApp::~NeneEngineApp()
@@ -41,6 +47,11 @@ namespace NeneEngine
 			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", true, spdlog::level::info, true);
 			LOG_INFO("===== NeneEngine v0.2 starting =====");
 
+			m_appConfigPath = DefaultAppConfigPath();
+			const AppConfig appConfig = LoadAppConfig(m_appConfigPath);
+			if (std::filesystem::exists(m_appConfigPath))
+				m_appConfigLastWriteTime = std::filesystem::last_write_time(m_appConfigPath);
+
 			// 2. Window
 			m_window = eastl::make_unique<Win32Window>();
 			if (!m_window->Create(width, height, title))
@@ -50,6 +61,7 @@ namespace NeneEngine
 			m_renderer = eastl::make_unique<DiligentDX12Adapter>();
 			if (!m_renderer->Init(m_window->GetHWND(), width, height))
 				return false;
+			ApplyAppConfig(appConfig);
 			m_windowResizeHandle = m_window->OnResized().AddLambda([this](uint32_t newWidth, uint32_t newHeight) {
 				HandleWindowResize(newWidth, newHeight);
 			});
@@ -74,6 +86,14 @@ namespace NeneEngine
 
 			return false;
 		}
+	}
+
+	void NeneEngineApp::ApplyAppConfig(const AppConfig& config)
+	{
+		if (!m_renderer)
+			return;
+
+		m_renderer->SetClearColor(config.window.backgroundColor);
 	}
 
 	void NeneEngineApp::HandleWindowResize(uint32_t width, uint32_t height)
@@ -129,6 +149,37 @@ namespace NeneEngine
 		}
 	}
 
+	void NeneEngineApp::ReloadAppConfigIfChanged(float deltaTime)
+	{
+		m_configReloadAccumulator += deltaTime;
+		if (m_configReloadAccumulator < kConfigReloadIntervalSeconds)
+			return;
+
+		m_configReloadAccumulator = 0.0f;
+
+		const std::filesystem::path resolvedConfigPath = DefaultAppConfigPath();
+		const bool pathChanged = resolvedConfigPath != m_appConfigPath;
+
+		if (pathChanged)
+		{
+			LOG_INFO("App config path updated to '{}'", resolvedConfigPath.string());
+			m_appConfigPath = resolvedConfigPath;
+		}
+
+		if (!std::filesystem::exists(m_appConfigPath))
+			return;
+
+		const auto currentWriteTime = std::filesystem::last_write_time(m_appConfigPath);
+		if (!pathChanged && currentWriteTime == m_appConfigLastWriteTime)
+			return;
+
+		const AppConfig updatedConfig = LoadAppConfig(m_appConfigPath);
+		ApplyAppConfig(updatedConfig);
+		m_appConfigLastWriteTime = currentWriteTime;
+
+		LOG_INFO("App config hot-reloaded from '{}'", m_appConfigPath.string());
+	}
+
 
 	void NeneEngineApp::Run() 
 	{
@@ -147,6 +198,7 @@ namespace NeneEngine
 				m_gameStateMachine.HandleInput();
 				m_gameStateMachine.Update(deltaTime);
 				m_world.Update(deltaTime);
+				ReloadAppConfigIfChanged(deltaTime);
 
 				m_renderer->BeginFrame();
 				m_world.Render();

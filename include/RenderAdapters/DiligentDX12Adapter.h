@@ -31,6 +31,7 @@ namespace NeneEngine {
 		void EndFrame() override;
 		void Present() override;
 		void Resize(uint32_t width, uint32_t height) override;
+		void SetClearColor(const glm::vec4& color) override;
 
 	private:
 		static constexpr size_t PrimitiveTypeCount = 4;
@@ -49,6 +50,7 @@ namespace NeneEngine {
 		std::array<Diligent::RefCntAutoPtr<Diligent::IBuffer>, PrimitiveTypeCount> m_pPrimitiveConstantBuffers;
 		std::array<Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding>, PrimitiveTypeCount> m_pPrimitiveSRBs;
 		std::vector<RenderItem> m_renderQueue;
+		glm::vec4 m_clearColor{ 0.1f, 0.1f, 0.2f, 1.0f };
 
 		[[nodiscard]] Diligent::IPipelineState* GetPipelineState(PrimitiveType primitiveType) const;
 		[[nodiscard]] uint32_t GetVertexCount(PrimitiveType primitiveType) const;

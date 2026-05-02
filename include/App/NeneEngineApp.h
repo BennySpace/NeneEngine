@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "App/AppConfig.h"
 #include "App/GameStateMachine.h"
 #include "Core/Delegate.h"
 #include "Core/GameTimer.h"
@@ -10,6 +11,7 @@
 #include "RenderAdapters/IRenderAdapter.h"
 
 #include <atomic>
+#include <filesystem>
 #include <EASTL/unique_ptr.h>
 
 namespace NeneEngine 
@@ -32,13 +34,18 @@ namespace NeneEngine
 		GameTimer							m_timer;
 		GameStateMachine					m_gameStateMachine;
 		ECS::World							m_world;
+		std::filesystem::path				m_appConfigPath;
+		std::filesystem::file_time_type		m_appConfigLastWriteTime{};
+		float								m_configReloadAccumulator = 0.0f;
 
 		std::atomic<bool>					m_running{ false };
 		std::atomic<bool>					m_isPaused{ false };
 		DelegateHandle						m_windowResizeHandle;
 
+		void ApplyAppConfig(const AppConfig& config);
 		void CalculateFrameStats();
 		void HandleWindowResize(uint32_t width, uint32_t height);
+		void ReloadAppConfigIfChanged(float deltaTime);
 	};
 
 } // namespace NeneEngine

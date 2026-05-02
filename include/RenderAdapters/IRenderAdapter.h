@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <Windows.h>
 
+#include <glm/glm.hpp>
+
 namespace NeneEngine {
 
     class IRenderAdapter {
@@ -22,6 +24,7 @@ namespace NeneEngine {
         virtual void Present() = 0;
 
         virtual void Resize(uint32_t width, uint32_t height) = 0;
+        virtual void SetClearColor(const glm::vec4& color) = 0;
     };
 
 } // namespace NeneEngine

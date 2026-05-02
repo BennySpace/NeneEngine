@@ -38,7 +38,6 @@ target_link_libraries(NeneEngine
         EASTL
         EnTT::EnTT
         glm::glm
-        glm::glm-header-only
         Diligent-GraphicsEngineD3D12-shared
 )
 

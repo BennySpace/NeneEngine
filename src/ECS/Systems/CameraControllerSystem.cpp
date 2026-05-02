@@ -15,12 +15,18 @@ namespace NeneEngine::ECS {
 
 	void CameraControllerSystem::Update(World& world, float deltaTime)
 	{
+		if (!m_input.IsFocused())
+			return;
+
 		auto view = world.GetRegistry().view<TransformComponent, const CameraComponent, CameraControllerComponent>();
 
 		for (auto entity : view)
 		{
+			if (m_controlledCamera != NullEntity && entity != m_controlledCamera)
+				continue;
+
 			const auto& camera = view.get<CameraComponent>(entity);
-			if (!camera.isPrimary)
+			if (m_controlledCamera == NullEntity && !camera.isPrimary)
 				continue;
 
 			auto& transform = view.get<TransformComponent>(entity);

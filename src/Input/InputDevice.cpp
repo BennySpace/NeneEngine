@@ -47,6 +47,23 @@ namespace NeneEngine {
 		m_mouseWheelDelta = 0.0f;
 	}
 
+	void InputDevice::SetFocused(bool focused)
+	{
+		if (m_isFocused == focused)
+			return;
+
+		m_isFocused = focused;
+		if (!m_isFocused)
+			ResetState();
+	}
+
+	void InputDevice::ResetState()
+	{
+		m_pressedKeys.clear();
+		m_mouseDelta = { 0.0f, 0.0f };
+		m_mouseWheelDelta = 0.0f;
+	}
+
 	bool InputDevice::IsKeyDown(KeyCode key) const
 	{
 		return m_pressedKeys.contains(key);

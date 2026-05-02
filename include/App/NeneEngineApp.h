@@ -8,11 +8,17 @@
 #include "Core/GameTimer.h"
 #include "ECS/World.h"
 #include "Platform/IWindow.h"
+#include "ECS/Entity.h"
+#include "ECS/Systems/RenderSystem.h"
 #include "RenderAdapters/IRenderAdapter.h"
 
 #include <atomic>
+#include <cstddef>
 #include <filesystem>
 #include <EASTL/unique_ptr.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace NeneEngine 
 {
@@ -28,8 +34,17 @@ namespace NeneEngine
 		void RequestShutdown();
 
 	private:
-		eastl::unique_ptr<IWindow>			m_window;
-		eastl::unique_ptr<IRenderAdapter>	m_renderer;
+		struct WindowContext
+		{
+			eastl::unique_ptr<IWindow> window;
+			eastl::unique_ptr<IRenderAdapter> renderer;
+			std::unique_ptr<ECS::RenderSystem> renderSystem;
+			DelegateHandle resizeHandle;
+			ECS::Entity cameraEntity = ECS::NullEntity;
+			std::string title;
+		};
+
+		std::vector<WindowContext>			m_windows;
 		
 		GameTimer							m_timer;
 		GameStateMachine					m_gameStateMachine;
@@ -40,11 +55,14 @@ namespace NeneEngine
 
 		std::atomic<bool>					m_running{ false };
 		std::atomic<bool>					m_isPaused{ false };
-		DelegateHandle						m_windowResizeHandle;
 
+		bool CreateWindowContext(uint32_t width, uint32_t height, const std::string& title, ECS::Entity cameraEntity);
+		std::vector<ECS::Entity> CreateAdditionalWindowCameras(size_t count, uint32_t width, uint32_t height);
+		ECS::Entity FindPrimaryCameraEntity() const;
+		bool AreAllWindowsClosed() const;
 		void ApplyAppConfig(const AppConfig& config);
 		void CalculateFrameStats();
-		void HandleWindowResize(uint32_t width, uint32_t height);
+		void HandleWindowResize(size_t windowIndex, uint32_t width, uint32_t height);
 		void ReloadAppConfigIfChanged(float deltaTime);
 	};
 

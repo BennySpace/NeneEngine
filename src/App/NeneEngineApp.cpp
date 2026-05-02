@@ -2,11 +2,13 @@
 
 #include "App/AppConfig.h"
 #include "ECS/Systems/CameraControllerSystem.h"
+#include "ECS/Components/CameraComponent.h"
+#include "ECS/Components/CameraControllerComponent.h"
+#include "ECS/Components/TagComponent.h"
+#include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/MovementSystem.h"
-#include "ECS/Systems/RenderSystem.h"
 #include "App/NeneEngineApp.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
-#include "Rendering/RenderResizeHandler.h"
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
 #include "Platform/Windows32/Windows32Window.h"
@@ -27,10 +29,13 @@ namespace NeneEngine
 	{
 		if (m_running) RequestShutdown();
 
-		if (m_window && m_windowResizeHandle.IsValid())
+		for (auto& windowContext : m_windows)
 		{
-			m_window->OnResized().Remove(m_windowResizeHandle);
-			m_windowResizeHandle.Reset();
+			if (windowContext.window && windowContext.resizeHandle.IsValid())
+			{
+				windowContext.window->OnResized().Remove(windowContext.resizeHandle);
+				windowContext.resizeHandle.Reset();
+			}
 		}
 
 		if (spdlog::default_logger())
@@ -52,29 +57,73 @@ namespace NeneEngine
 			if (std::filesystem::exists(m_appConfigPath))
 				m_appConfigLastWriteTime = std::filesystem::last_write_time(m_appConfigPath);
 
-			// 2. Window
-			m_window = eastl::make_unique<Windows32Window>();
-			if (!m_window->Create(width, height, title))
-				return false;
-
-			// 3. Renderer
-			m_renderer = eastl::make_unique<DiligentDX12Adapter>();
-			if (!m_renderer->Init(m_window->GetHWND(), width, height))
-				return false;
-			ApplyAppConfig(appConfig);
-			m_windowResizeHandle = m_window->OnResized().AddLambda([this](uint32_t newWidth, uint32_t newHeight) {
-				HandleWindowResize(newWidth, newHeight);
-			});
-			
-			// 4. States
+			// 2. States
 			m_gameStateMachine.PushState(eastl::make_unique<PlayState>());
 
-			// 5. ECS
-			m_world.AddSystem(std::make_unique<ECS::CameraControllerSystem>(m_window->GetInput()));
+			// 3. ECS
 			m_world.AddSystem(std::make_unique<ECS::MovementSystem>());
-			m_world.AddSystem(std::make_unique<ECS::RenderSystem>(m_renderer.get()));
 			TestScene::LoadOrCreate(m_world, width, height);
 			LOG_INFO("Test scene loaded from {}", TestScene::DefaultScenePath().string());
+
+			const ECS::Entity primaryCameraEntity = FindPrimaryCameraEntity();
+			if (primaryCameraEntity == ECS::NullEntity)
+			{
+				LOG_ERROR("Init failed: no primary camera found after loading scene");
+				return false;
+			}
+
+			if (appConfig.windows.empty())
+			{
+				LOG_ERROR("Init failed: app config does not contain any windows");
+				return false;
+			}
+
+			size_t mainWindowCount = 0;
+			size_t secondaryWindowCount = 0;
+			for (const auto& windowConfig : appConfig.windows)
+			{
+				if (windowConfig.isMain)
+					++mainWindowCount;
+				else
+					++secondaryWindowCount;
+			}
+
+			if (mainWindowCount == 0)
+			{
+				LOG_ERROR("Init failed: no main window defined in config");
+				return false;
+			}
+
+			if (mainWindowCount > 1)
+				LOG_WARN("App config: multiple windows marked as main, only the first one will control the primary camera");
+
+			const auto secondaryCameraEntities = CreateAdditionalWindowCameras(secondaryWindowCount, width, height);
+			size_t secondaryCameraIndex = 0;
+			bool mainWindowCreated = false;
+
+			for (const auto& windowConfig : appConfig.windows)
+			{
+				ECS::Entity cameraEntity = primaryCameraEntity;
+				if (windowConfig.isMain && !mainWindowCreated)
+				{
+					mainWindowCreated = true;
+				}
+				else
+				{
+					if (secondaryCameraIndex >= secondaryCameraEntities.size())
+					{
+						LOG_ERROR("Init failed: not enough secondary cameras for configured windows");
+						return false;
+					}
+
+					cameraEntity = secondaryCameraEntities[secondaryCameraIndex++];
+				}
+
+				if (!CreateWindowContext(windowConfig.width, windowConfig.height, windowConfig.title, cameraEntity))
+					return false;
+			}
+
+			ApplyAppConfig(appConfig);
 
 			LOG_INFO("Application initialized successfully ({}x{})", width, height);
 
@@ -88,21 +137,129 @@ namespace NeneEngine
 		}
 	}
 
-	void NeneEngineApp::ApplyAppConfig(const AppConfig& config)
+	bool NeneEngineApp::CreateWindowContext(uint32_t width, uint32_t height, const std::string& title, ECS::Entity cameraEntity)
 	{
-		if (!m_renderer)
-			return;
+		WindowContext windowContext{};
+		windowContext.title = title;
+		windowContext.cameraEntity = cameraEntity;
+		windowContext.window = eastl::make_unique<Windows32Window>();
+		if (!windowContext.window->Create(width, height, title))
+		{
+			LOG_ERROR("Failed to create window '{}'", title);
+			return false;
+		}
 
-		m_renderer->SetClearColor(config.window.backgroundColor);
+		windowContext.renderer = eastl::make_unique<DiligentDX12Adapter>();
+		if (!windowContext.renderer->Init(windowContext.window->GetHWND(), width, height))
+		{
+			LOG_ERROR("Failed to initialize renderer for window '{}'", title);
+			return false;
+		}
+
+		windowContext.renderSystem = std::make_unique<ECS::RenderSystem>(windowContext.renderer.get(), cameraEntity);
+		m_world.AddSystem(std::make_unique<ECS::CameraControllerSystem>(windowContext.window->GetInput(), cameraEntity));
+
+		const size_t windowIndex = m_windows.size();
+		windowContext.resizeHandle = windowContext.window->OnResized().AddLambda([this, windowIndex](uint32_t newWidth, uint32_t newHeight) {
+			HandleWindowResize(windowIndex, newWidth, newHeight);
+		});
+
+		m_windows.push_back(std::move(windowContext));
+		HandleWindowResize(windowIndex, width, height);
+		return true;
 	}
 
-	void NeneEngineApp::HandleWindowResize(uint32_t width, uint32_t height)
+	std::vector<ECS::Entity> NeneEngineApp::CreateAdditionalWindowCameras(size_t count, uint32_t width, uint32_t height)
 	{
-		if (!m_renderer)
+		std::vector<ECS::Entity> secondaryCameraEntities;
+		secondaryCameraEntities.reserve(count);
+
+		const ECS::Entity primaryCameraEntity = FindPrimaryCameraEntity();
+		if (primaryCameraEntity == ECS::NullEntity)
+			return secondaryCameraEntities;
+
+		const auto* primaryTransform = m_world.GetComponent<ECS::TransformComponent>(primaryCameraEntity);
+		const auto* primaryCamera = m_world.GetComponent<ECS::CameraComponent>(primaryCameraEntity);
+		const auto* primaryController = m_world.GetComponent<ECS::CameraControllerComponent>(primaryCameraEntity);
+		if (primaryTransform == nullptr || primaryCamera == nullptr || primaryController == nullptr)
+			return secondaryCameraEntities;
+
+		for (size_t cameraIndex = 0; cameraIndex < count; ++cameraIndex)
+		{
+			const ECS::Entity secondaryCameraEntity = m_world.CreateEntity("SecondaryCamera" + std::to_string(cameraIndex + 1));
+			auto& secondaryTransform = m_world.AddComponent<ECS::TransformComponent>(secondaryCameraEntity);
+			secondaryTransform = *primaryTransform;
+			secondaryTransform.position.x += 2.0f * static_cast<float>(cameraIndex + 1);
+
+			auto& secondaryCamera = m_world.AddComponent<ECS::CameraComponent>(secondaryCameraEntity);
+			secondaryCamera = *primaryCamera;
+			secondaryCamera.aspectRatio = height == 0 ? 1.0f : static_cast<float>(width) / static_cast<float>(height);
+			secondaryCamera.isPrimary = false;
+
+			auto& secondaryController = m_world.AddComponent<ECS::CameraControllerComponent>(secondaryCameraEntity);
+			secondaryController = *primaryController;
+
+			secondaryCameraEntities.push_back(secondaryCameraEntity);
+		}
+
+		return secondaryCameraEntities;
+	}
+
+	ECS::Entity NeneEngineApp::FindPrimaryCameraEntity() const
+	{
+		const auto cameraView = m_world.GetRegistry().view<const ECS::CameraComponent>();
+		for (auto entity : cameraView)
+		{
+			const auto& camera = cameraView.get<ECS::CameraComponent>(entity);
+			if (camera.isPrimary)
+				return entity;
+		}
+
+		return ECS::NullEntity;
+	}
+
+	bool NeneEngineApp::AreAllWindowsClosed() const
+	{
+		if (m_windows.empty())
+			return true;
+
+		for (const auto& windowContext : m_windows)
+		{
+			if (windowContext.window && !windowContext.window->ShouldClose())
+				return false;
+		}
+
+		return true;
+	}
+
+	void NeneEngineApp::ApplyAppConfig(const AppConfig& config)
+	{
+		for (auto& windowContext : m_windows)
+		{
+			if (windowContext.renderer)
+				windowContext.renderer->SetClearColor(config.window.backgroundColor);
+		}
+	}
+
+	void NeneEngineApp::HandleWindowResize(size_t windowIndex, uint32_t width, uint32_t height)
+	{
+		if (windowIndex >= m_windows.size())
 			return;
 
-		ResizeRenderResources(*m_renderer, m_world, width, height);
-		LOG_INFO("Application resized to {}x{}", width, height);
+		if (width == 0 || height == 0)
+		{
+			LOG_WARN("Application resize ignored for window {} with invalid size {}x{}", windowIndex, width, height);
+			return;
+		}
+
+		auto& windowContext = m_windows[windowIndex];
+		if (windowContext.renderer)
+			windowContext.renderer->Resize(width, height);
+
+		if (auto* camera = m_world.GetComponent<ECS::CameraComponent>(windowContext.cameraEntity))
+			camera->aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+
+		LOG_INFO("Window '{}' resized to {}x{}", windowContext.title, width, height);
 	}
 
 	inline std::wstring AnsiToWString(const std::string& str)
@@ -137,11 +294,17 @@ namespace NeneEngine
 			wss << mspf;
 			std::wstring mspfStr = wss.str();
 
-			std::wstring windowText = AnsiToWString(m_window->GetTitle()) +
-				L"   fps: " + fpsStr +
-				L"   mspf: " + mspfStr;
+			for (const auto& windowContext : m_windows)
+			{
+				if (!windowContext.window || windowContext.window->ShouldClose())
+					continue;
 
-			SetWindowTextW(m_window->GetHWND(), windowText.c_str());
+				std::wstring windowText = AnsiToWString(windowContext.window->GetTitle()) +
+					L" | fps: " + fpsStr +
+					L" | mspf: " + mspfStr;
+
+				SetWindowTextW(windowContext.window->GetHWND(), windowText.c_str());
+			}
 
 			// Reset for next average.
 			frameCnt = 0;
@@ -186,9 +349,13 @@ namespace NeneEngine
 		m_running = true;
 		m_timer.Reset();
 
-		while (m_running && !m_window->ShouldClose())
+		while (m_running && !AreAllWindowsClosed())
 		{
-			m_window->PumpMessages();
+			for (auto& windowContext : m_windows)
+			{
+				if (windowContext.window && !windowContext.window->ShouldClose())
+					windowContext.window->PumpMessages();
+			}
 
 			m_timer.Tick();
 			float deltaTime = m_timer.DeltaTime();
@@ -200,13 +367,25 @@ namespace NeneEngine
 				m_world.Update(deltaTime);
 				ReloadAppConfigIfChanged(deltaTime);
 
-				m_renderer->BeginFrame();
-				m_world.Render();
-				m_renderer->EndFrame();
-				m_renderer->Present();
+				for (auto& windowContext : m_windows)
+				{
+					if (!windowContext.window || windowContext.window->ShouldClose())
+						continue;
+					if (!windowContext.renderer || !windowContext.renderSystem)
+						continue;
+
+					windowContext.renderer->BeginFrame();
+					windowContext.renderSystem->Render(m_world);
+					windowContext.renderer->EndFrame();
+					windowContext.renderer->Present();
+				}
 
 				CalculateFrameStats();
-				m_window->GetInput().EndFrame();
+				for (auto& windowContext : m_windows)
+				{
+					if (windowContext.window)
+						windowContext.window->GetInput().EndFrame();
+				}
 			}
 			else
 			{

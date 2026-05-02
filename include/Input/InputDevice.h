@@ -42,8 +42,11 @@ namespace NeneEngine {
 		void NotifyMouseDelta(glm::vec2 delta, glm::vec2 position);
 		void NotifyMouseWheel(float delta);
 		void EndFrame();
+		void SetFocused(bool focused);
+		void ResetState();
 
 		bool IsKeyDown(KeyCode key) const;
+		bool IsFocused() const { return m_isFocused; }
 		glm::vec2 GetMousePosition() const { return m_mousePosition; }
 		glm::vec2 GetMouseDelta() const { return m_mouseDelta; }
 		float GetMouseWheelDelta() const { return m_mouseWheelDelta; }
@@ -53,6 +56,7 @@ namespace NeneEngine {
 		glm::vec2 m_mousePosition = { 0.0f, 0.0f };
 		glm::vec2 m_mouseDelta = { 0.0f, 0.0f };
 		float m_mouseWheelDelta = 0.0f;
+		bool m_isFocused = true;
 	};
 
 } // namespace NeneEngine

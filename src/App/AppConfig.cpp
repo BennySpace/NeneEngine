@@ -12,12 +12,15 @@ namespace NeneEngine
 	namespace
 	{
 		constexpr glm::vec4 kDefaultBackgroundColor{ 0.1f, 0.1f, 0.2f, 1.0f };
+		constexpr uint32_t kDefaultWindowWidth = 1280;
+		constexpr uint32_t kDefaultWindowHeight = 720;
+		constexpr std::string_view kDefaultWindowTitle = "NeneEngine";
 
 		[[nodiscard]] std::filesystem::path FindConfigPathFrom(const std::filesystem::path& startDirectory)
 		{
 			for (auto current = startDirectory; !current.empty(); current = current.parent_path())
 			{
-				const auto candidate = current / "assets" / "config" / "app.json";
+				const auto candidate = current / "assets" / "config" / "engine.json";
 				if (std::filesystem::exists(candidate))
 					return candidate;
 
@@ -95,6 +98,85 @@ namespace NeneEngine
 
 			return parsedColor;
 		}
+
+		[[nodiscard]] std::vector<WindowDefinitionConfig> ReadWindowsOrDefault(const nlohmann::json& root)
+		{
+			std::vector<WindowDefinitionConfig> windows;
+
+			const auto windowsIt = root.find("windows");
+			if (windowsIt == root.end())
+			{
+				windows.push_back(WindowDefinitionConfig{
+					std::string(kDefaultWindowTitle),
+					kDefaultWindowWidth,
+					kDefaultWindowHeight,
+					true
+				});
+				return windows;
+			}
+
+			if (!windowsIt->is_array() || windowsIt->empty())
+			{
+				LOG_WARN("App config: 'windows' must be a non-empty array, using default main window");
+				windows.push_back(WindowDefinitionConfig{
+					std::string(kDefaultWindowTitle),
+					kDefaultWindowWidth,
+					kDefaultWindowHeight,
+					true
+				});
+				return windows;
+			}
+
+			bool hasMainWindow = false;
+			size_t windowIndex = 0;
+			for (const auto& windowValue : *windowsIt)
+			{
+				++windowIndex;
+				if (!windowValue.is_object())
+				{
+					LOG_WARN("App config: windows[{}] is not an object, skipping", windowIndex - 1);
+					continue;
+				}
+
+				WindowDefinitionConfig windowConfig{};
+				windowConfig.title = windowValue.value("title", std::string(kDefaultWindowTitle));
+				windowConfig.width = windowValue.value("width", kDefaultWindowWidth);
+				windowConfig.height = windowValue.value("height", kDefaultWindowHeight);
+				windowConfig.isMain = windowValue.value("isMain", false);
+
+				if (windowConfig.title.empty())
+					windowConfig.title = std::string(kDefaultWindowTitle);
+
+				if (windowConfig.width == 0 || windowConfig.height == 0)
+				{
+					LOG_WARN("App config: windows[{}] has invalid size {}x{}, skipping", windowIndex - 1, windowConfig.width, windowConfig.height);
+					continue;
+				}
+
+				hasMainWindow = hasMainWindow || windowConfig.isMain;
+				windows.push_back(std::move(windowConfig));
+			}
+
+			if (windows.empty())
+			{
+				LOG_WARN("App config: no valid window definitions found, using default main window");
+				windows.push_back(WindowDefinitionConfig{
+					std::string(kDefaultWindowTitle),
+					kDefaultWindowWidth,
+					kDefaultWindowHeight,
+					true
+				});
+				return windows;
+			}
+
+			if (!hasMainWindow)
+			{
+				LOG_WARN("App config: no window marked as main, first window will be used as main");
+				windows.front().isMain = true;
+			}
+
+			return windows;
+		}
 	}
 
 	std::filesystem::path DefaultAppConfigPath()
@@ -108,13 +190,19 @@ namespace NeneEngine
 				return fromExecutableDirectory;
 		}
 
-		return std::filesystem::path{ "assets" } / "config" / "app.json";
+		return std::filesystem::path{ "assets" } / "config" / "engine.json";
 	}
 
 	AppConfig LoadAppConfig(const std::filesystem::path& configPath)
 	{
 		AppConfig config{};
 		config.window.backgroundColor = kDefaultBackgroundColor;
+		config.windows.push_back(WindowDefinitionConfig{
+			std::string(kDefaultWindowTitle),
+			kDefaultWindowWidth,
+			kDefaultWindowHeight,
+			true
+		});
 
 		std::ifstream input(configPath);
 		if (!input.is_open())
@@ -129,13 +217,15 @@ namespace NeneEngine
 			input >> root;
 
 			config.window.backgroundColor = ReadBackgroundColorOrDefault(root);
+			config.windows = ReadWindowsOrDefault(root);
 			LOG_INFO(
-				"App config loaded from '{}'; backgroundColor=({:.2f}, {:.2f}, {:.2f}, {:.2f})",
+				"App config loaded from '{}'; backgroundColor=({:.2f}, {:.2f}, {:.2f}, {:.2f}), windows={}",
 				configPath.string(),
 				config.window.backgroundColor.r,
 				config.window.backgroundColor.g,
 				config.window.backgroundColor.b,
-				config.window.backgroundColor.a);
+				config.window.backgroundColor.a,
+				config.windows.size());
 		}
 		catch (const std::exception& ex)
 		{

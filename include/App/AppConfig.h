@@ -1,11 +1,22 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 
 namespace NeneEngine
 {
+	struct WindowDefinitionConfig
+	{
+		std::string title = "NeneEngine";
+		uint32_t width = 1280;
+		uint32_t height = 720;
+		bool isMain = false;
+	};
+
 	struct WindowConfig
 	{
 		glm::vec4 backgroundColor{ 0.1f, 0.1f, 0.2f, 1.0f };
@@ -14,6 +25,7 @@ namespace NeneEngine
 	struct AppConfig
 	{
 		WindowConfig window{};
+		std::vector<WindowDefinitionConfig> windows{};
 	};
 
 	[[nodiscard]] std::filesystem::path DefaultAppConfigPath();

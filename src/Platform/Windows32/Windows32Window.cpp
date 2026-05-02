@@ -128,6 +128,18 @@ namespace NeneEngine
 	{
 		switch (message)
 		{
+		case WM_SETFOCUS:
+			m_input.SetFocused(true);
+			return 0;
+
+		case WM_KILLFOCUS:
+			m_input.SetFocused(false);
+			return 0;
+
+		case WM_ACTIVATE:
+			m_input.SetFocused(LOWORD(wParam) != WA_INACTIVE);
+			return 0;
+
 		case WM_CLOSE:
 			m_shouldClose = true;
 			DestroyWindow(m_hwnd);
@@ -135,7 +147,6 @@ namespace NeneEngine
 
 		case WM_DESTROY:
 			m_shouldClose = true;
-			PostQuitMessage(0);
 			return 0;
 
 		case WM_SIZE:

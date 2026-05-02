@@ -31,8 +31,11 @@ namespace NeneEngine::ECS {
 
 		for (auto entity : cameraView)
 		{
+			if (m_cameraEntity != NullEntity && entity != m_cameraEntity)
+				continue;
+
 			const auto& camera = cameraView.get<CameraComponent>(entity);
-			if (!camera.isPrimary)
+			if (m_cameraEntity == NullEntity && !camera.isPrimary)
 				continue;
 
 			activeCameraTransform = &cameraView.get<TransformComponent>(entity);

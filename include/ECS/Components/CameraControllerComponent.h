@@ -7,6 +7,7 @@ namespace NeneEngine::ECS {
 	struct CameraControllerComponent
 	{
 		float moveSpeed = 4.0f;
+		float sprintMultiplier = 2.5f;
 		float lookSensitivity = 0.003f;
 		float yawRadians = 0.0f;
 		float pitchRadians = 0.0f;

@@ -60,8 +60,13 @@ namespace NeneEngine::ECS {
 
 			if (glm::dot(direction, direction) > 0.0f)
 			{
+				const bool isSprinting =
+					m_input.IsKeyDown(KeyCode::LeftShift) || m_input.IsKeyDown(KeyCode::RightShift);
+				const float moveSpeed = isSprinting
+					? controller.moveSpeed * controller.sprintMultiplier
+					: controller.moveSpeed;
 				const glm::vec3 worldDirection = transform.rotation * glm::normalize(direction);
-				transform.position += worldDirection * controller.moveSpeed * deltaTime;
+				transform.position += worldDirection * moveSpeed * deltaTime;
 			}
 
 			return;

@@ -120,6 +120,7 @@ namespace NeneEngine {
 		{
 			return {
 				{ "moveSpeed", controller.moveSpeed },
+				{ "sprintMultiplier", controller.sprintMultiplier },
 				{ "lookSensitivity", controller.lookSensitivity },
 				{ "yawRadians", controller.yawRadians },
 				{ "pitchRadians", controller.pitchRadians },
@@ -185,6 +186,8 @@ namespace NeneEngine {
 		{
 			auto& controller = world.AddComponent<ECS::CameraControllerComponent>(entity);
 			controller.moveSpeed = value.at("moveSpeed").get<float>();
+			if (value.contains("sprintMultiplier"))
+				controller.sprintMultiplier = value.at("sprintMultiplier").get<float>();
 			controller.lookSensitivity = value.at("lookSensitivity").get<float>();
 			controller.yawRadians = value.at("yawRadians").get<float>();
 			controller.pitchRadians = value.at("pitchRadians").get<float>();

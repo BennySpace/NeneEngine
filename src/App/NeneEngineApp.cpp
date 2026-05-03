@@ -313,6 +313,37 @@ namespace NeneEngine
 		}
 	}
 
+	void NeneEngineApp::LogDeltaTimeStats(float deltaTime)
+	{
+		static int sampleCount = 0;
+		static float accumulatedDeltaTime = 0.0f;
+		static float timeElapsed = 0.0f;
+		static float lastDeltaTime = 0.0f;
+
+		++sampleCount;
+		accumulatedDeltaTime += deltaTime;
+		lastDeltaTime = deltaTime;
+
+		if ((m_timer.TotalTime() - timeElapsed) < 1.0f)
+			return;
+
+		const float averageDeltaTime = sampleCount > 0
+			? accumulatedDeltaTime / static_cast<float>(sampleCount)
+			: 0.0f;
+
+		LOG_INFO(
+			"deltaTime: last={:.6f} s ({:.3f} ms), avg={:.6f} s ({:.3f} ms), samples={}",
+			lastDeltaTime,
+			lastDeltaTime * 1000.0f,
+			averageDeltaTime,
+			averageDeltaTime * 1000.0f,
+			sampleCount);
+
+		sampleCount = 0;
+		accumulatedDeltaTime = 0.0f;
+		timeElapsed += 1.0f;
+	}
+
 	void NeneEngineApp::ReloadAppConfigIfChanged(float deltaTime)
 	{
 		m_configReloadAccumulator += deltaTime;
@@ -365,6 +396,7 @@ namespace NeneEngine
 			{
 				m_gameStateMachine.HandleInput();
 				m_gameStateMachine.Update(deltaTime);
+				LogDeltaTimeStats(deltaTime);
 				ReloadAppConfigIfChanged(deltaTime);
 
 				for (auto& windowContext : m_windows)

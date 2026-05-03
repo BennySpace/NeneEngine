@@ -65,6 +65,7 @@ namespace NeneEngine
 		bool AreAllWindowsClosed() const;
 		void ApplyAppConfig(const AppConfig& config);
 		void CalculateFrameStats();
+		void LogDeltaTimeStats(float deltaTime);
 		void HandleWindowResize(size_t windowIndex, uint32_t width, uint32_t height);
 		void ReloadAppConfigIfChanged(float deltaTime);
 	};

@@ -1,10 +1,22 @@
 #include "Platform/Windows32/Windows32Window.h"
+#include "Resource.h"
 
 #include <windowsx.h>
 
 namespace
 {
 	constexpr wchar_t kWindowClassName[] = L"NeneEngineWindowClass";
+
+	HICON LoadAppIcon(int systemMetric)
+	{
+		return static_cast<HICON>(LoadImageW(
+			GetModuleHandleW(nullptr),
+			MAKEINTRESOURCEW(IDI_APP_ICON),
+			IMAGE_ICON,
+			GetSystemMetrics(systemMetric),
+			GetSystemMetrics(systemMetric),
+			LR_DEFAULTCOLOR));
+	}
 
 	ATOM EnsureWindowClassRegistered()
 	{
@@ -14,6 +26,8 @@ namespace
 			windowClass.style = CS_HREDRAW | CS_VREDRAW;
 			windowClass.lpfnWndProc = NeneEngine::Windows32Window::WndProc;
 			windowClass.hInstance = GetModuleHandleW(nullptr);
+			windowClass.hIcon = LoadAppIcon(SM_CXICON);
+			windowClass.hIconSm = LoadAppIcon(SM_CXSMICON);
 			windowClass.hCursor = LoadCursorW(nullptr, MAKEINTRESOURCEW(32512));
 			windowClass.lpszClassName = kWindowClassName;
 			return RegisterClassExW(&windowClass);
@@ -81,6 +95,12 @@ namespace NeneEngine
 
 		if (!m_hwnd)
 			return false;
+
+		if (HICON largeIcon = LoadAppIcon(SM_CXICON))
+			SendMessageW(m_hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(largeIcon));
+
+		if (HICON smallIcon = LoadAppIcon(SM_CXSMICON))
+			SendMessageW(m_hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(smallIcon));
 
 		ShowWindow(m_hwnd, SW_SHOW);
 		UpdateWindow(m_hwnd);

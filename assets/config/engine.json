@@ -2,22 +2,16 @@
   "window": {
     "backgroundColor": {
       "r": 200,
-      "g": 160,
+      "g": 60,
       "b": 200
     }
   },
   "windows": [
     {
-      "title": "NeneEngine",
+      "title": "NeneEngine - Main View",
       "width": 1280,
       "height": 720,
       "isMain": true
-    },
-    {
-      "title": "NeneEngine - View 2",
-      "width": 960,
-      "height": 540,
-      "isMain": false
     }
   ]
 }

@@ -11,6 +11,9 @@
 *.sln.docstates
 *.env
 
+# Local engine config should stay individual for each user
+assets/config/engine.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

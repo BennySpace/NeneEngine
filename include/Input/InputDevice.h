@@ -46,6 +46,7 @@ namespace NeneEngine {
 		void ResetState();
 
 		bool IsKeyDown(KeyCode key) const;
+		bool IsKeyPressed(KeyCode key) const;
 		bool IsFocused() const { return m_isFocused; }
 		glm::vec2 GetMousePosition() const { return m_mousePosition; }
 		glm::vec2 GetMouseDelta() const { return m_mouseDelta; }
@@ -53,6 +54,7 @@ namespace NeneEngine {
 
 	private:
 		std::unordered_set<KeyCode> m_pressedKeys;
+		std::unordered_set<KeyCode> m_pressedThisFrame;
 		glm::vec2 m_mousePosition = { 0.0f, 0.0f };
 		glm::vec2 m_mouseDelta = { 0.0f, 0.0f };
 		float m_mouseWheelDelta = 0.0f;

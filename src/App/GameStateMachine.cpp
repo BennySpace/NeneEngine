@@ -13,7 +13,9 @@ namespace NeneEngine
 
 	void GameStateMachine::ChangeState(eastl::unique_ptr<IGameState> newState) {
 		while (!m_states.empty()) {
-			PopState();
+			m_states.back()->OnExit();
+			spdlog::info("Popped state during ChangeState: {}", typeid(*m_states.back()).name());
+			m_states.pop_back();
 		}
 
 		PushState(eastl::move(newState));
@@ -21,7 +23,7 @@ namespace NeneEngine
 
 	void GameStateMachine::PushState(eastl::unique_ptr<IGameState> newState) {
 		if (!m_states.empty()) {
-			m_states.back()->OnExit();
+			m_states.back()->OnPause();
 		}
 
 		m_states.push_back(eastl::move(newState));
@@ -41,7 +43,7 @@ namespace NeneEngine
 		m_states.pop_back();
 
 		if (!m_states.empty()) {
-			m_states.back()->OnEnter();
+			m_states.back()->OnResume();
 		}
 	}
 

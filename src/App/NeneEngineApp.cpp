@@ -58,7 +58,8 @@ namespace NeneEngine
 				m_appConfigLastWriteTime = std::filesystem::last_write_time(m_appConfigPath);
 
 			// 2. States
-			m_gameStateMachine.PushState(eastl::make_unique<PlayState>());
+			AppStateContext stateContext{ *this, m_world, m_gameStateMachine };
+			m_gameStateMachine.PushState(eastl::make_unique<PlayState>(stateContext));
 
 			// 3. ECS
 			m_world.AddSystem(std::make_unique<ECS::MovementSystem>());
@@ -364,7 +365,6 @@ namespace NeneEngine
 			{
 				m_gameStateMachine.HandleInput();
 				m_gameStateMachine.Update(deltaTime);
-				m_world.Update(deltaTime);
 				ReloadAppConfigIfChanged(deltaTime);
 
 				for (auto& windowContext : m_windows)
@@ -397,6 +397,36 @@ namespace NeneEngine
 	void NeneEngineApp::RequestShutdown()
 	{
 		m_running = false;
+	}
+
+	InputDevice* NeneEngineApp::GetFocusedInput()
+	{
+		for (auto& windowContext : m_windows)
+		{
+			if (!windowContext.window || windowContext.window->ShouldClose())
+				continue;
+
+			InputDevice& input = windowContext.window->GetInput();
+			if (input.IsFocused())
+				return &input;
+		}
+
+		return nullptr;
+	}
+
+	const InputDevice* NeneEngineApp::GetFocusedInput() const
+	{
+		for (const auto& windowContext : m_windows)
+		{
+			if (!windowContext.window || windowContext.window->ShouldClose())
+				continue;
+
+			const InputDevice& input = windowContext.window->GetInput();
+			if (input.IsFocused())
+				return &input;
+		}
+
+		return nullptr;
 	}
 
 } // namespace NeneEngine

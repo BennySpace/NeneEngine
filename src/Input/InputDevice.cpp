@@ -8,6 +8,8 @@ namespace NeneEngine {
 	{
 		const bool wasDown = IsKeyDown(key);
 		m_pressedKeys.insert(key);
+		if (!wasDown)
+			m_pressedThisFrame.insert(key);
 
 		KeyDown.Broadcast(KeyEvent{ key, wasDown });
 	}
@@ -43,6 +45,7 @@ namespace NeneEngine {
 
 	void InputDevice::EndFrame()
 	{
+		m_pressedThisFrame.clear();
 		m_mouseDelta = { 0.0f, 0.0f };
 		m_mouseWheelDelta = 0.0f;
 	}
@@ -60,6 +63,7 @@ namespace NeneEngine {
 	void InputDevice::ResetState()
 	{
 		m_pressedKeys.clear();
+		m_pressedThisFrame.clear();
 		m_mouseDelta = { 0.0f, 0.0f };
 		m_mouseWheelDelta = 0.0f;
 	}
@@ -67,6 +71,11 @@ namespace NeneEngine {
 	bool InputDevice::IsKeyDown(KeyCode key) const
 	{
 		return m_pressedKeys.contains(key);
+	}
+
+	bool InputDevice::IsKeyPressed(KeyCode key) const
+	{
+		return m_pressedThisFrame.contains(key);
 	}
 
 } // namespace NeneEngine

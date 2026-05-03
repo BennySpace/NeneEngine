@@ -9,6 +9,16 @@ void NeneEngine::MenuState::OnEnter()
 	spdlog::info("MenuState entered");
 }
 
+void NeneEngine::MenuState::OnPause()
+{
+	spdlog::info("MenuState paused");
+}
+
+void NeneEngine::MenuState::OnResume()
+{
+	spdlog::info("MenuState resumed");
+}
+
 void NeneEngine::MenuState::OnExit()
 {
 	spdlog::info("MenuState exited");

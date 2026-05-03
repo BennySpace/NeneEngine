@@ -7,6 +7,7 @@
 #include "Core/Delegate.h"
 #include "Core/GameTimer.h"
 #include "ECS/World.h"
+#include "Input/InputDevice.h"
 #include "Platform/IWindow.h"
 #include "ECS/Entity.h"
 #include "ECS/Systems/RenderSystem.h"
@@ -32,6 +33,8 @@ namespace NeneEngine
 		bool Init(uint32_t width = 1280, uint32_t height = 720, const std::string& title = "NeneEngine");
 		void Run();
 		void RequestShutdown();
+		InputDevice* GetFocusedInput();
+		const InputDevice* GetFocusedInput() const;
 
 	private:
 		struct WindowContext

@@ -2,7 +2,7 @@
 
 **A lightweight, modern C++20 game engine** focused on clean architecture, ECS, and rapid prototyping.
 
-NeneEngine is a personal experimental game engine built with modern C++ practices. It features an Entity-Component-System (EnTT), a flexible game state machine, data-driven scene serialization (JSON), and DirectX 12 rendering through Diligent Engine.
+NeneEngine is a experimental game engine built with modern C++ practices by BennySpace (Vlasov Daniil) and Wesdmond (Timofey Shabanov). It features an Entity-Component-System (EnTT), a flexible game state machine, data-driven scene serialization (JSON), and DirectX 12 rendering through Diligent Engine.
 
 ### Key Features
 - Win32 window with Raw Input support

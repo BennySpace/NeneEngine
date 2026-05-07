@@ -3,6 +3,7 @@ target_sources(NeneEngine PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/World.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/CameraComponent.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/CameraControllerComponent.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/HierarchyComponent.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/MeshRendererComponent.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/MovementComponent.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/ECS/Components/PrimitiveControlComponent.h"

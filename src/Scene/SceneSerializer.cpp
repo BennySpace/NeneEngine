@@ -4,6 +4,7 @@
 
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
+#include "ECS/Components/HierarchyComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/PrimitiveControlComponent.h"
@@ -92,6 +93,16 @@ namespace NeneEngine {
 			throw std::runtime_error("Unknown PrimitiveType: " + value);
 		}
 
+		uint32_t ToEntityId(ECS::Entity entity)
+		{
+			return static_cast<uint32_t>(entt::to_integral(entity));
+		}
+
+		ECS::Entity FromEntityId(uint32_t entityId)
+		{
+			return static_cast<ECS::Entity>(entityId);
+		}
+
 		nlohmann::json SerializeTag(const ECS::TagComponent& tag)
 		{
 			return { { "name", tag.name } };
@@ -154,6 +165,18 @@ namespace NeneEngine {
 				{ "oscillationSpeed", movement.oscillationSpeed },
 				{ "elapsedTime", movement.elapsedTime },
 				{ "useOscillation", movement.useOscillation }
+			};
+		}
+
+		nlohmann::json SerializeHierarchy(const ECS::HierarchyComponent& hierarchy)
+		{
+			nlohmann::json children = nlohmann::json::array();
+			for (ECS::Entity child : hierarchy.children)
+				children.push_back(ToEntityId(child));
+
+			return {
+				{ "parent", hierarchy.parent == ECS::NullEntity ? nlohmann::json(nullptr) : nlohmann::json(ToEntityId(hierarchy.parent)) },
+				{ "children", std::move(children) }
 			};
 		}
 
@@ -247,6 +270,20 @@ namespace NeneEngine {
 			control.targetScale = ReadVec3(value.at("targetScale"));
 		}
 
+		void DeserializeHierarchy(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
+		{
+			auto& hierarchy = world.AddComponent<ECS::HierarchyComponent>(entity);
+			if (value.contains("parent") && !value.at("parent").is_null())
+				hierarchy.parent = FromEntityId(value.at("parent").get<uint32_t>());
+
+			hierarchy.children.clear();
+			if (value.contains("children"))
+			{
+				for (const auto& childValue : value.at("children"))
+					hierarchy.children.push_back(FromEntityId(childValue.get<uint32_t>()));
+			}
+		}
+
 	} // namespace
 
 	nlohmann::json SceneSerializer::Serialize(const ECS::World& world)
@@ -278,6 +315,10 @@ namespace NeneEngine {
 			const auto* cameraController = world.GetRegistry().try_get<ECS::CameraControllerComponent>(entity);
 			if (cameraController != nullptr)
 				entityJson["components"]["CameraControllerComponent"] = SerializeCameraController(*cameraController);
+
+			const auto* hierarchy = world.GetRegistry().try_get<ECS::HierarchyComponent>(entity);
+			if (hierarchy != nullptr)
+				entityJson["components"]["HierarchyComponent"] = SerializeHierarchy(*hierarchy);
 
 			const auto* meshRenderer = world.GetRegistry().try_get<ECS::MeshRendererComponent>(entity);
 			if (meshRenderer != nullptr)
@@ -318,6 +359,8 @@ namespace NeneEngine {
 				DeserializeCamera(components.at("CameraComponent"), world, entity);
 			if (components.contains("CameraControllerComponent"))
 				DeserializeCameraController(components.at("CameraControllerComponent"), world, entity);
+			if (components.contains("HierarchyComponent"))
+				DeserializeHierarchy(components.at("HierarchyComponent"), world, entity);
 			if (components.contains("MeshRenderer"))
 				DeserializeMeshRenderer(components.at("MeshRenderer"), world, entity);
 			if (components.contains("MovementComponent"))

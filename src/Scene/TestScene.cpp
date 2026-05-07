@@ -4,6 +4,7 @@
 
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
+#include "ECS/Components/HierarchyComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/PrimitiveControlComponent.h"
@@ -108,16 +109,22 @@ namespace NeneEngine::TestScene {
 		movement.oscillationSpeed = 1.5f;
 		movement.useOscillation = true;
 
-		CreatePrimitiveEntity(
+		const ECS::Entity sceneCube = CreatePrimitiveEntity(
 			world,
 			"SceneCube",
 			PrimitiveType::Cube,
-			{ 3.6f, -0.7f, 0.0f },
-			{ 1.6f, 1.6f, 1.6f },
+			{ 1.5f, -1.2f, 0.0f },
+			{ 0.9f, 0.9f, 0.9f },
 			{ 1.0f, 0.85f, 0.3f, 1.0f },
 			MeshId{},
 			MaterialId{ 4u },
 			ShaderId{ 1u });
+
+		auto& quadHierarchy = world.AddComponent<ECS::HierarchyComponent>(movingQuad);
+		quadHierarchy.children.push_back(sceneCube);
+
+		auto& cubeHierarchy = world.AddComponent<ECS::HierarchyComponent>(sceneCube);
+		cubeHierarchy.parent = movingQuad;
 	}
 
 	void LoadOrCreate(ECS::World& world, uint32_t width, uint32_t height, const std::filesystem::path& scenePath)

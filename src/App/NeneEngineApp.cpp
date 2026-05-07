@@ -7,6 +7,7 @@
 #include "ECS/Components/TagComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/MovementSystem.h"
+#include "ECS/Systems/PrimitiveControlSystem.h"
 #include "App/NeneEngineApp.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
 #include "Scene/TestScene.h"
@@ -159,6 +160,7 @@ namespace NeneEngine
 
 		windowContext.renderSystem = std::make_unique<ECS::RenderSystem>(windowContext.renderer.get(), cameraEntity);
 		m_world.AddSystem(std::make_unique<ECS::CameraControllerSystem>(windowContext.window->GetInput(), cameraEntity));
+		m_world.AddSystem(std::make_unique<ECS::PrimitiveControlSystem>(windowContext.window->GetInput()));
 
 		const size_t windowIndex = m_windows.size();
 		windowContext.resizeHandle = windowContext.window->OnResized().AddLambda([this, windowIndex](uint32_t newWidth, uint32_t newHeight) {

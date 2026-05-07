@@ -6,6 +6,7 @@
 #include "ECS/Components/CameraControllerComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/MovementComponent.h"
+#include "ECS/Components/PrimitiveControlComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "Scene/SceneSerializer.h"
 
@@ -74,7 +75,7 @@ namespace NeneEngine::TestScene {
 			MaterialId{ 1u },
 			ShaderId{ 1u });
 
-		CreatePrimitiveEntity(
+		const ECS::Entity controllableTriangle = CreatePrimitiveEntity(
 			world,
 			"SceneTriangle",
 			PrimitiveType::Triangle,
@@ -84,6 +85,10 @@ namespace NeneEngine::TestScene {
 			MeshId{},
 			MaterialId{ 2u },
 			ShaderId{ 1u });
+
+		auto& primitiveControl = world.AddComponent<ECS::PrimitiveControlComponent>(controllableTriangle);
+		primitiveControl.currentScaleLevel = 0;
+		primitiveControl.targetScale = { 1.0f, 1.0f, 1.0f };
 
 		const ECS::Entity movingQuad = CreatePrimitiveEntity(
 			world,

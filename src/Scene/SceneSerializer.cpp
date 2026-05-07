@@ -6,6 +6,7 @@
 #include "ECS/Components/CameraControllerComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/MovementComponent.h"
+#include "ECS/Components/PrimitiveControlComponent.h"
 #include "ECS/Components/TagComponent.h"
 #include "ECS/Components/TransformComponent.h"
 
@@ -156,6 +157,19 @@ namespace NeneEngine {
 			};
 		}
 
+		nlohmann::json SerializePrimitiveControl(const ECS::PrimitiveControlComponent& control)
+		{
+			return {
+				{ "moveSpeed", control.moveSpeed },
+				{ "rotationStepRadians", control.rotationStepRadians },
+				{ "scaleSmoothing", control.scaleSmoothing },
+				{ "rotationSmoothing", control.rotationSmoothing },
+				{ "currentScaleLevel", control.currentScaleLevel },
+				{ "targetRotationRadians", control.targetRotationRadians },
+				{ "targetScale", ToJson(control.targetScale) }
+			};
+		}
+
 		void DeserializeTag(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
 		{
 			auto& tag = world.HasComponent<ECS::TagComponent>(entity)
@@ -220,6 +234,19 @@ namespace NeneEngine {
 			movement.useOscillation = value.at("useOscillation").get<bool>();
 		}
 
+		void DeserializePrimitiveControl(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
+		{
+			auto& control = world.AddComponent<ECS::PrimitiveControlComponent>(entity);
+			control.moveSpeed = value.at("moveSpeed").get<float>();
+			control.rotationStepRadians = value.at("rotationStepRadians").get<float>();
+			control.scaleSmoothing = value.at("scaleSmoothing").get<float>();
+			control.rotationSmoothing = value.at("rotationSmoothing").get<float>();
+			if (value.contains("currentScaleLevel"))
+				control.currentScaleLevel = value.at("currentScaleLevel").get<size_t>();
+			control.targetRotationRadians = value.at("targetRotationRadians").get<float>();
+			control.targetScale = ReadVec3(value.at("targetScale"));
+		}
+
 	} // namespace
 
 	nlohmann::json SceneSerializer::Serialize(const ECS::World& world)
@@ -260,6 +287,10 @@ namespace NeneEngine {
 			if (movement != nullptr)
 				entityJson["components"]["MovementComponent"] = SerializeMovement(*movement);
 
+			const auto* primitiveControl = world.GetRegistry().try_get<ECS::PrimitiveControlComponent>(entity);
+			if (primitiveControl != nullptr)
+				entityJson["components"]["PrimitiveControlComponent"] = SerializePrimitiveControl(*primitiveControl);
+
 			sceneJson["entities"].push_back(std::move(entityJson));
 		}
 
@@ -291,6 +322,8 @@ namespace NeneEngine {
 				DeserializeMeshRenderer(components.at("MeshRenderer"), world, entity);
 			if (components.contains("MovementComponent"))
 				DeserializeMovement(components.at("MovementComponent"), world, entity);
+			if (components.contains("PrimitiveControlComponent"))
+				DeserializePrimitiveControl(components.at("PrimitiveControlComponent"), world, entity);
 		}
 	}
 

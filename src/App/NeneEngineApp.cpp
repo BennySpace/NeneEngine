@@ -7,6 +7,7 @@
 #include "Core/ResourceManager.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
+#include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/TagComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/CameraControllerSystem.h"
@@ -179,6 +180,23 @@ namespace NeneEngine
 							if (gpuMesh.IsValid())
 							{
 								mesh.gpuMesh = gpuMesh;
+
+								auto renderableView = m_world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
+								for (auto entity : renderableView)
+								{
+									auto& tag = renderableView.get<ECS::TagComponent>(entity);
+									if (tag.name != "SceneTriangle")
+										continue;
+
+									auto& meshRenderer = renderableView.get<ECS::MeshRendererComponent>(entity);
+									meshRenderer.meshId = gpuMesh.meshId;
+									NENE_LOG_INFO(
+										"Assigned uploaded meshId={} to entity '{}'",
+										gpuMesh.meshId.value,
+										tag.name);
+									break;
+								}
+
 								NENE_LOG_INFO(
 									"Uploaded mesh resource '{}' to GPU as meshId={} (vertices={}, indices={})",
 									meshResource->GetPath(),

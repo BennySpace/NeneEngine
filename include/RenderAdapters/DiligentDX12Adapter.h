@@ -59,12 +59,16 @@ namespace NeneEngine {
 		std::array<Diligent::RefCntAutoPtr<Diligent::IPipelineState>, PrimitiveTypeCount> m_pPrimitivePSOs;
 		std::array<Diligent::RefCntAutoPtr<Diligent::IBuffer>, PrimitiveTypeCount> m_pPrimitiveConstantBuffers;
 		std::array<Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding>, PrimitiveTypeCount> m_pPrimitiveSRBs;
+		Diligent::RefCntAutoPtr<Diligent::IPipelineState> m_pMeshPSO;
+		Diligent::RefCntAutoPtr<Diligent::IBuffer> m_pMeshConstantBuffer;
+		Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> m_pMeshSRB;
 		std::vector<RenderItem> m_renderQueue;
 		std::unordered_map<uint32_t, UploadedMeshBuffers> m_uploadedMeshes;
 		glm::vec4 m_clearColor{ 0.1f, 0.1f, 0.2f, 1.0f };
 		uint32_t m_nextMeshId = 1;
 
 		[[nodiscard]] Diligent::IPipelineState* GetPipelineState(PrimitiveType primitiveType) const;
+		[[nodiscard]] const UploadedMeshBuffers* GetUploadedMesh(MeshId meshId) const;
 		[[nodiscard]] uint32_t GetVertexCount(PrimitiveType primitiveType) const;
 	};
 

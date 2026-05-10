@@ -4,6 +4,7 @@
 #include "App/NeneEngineApp.h"
 #include "Core/CustomLogger.h"
 #include "Core/ExternalLibrarySmokeTest.h"
+#include "Core/ResourceManager.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
 #include "ECS/Components/TagComponent.h"
@@ -53,6 +54,7 @@ namespace NeneEngine
 			// 1. Logger
 			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", true, spdlog::level::info, true);
 			NENE_LOG_INFO("===== NeneEngine v0.3 starting =====");
+			ResourceManager::GetInstance().RegisterDefaultLoaders();
 			RunExternalLibrarySmokeTests();
 
 			m_appConfigPath = DefaultAppConfigPath();

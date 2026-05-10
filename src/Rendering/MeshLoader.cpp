@@ -83,4 +83,11 @@ namespace NeneEngine
 		return meshData;
 	}
 
+	Mesh LoadMeshFromFile(const std::string& path)
+	{
+		Mesh mesh{};
+		mesh.data = LoadMeshDataFromFile(path);
+		return mesh;
+	}
+
 } // namespace NeneEngine

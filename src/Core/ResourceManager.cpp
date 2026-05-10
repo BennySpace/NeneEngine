@@ -2,6 +2,8 @@
 
 #include "Core/ResourceManager.h"
 
+#include "Rendering/MeshLoader.h"
+
 namespace NeneEngine
 {
 
@@ -9,6 +11,14 @@ namespace NeneEngine
 	{
 		static ResourceManager instance;
 		return instance;
+	}
+
+	void ResourceManager::RegisterDefaultLoaders()
+	{
+		RegisterLoader<Mesh>([](const std::string& path)
+		{
+			return LoadMeshFromFile(path);
+		});
 	}
 
 	void ResourceManager::Clear()

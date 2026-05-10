@@ -10,5 +10,6 @@ namespace NeneEngine
 {
 
 	MeshData LoadMeshDataFromFile(const std::string& path);
+	Mesh LoadMeshFromFile(const std::string& path);
 
 } // namespace NeneEngine

@@ -55,6 +55,11 @@ namespace NeneEngine {
 		std::vector<uint32_t> indices;
 	};
 
+	struct Mesh
+	{
+		MeshData data;
+	};
+
 	struct Material
 	{
 		MaterialId materialId{};

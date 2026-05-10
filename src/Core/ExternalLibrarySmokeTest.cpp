@@ -3,7 +3,8 @@
 #include "Core/ExternalLibrarySmokeTest.h"
 
 #include "Core/CustomLogger.h"
-#include "Rendering/MeshLoader.h"
+#include "Core/ResourceManager.h"
+#include "Rendering/RenderTypes.h"
 
 #include <Windows.h>
 
@@ -64,7 +65,14 @@ namespace NeneEngine
 
 			try
 			{
-				const MeshData meshData = LoadMeshDataFromFile(modelPath.string());
+				auto meshResource = ResourceManager::GetInstance().Load<Mesh>(modelPath.string());
+				if (meshResource == nullptr)
+				{
+					NENE_LOG_ERROR("Assimp smoke test failed for '{}': resource manager returned null", modelPath.string());
+					return;
+				}
+
+				const MeshData& meshData = meshResource->GetData().data;
 				NENE_LOG_INFO(
 					"Assimp smoke test: loaded '{}' | vertices={} indices={}",
 					modelPath.string(),

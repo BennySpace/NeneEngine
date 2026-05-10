@@ -490,7 +490,10 @@ namespace NeneEngine {
                 PSIn.Pos = mul(ModelViewProjection, float4(VSIn.Pos, 1.0f));
                 PSIn.Normal = VSIn.Normal;
                 PSIn.UV = VSIn.UV;
-                PSIn.Color = Tint;
+                float3 vertexColor = float3(VSIn.UV.y < 0.5f ? 1.0f - VSIn.UV.x : 0.0f,
+                                            VSIn.UV.y,
+                                            VSIn.UV.y < 0.5f ? VSIn.UV.x : 0.0f);
+                PSIn.Color = float4(vertexColor, 1.0f) * Tint;
             }
         )raw";
 
@@ -510,10 +513,7 @@ namespace NeneEngine {
 
             void main(in PSInput PSIn, out PSOutput PSOut)
             {
-                float3 normalColor = abs(normalize(PSIn.Normal * 0.5f + 0.5f));
-                float3 uvColor = float3(PSIn.UV.x, PSIn.UV.y, 1.0f - PSIn.UV.x);
-                float3 baseColor = lerp(normalColor, uvColor, 0.35f);
-                PSOut.Color = float4(baseColor, 1.0f) * PSIn.Color;
+                PSOut.Color = PSIn.Color;
             }
         )raw";
 

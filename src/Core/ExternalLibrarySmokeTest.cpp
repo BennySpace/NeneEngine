@@ -3,11 +3,9 @@
 #include "Core/ExternalLibrarySmokeTest.h"
 
 #include "Core/CustomLogger.h"
+#include "Rendering/MeshLoader.h"
 
 #include <Windows.h>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -64,23 +62,19 @@ namespace NeneEngine
 				return;
 			}
 
-			Assimp::Importer importer;
-			const aiScene* scene = importer.ReadFile(
-				modelPath.string(),
-				aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_ValidateDataStructure);
-
-			if (scene == nullptr || scene->mRootNode == nullptr)
+			try
 			{
-				NENE_LOG_ERROR("Assimp smoke test failed for '{}': {}", modelPath.string(), importer.GetErrorString());
-				return;
+				const MeshData meshData = LoadMeshDataFromFile(modelPath.string());
+				NENE_LOG_INFO(
+					"Assimp smoke test: loaded '{}' | vertices={} indices={}",
+					modelPath.string(),
+					meshData.vertices.size(),
+					meshData.indices.size());
 			}
-
-			NENE_LOG_INFO(
-				"Assimp smoke test: loaded '{}' | meshes={} materials={} animations={}",
-				modelPath.string(),
-				scene->mNumMeshes,
-				scene->mNumMaterials,
-				scene->mNumAnimations);
+			catch (const std::exception& exception)
+			{
+				NENE_LOG_ERROR("Assimp smoke test failed for '{}': {}", modelPath.string(), exception.what());
+			}
 		}
 
 		void RunStbImageSmokeTest()

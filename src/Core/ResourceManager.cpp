@@ -14,6 +14,7 @@ namespace NeneEngine
 	void ResourceManager::Clear()
 	{
 		std::scoped_lock lock(m_mutex);
+		m_resourceCaches.clear();
 		LOG_INFO("ResourceManager: cleared all cached resources");
 	}
 

@@ -24,6 +24,42 @@ namespace NeneEngine
 	namespace
 	{
 		constexpr float kConfigReloadIntervalSeconds = 0.5f;
+
+		std::filesystem::path ResolveFrom(const std::filesystem::path& start, const std::filesystem::path& relativePath)
+		{
+			std::error_code errorCode;
+			auto current = start;
+			while (!current.empty())
+			{
+				const auto candidate = current / relativePath;
+				if (std::filesystem::exists(candidate, errorCode))
+					return candidate;
+
+				const auto parent = current.parent_path();
+				if (parent == current)
+					break;
+				current = parent;
+			}
+
+			return {};
+		}
+
+		std::filesystem::path ResolveAssetPath(const std::filesystem::path& relativePath)
+		{
+			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath); !fromCurrentDirectory.empty())
+				return fromCurrentDirectory;
+
+			wchar_t modulePath[MAX_PATH]{};
+			const DWORD length = GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(std::size(modulePath)));
+			if (length > 0)
+			{
+				const std::filesystem::path executableDirectory = std::filesystem::path(modulePath).parent_path();
+				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath); !fromExecutableDirectory.empty())
+					return fromExecutableDirectory;
+			}
+
+			return {};
+		}
 	}
 
 	NeneEngineApp::NeneEngineApp() = default;
@@ -127,6 +163,32 @@ namespace NeneEngine
 
 				if (!CreateWindowContext(windowConfig.width, windowConfig.height, windowConfig.title, cameraEntity))
 					return false;
+			}
+
+			if (!m_windows.empty() && m_windows.front().renderer)
+			{
+				const auto meshPath = ResolveAssetPath(std::filesystem::path{ "assets" } / "models" / "test_triangle.obj");
+				if (!meshPath.empty())
+				{
+					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string()); meshResource != nullptr)
+					{
+						Mesh& mesh = meshResource->GetData();
+						if (!mesh.gpuMesh.has_value() || !mesh.gpuMesh->IsValid())
+						{
+							const GPUMesh gpuMesh = m_windows.front().renderer->UploadMesh(mesh.data);
+							if (gpuMesh.IsValid())
+							{
+								mesh.gpuMesh = gpuMesh;
+								NENE_LOG_INFO(
+									"Uploaded mesh resource '{}' to GPU as meshId={} (vertices={}, indices={})",
+									meshResource->GetPath(),
+									gpuMesh.meshId.value,
+									gpuMesh.vertexCount,
+									gpuMesh.indexCount);
+							}
+						}
+					}
+				}
 			}
 
 			ApplyAppConfig(appConfig);

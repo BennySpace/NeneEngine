@@ -60,7 +60,7 @@ namespace NeneEngine
 			const auto modelPath = ResolveAssetPath(std::filesystem::path{ "assets" } / "models" / "test_triangle.obj");
 			if (modelPath.empty())
 			{
-				LOG_ERROR("Assimp smoke test: model file was not found");
+				NENE_LOG_ERROR("Assimp smoke test: model file was not found");
 				return;
 			}
 
@@ -71,11 +71,11 @@ namespace NeneEngine
 
 			if (scene == nullptr || scene->mRootNode == nullptr)
 			{
-				LOG_ERROR("Assimp smoke test failed for '{}': {}", modelPath.string(), importer.GetErrorString());
+				NENE_LOG_ERROR("Assimp smoke test failed for '{}': {}", modelPath.string(), importer.GetErrorString());
 				return;
 			}
 
-			LOG_INFO(
+			NENE_LOG_INFO(
 				"Assimp smoke test: loaded '{}' | meshes={} materials={} animations={}",
 				modelPath.string(),
 				scene->mNumMeshes,
@@ -88,7 +88,7 @@ namespace NeneEngine
 			const auto texturePath = ResolveAssetPath(std::filesystem::path{ "assets" } / "readme" / "banner.jpg");
 			if (texturePath.empty())
 			{
-				LOG_ERROR("stb_image smoke test: texture file was not found");
+				NENE_LOG_ERROR("stb_image smoke test: texture file was not found");
 				return;
 			}
 
@@ -98,11 +98,11 @@ namespace NeneEngine
 			stbi_uc* pixels = stbi_load(texturePath.string().c_str(), &width, &height, &channels, 0);
 			if (pixels == nullptr)
 			{
-				LOG_ERROR("stb_image smoke test failed for '{}': {}", texturePath.string(), stbi_failure_reason());
+				NENE_LOG_ERROR("stb_image smoke test failed for '{}': {}", texturePath.string(), stbi_failure_reason());
 				return;
 			}
 
-			LOG_INFO(
+			NENE_LOG_INFO(
 				"stb_image smoke test: loaded '{}' | width={} height={} channels={}",
 				texturePath.string(),
 				width,
@@ -115,10 +115,10 @@ namespace NeneEngine
 
 	void RunExternalLibrarySmokeTests()
 	{
-		LOG_INFO("External library smoke tests: started");
+		NENE_LOG_INFO("External library smoke tests: started");
 		RunAssimpSmokeTest();
 		RunStbImageSmokeTest();
-		LOG_INFO("External library smoke tests: finished");
+		NENE_LOG_INFO("External library smoke tests: finished");
 	}
 
 } // namespace NeneEngine

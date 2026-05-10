@@ -32,7 +32,7 @@ namespace NeneEngine
 		{
 			std::scoped_lock lock(m_mutex);
 			m_loaders[std::type_index(typeid(T))] = std::move(loader);
-			LOG_INFO("ResourceManager: registered loader for type '{}'", typeid(T).name());
+			NENE_LOG_INFO("ResourceManager: registered loader for type '{}'", typeid(T).name());
 		}
 
 		template<typename T>
@@ -43,14 +43,14 @@ namespace NeneEngine
 			auto& cache = GetOrCreateCache<T>();
 			if (const auto cached = cache.find(path); cached != cache.end())
 			{
-				LOG_DEBUG("ResourceManager: cache hit for '{}' ({})", path, typeid(T).name());
+				NENE_LOG_DEBUG("ResourceManager: cache hit for '{}' ({})", path, typeid(T).name());
 				return cached->second;
 			}
 
 			LoaderFn<T>* loader = GetLoader<T>();
 			if (loader == nullptr)
 			{
-				LOG_ERROR("ResourceManager: no loader registered for '{}' ({})", path, typeid(T).name());
+				NENE_LOG_ERROR("ResourceManager: no loader registered for '{}' ({})", path, typeid(T).name());
 				return nullptr;
 			}
 
@@ -58,16 +58,16 @@ namespace NeneEngine
 			{
 				auto resource = std::make_shared<Resource<T>>(path, (*loader)(path));
 				cache.emplace(path, resource);
-				LOG_INFO("ResourceManager: loaded '{}' ({})", path, typeid(T).name());
+				NENE_LOG_INFO("ResourceManager: loaded '{}' ({})", path, typeid(T).name());
 				return resource;
 			}
 			catch (const std::exception& exception)
 			{
-				LOG_ERROR("ResourceManager: failed to load '{}' ({}): {}", path, typeid(T).name(), exception.what());
+				NENE_LOG_ERROR("ResourceManager: failed to load '{}' ({}): {}", path, typeid(T).name(), exception.what());
 			}
 			catch (...)
 			{
-				LOG_ERROR("ResourceManager: failed to load '{}' ({}) with unknown error", path, typeid(T).name());
+				NENE_LOG_ERROR("ResourceManager: failed to load '{}' ({}) with unknown error", path, typeid(T).name());
 			}
 
 			return nullptr;

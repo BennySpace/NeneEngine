@@ -44,7 +44,7 @@ namespace NeneEngine::ECS {
 
 			if (!recursionStack.insert(entityId).second)
 			{
-				LOG_WARN("RenderSystem: hierarchy cycle detected for entity {}", entityId);
+				NENE_LOG_WARN("RenderSystem: hierarchy cycle detected for entity {}", entityId);
 				cache[entityId] = localMatrix;
 				return localMatrix;
 			}
@@ -67,7 +67,7 @@ namespace NeneEngine::ECS {
 	{
 		if (m_renderer == nullptr)
 		{
-			LOG_WARN("RenderSystem: render adapter is null");
+			NENE_LOG_WARN("RenderSystem: render adapter is null");
 			return;
 		}
 
@@ -92,7 +92,7 @@ namespace NeneEngine::ECS {
 
 		if (activeCameraEntity == NullEntity || activeCamera == nullptr)
 		{
-			LOG_WARN("RenderSystem: no primary camera found");
+			NENE_LOG_WARN("RenderSystem: no primary camera found");
 			return;
 		}
 
@@ -110,7 +110,7 @@ namespace NeneEngine::ECS {
 
 		auto view = world.GetRegistry().view<const TransformComponent, const MeshRendererComponent>();
 
-		LOG_DEBUG("RenderSystem: starting render pass");
+		NENE_LOG_DEBUG("RenderSystem: starting render pass");
 
 		for (auto entity : view)
 		{
@@ -134,7 +134,7 @@ namespace NeneEngine::ECS {
 
 			m_renderer->SubmitRenderItem(item);
 
-			LOG_DEBUG("RenderSystem: submitted entity {} | primitive={} | mesh={} | material={} | shader={}",
+			NENE_LOG_DEBUG("RenderSystem: submitted entity {} | primitive={} | mesh={} | material={} | shader={}",
 				static_cast<uint32_t>(entt::to_integral(entity)),
 				static_cast<int>(item.primitiveType),
 				item.meshId.value,

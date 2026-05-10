@@ -23,7 +23,7 @@ namespace NeneEngine {
         IEngineFactoryD3D12* pFactory = LoadAndGetEngineFactoryD3D12();
         if (!pFactory)
         {
-            LOG_ERROR("Failed to load D3D12 Engine Factory");
+            NENE_LOG_ERROR("Failed to load D3D12 Engine Factory");
             return false;
         }
 
@@ -40,7 +40,7 @@ namespace NeneEngine {
 
         if (!m_pDevice || !m_pImmediateContext)
         {
-            LOG_ERROR("Failed to create D3D12 device and immediate context");
+            NENE_LOG_ERROR("Failed to create D3D12 device and immediate context");
             return false;
         }
 
@@ -52,19 +52,19 @@ namespace NeneEngine {
 
         if (!m_pSwapChain)
         {
-            LOG_ERROR("Failed to create D3D12 swap chain");
+            NENE_LOG_ERROR("Failed to create D3D12 swap chain");
             return false;
         }
 
         const auto& swapChainDesc = m_pSwapChain->GetDesc();
-        LOG_INFO(
+        NENE_LOG_INFO(
             "DiligentDX12Adapter: swap chain formats color={} depth={}",
             static_cast<int>(swapChainDesc.ColorBufferFormat),
             static_cast<int>(swapChainDesc.DepthBufferFormat));
 
         CreateResources();
 
-        LOG_INFO("Diligent DX12 Adapter initialized successfully ({}x{})", width, height);
+        NENE_LOG_INFO("Diligent DX12 Adapter initialized successfully ({}x{})", width, height);
 
         return true;
     }
@@ -95,7 +95,7 @@ namespace NeneEngine {
         ITextureView* pDSV = m_pSwapChain->GetDepthBufferDSV();
         if (pRTV == nullptr)
         {
-            LOG_WARN("DiligentDX12Adapter: current back buffer RTV is missing");
+            NENE_LOG_WARN("DiligentDX12Adapter: current back buffer RTV is missing");
             return;
         }
 
@@ -106,7 +106,7 @@ namespace NeneEngine {
         if (pDSV != nullptr)
             m_pImmediateContext->ClearDepthStencil(pDSV, CLEAR_DEPTH_FLAG, 1.0f, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         else
-            LOG_WARN("DiligentDX12Adapter: depth buffer DSV is missing");
+            NENE_LOG_WARN("DiligentDX12Adapter: depth buffer DSV is missing");
 
         m_renderQueue.clear();
     }
@@ -140,7 +140,7 @@ namespace NeneEngine {
 
             if (pipelineState == nullptr || constantBuffer == nullptr)
             {
-                LOG_WARN("DiligentDX12Adapter: resources are missing for primitive type {}", static_cast<int>(item.primitiveType));
+                NENE_LOG_WARN("DiligentDX12Adapter: resources are missing for primitive type {}", static_cast<int>(item.primitiveType));
                 continue;
             }
 
@@ -148,7 +148,7 @@ namespace NeneEngine {
             m_pImmediateContext->MapBuffer(constantBuffer, MAP_WRITE, MAP_FLAG_DISCARD, mappedData);
             if (mappedData == nullptr)
             {
-                LOG_WARN("DiligentDX12Adapter: failed to map constant buffer");
+                NENE_LOG_WARN("DiligentDX12Adapter: failed to map constant buffer");
                 continue;
             }
 
@@ -167,7 +167,7 @@ namespace NeneEngine {
 
             m_pImmediateContext->Draw(drawAttrs);
 
-            LOG_DEBUG(
+            NENE_LOG_DEBUG(
                 "DiligentDX12Adapter: drew primitive={} mesh={} material={} shader={} tint=({:.2f}, {:.2f}, {:.2f}, {:.2f})",
                 static_cast<int>(item.primitiveType),
                 item.meshId.value,
@@ -197,14 +197,14 @@ namespace NeneEngine {
         if (m_pSwapChain)
         {
             m_pSwapChain->Resize(width, height);
-            LOG_INFO("DiligentDX12Adapter: swap chain resized to {}x{}", width, height);
+            NENE_LOG_INFO("DiligentDX12Adapter: swap chain resized to {}x{}", width, height);
         }
     }
 
     void DiligentDX12Adapter::SetClearColor(const glm::vec4& color)
     {
         m_clearColor = color;
-        LOG_INFO(
+        NENE_LOG_INFO(
             "DiligentDX12Adapter: clear color set to ({:.2f}, {:.2f}, {:.2f}, {:.2f})",
             m_clearColor.r,
             m_clearColor.g,
@@ -282,7 +282,7 @@ namespace NeneEngine {
 
             if (!pVS || !pPS)
             {
-                LOG_ERROR("Failed to create shaders for primitive pipeline '{}'", name);
+                NENE_LOG_ERROR("Failed to create shaders for primitive pipeline '{}'", name);
                 return;
             }
 
@@ -295,7 +295,7 @@ namespace NeneEngine {
 
             if (!m_pPrimitivePSOs[primitiveIndex])
             {
-                LOG_ERROR("Failed to create Graphics Pipeline State '{}'", name);
+                NENE_LOG_ERROR("Failed to create Graphics Pipeline State '{}'", name);
                 return;
             }
 
@@ -309,14 +309,14 @@ namespace NeneEngine {
             m_pDevice->CreateBuffer(constantBufferDesc, nullptr, &m_pPrimitiveConstantBuffers[primitiveIndex]);
             if (!m_pPrimitiveConstantBuffers[primitiveIndex])
             {
-                LOG_ERROR("Failed to create constant buffer for '{}'", name);
+                NENE_LOG_ERROR("Failed to create constant buffer for '{}'", name);
                 return;
             }
 
             auto* constantsVariable = m_pPrimitivePSOs[primitiveIndex]->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants");
             if (constantsVariable == nullptr)
             {
-                LOG_ERROR("Failed to get shader constant variable for '{}'", name);
+                NENE_LOG_ERROR("Failed to get shader constant variable for '{}'", name);
                 return;
             }
 

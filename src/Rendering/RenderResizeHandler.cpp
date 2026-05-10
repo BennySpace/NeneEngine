@@ -13,7 +13,7 @@ namespace NeneEngine {
 	{
 		if (width == 0 || height == 0)
 		{
-			LOG_WARN("ResizeRenderResources: ignored invalid size {}x{}", width, height);
+			NENE_LOG_WARN("ResizeRenderResources: ignored invalid size {}x{}", width, height);
 			return;
 		}
 

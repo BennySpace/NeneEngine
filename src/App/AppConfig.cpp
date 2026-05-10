@@ -46,14 +46,14 @@ namespace NeneEngine
 			const auto windowIt = root.find("window");
 			if (windowIt == root.end() || !windowIt->is_object())
 			{
-				LOG_WARN("App config: 'window' section is missing or invalid, using default background color");
+				NENE_LOG_WARN("App config: 'window' section is missing or invalid, using default background color");
 				return kDefaultBackgroundColor;
 			}
 
 			const auto colorIt = windowIt->find("backgroundColor");
 			if (colorIt == windowIt->end() || !colorIt->is_object())
 			{
-				LOG_WARN("App config: 'window.backgroundColor' is missing or invalid, using default background color");
+				NENE_LOG_WARN("App config: 'window.backgroundColor' is missing or invalid, using default background color");
 				return kDefaultBackgroundColor;
 			}
 
@@ -65,7 +65,7 @@ namespace NeneEngine
 
 			if (!hasValidComponents)
 			{
-				LOG_WARN("App config: 'window.backgroundColor' must contain numeric r/g/b, using default background color");
+				NENE_LOG_WARN("App config: 'window.backgroundColor' must contain numeric r/g/b, using default background color");
 				return kDefaultBackgroundColor;
 			}
 
@@ -82,7 +82,7 @@ namespace NeneEngine
 				parsedColor.b >= 0.0f && parsedColor.b <= 255.0f;
 			if (!hasValidRgbRange)
 			{
-				LOG_WARN("App config: 'window.backgroundColor' RGB components must be in 0..255, using default background color");
+				NENE_LOG_WARN("App config: 'window.backgroundColor' RGB components must be in 0..255, using default background color");
 				return kDefaultBackgroundColor;
 			}
 
@@ -117,7 +117,7 @@ namespace NeneEngine
 
 			if (!windowsIt->is_array() || windowsIt->empty())
 			{
-				LOG_WARN("App config: 'windows' must be a non-empty array, using default main window");
+				NENE_LOG_WARN("App config: 'windows' must be a non-empty array, using default main window");
 				windows.push_back(WindowDefinitionConfig{
 					std::string(kDefaultWindowTitle),
 					kDefaultWindowWidth,
@@ -134,7 +134,7 @@ namespace NeneEngine
 				++windowIndex;
 				if (!windowValue.is_object())
 				{
-					LOG_WARN("App config: windows[{}] is not an object, skipping", windowIndex - 1);
+					NENE_LOG_WARN("App config: windows[{}] is not an object, skipping", windowIndex - 1);
 					continue;
 				}
 
@@ -149,7 +149,7 @@ namespace NeneEngine
 
 				if (windowConfig.width == 0 || windowConfig.height == 0)
 				{
-					LOG_WARN("App config: windows[{}] has invalid size {}x{}, skipping", windowIndex - 1, windowConfig.width, windowConfig.height);
+					NENE_LOG_WARN("App config: windows[{}] has invalid size {}x{}, skipping", windowIndex - 1, windowConfig.width, windowConfig.height);
 					continue;
 				}
 
@@ -159,7 +159,7 @@ namespace NeneEngine
 
 			if (windows.empty())
 			{
-				LOG_WARN("App config: no valid window definitions found, using default main window");
+				NENE_LOG_WARN("App config: no valid window definitions found, using default main window");
 				windows.push_back(WindowDefinitionConfig{
 					std::string(kDefaultWindowTitle),
 					kDefaultWindowWidth,
@@ -171,7 +171,7 @@ namespace NeneEngine
 
 			if (!hasMainWindow)
 			{
-				LOG_WARN("App config: no window marked as main, first window will be used as main");
+				NENE_LOG_WARN("App config: no window marked as main, first window will be used as main");
 				windows.front().isMain = true;
 			}
 
@@ -207,7 +207,7 @@ namespace NeneEngine
 		std::ifstream input(configPath);
 		if (!input.is_open())
 		{
-			LOG_WARN("App config: failed to open '{}', using defaults", configPath.string());
+			NENE_LOG_WARN("App config: failed to open '{}', using defaults", configPath.string());
 			return config;
 		}
 
@@ -218,7 +218,7 @@ namespace NeneEngine
 
 			config.window.backgroundColor = ReadBackgroundColorOrDefault(root);
 			config.windows = ReadWindowsOrDefault(root);
-			LOG_INFO(
+			NENE_LOG_INFO(
 				"App config loaded from '{}'; backgroundColor=({:.2f}, {:.2f}, {:.2f}, {:.2f}), windows={}",
 				configPath.string(),
 				config.window.backgroundColor.r,
@@ -229,7 +229,7 @@ namespace NeneEngine
 		}
 		catch (const std::exception& ex)
 		{
-			LOG_WARN("App config: failed to parse '{}': {}. Using defaults", configPath.string(), ex.what());
+			NENE_LOG_WARN("App config: failed to parse '{}': {}. Using defaults", configPath.string(), ex.what());
 		}
 
 		return config;

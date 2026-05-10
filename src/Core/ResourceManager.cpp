@@ -15,7 +15,7 @@ namespace NeneEngine
 	{
 		std::scoped_lock lock(m_mutex);
 		m_resourceCaches.clear();
-		LOG_INFO("ResourceManager: cleared all cached resources");
+		NENE_LOG_INFO("ResourceManager: cleared all cached resources");
 	}
 
 } // namespace NeneEngine

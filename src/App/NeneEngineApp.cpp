@@ -52,7 +52,7 @@ namespace NeneEngine
 		{
 			// 1. Logger
 			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", true, spdlog::level::info, true);
-			LOG_INFO("===== NeneEngine v0.3 starting =====");
+			NENE_LOG_INFO("===== NeneEngine v0.3 starting =====");
 			RunExternalLibrarySmokeTests();
 
 			m_appConfigPath = DefaultAppConfigPath();
@@ -67,18 +67,18 @@ namespace NeneEngine
 			// 3. ECS
 			m_world.AddSystem(std::make_unique<ECS::MovementSystem>());
 			TestScene::LoadOrCreate(m_world, width, height);
-			LOG_INFO("Test scene loaded from {}", TestScene::DefaultScenePath().string());
+			NENE_LOG_INFO("Test scene loaded from {}", TestScene::DefaultScenePath().string());
 
 			const ECS::Entity primaryCameraEntity = FindPrimaryCameraEntity();
 			if (primaryCameraEntity == ECS::NullEntity)
 			{
-				LOG_ERROR("Init failed: no primary camera found after loading scene");
+				NENE_LOG_ERROR("Init failed: no primary camera found after loading scene");
 				return false;
 			}
 
 			if (appConfig.windows.empty())
 			{
-				LOG_ERROR("Init failed: app config does not contain any windows");
+				NENE_LOG_ERROR("Init failed: app config does not contain any windows");
 				return false;
 			}
 
@@ -94,12 +94,12 @@ namespace NeneEngine
 
 			if (mainWindowCount == 0)
 			{
-				LOG_ERROR("Init failed: no main window defined in config");
+				NENE_LOG_ERROR("Init failed: no main window defined in config");
 				return false;
 			}
 
 			if (mainWindowCount > 1)
-				LOG_WARN("App config: multiple windows marked as main, only the first one will control the primary camera");
+				NENE_LOG_WARN("App config: multiple windows marked as main, only the first one will control the primary camera");
 
 			const auto secondaryCameraEntities = CreateAdditionalWindowCameras(secondaryWindowCount, width, height);
 			size_t secondaryCameraIndex = 0;
@@ -116,7 +116,7 @@ namespace NeneEngine
 				{
 					if (secondaryCameraIndex >= secondaryCameraEntities.size())
 					{
-						LOG_ERROR("Init failed: not enough secondary cameras for configured windows");
+						NENE_LOG_ERROR("Init failed: not enough secondary cameras for configured windows");
 						return false;
 					}
 
@@ -129,13 +129,13 @@ namespace NeneEngine
 
 			ApplyAppConfig(appConfig);
 
-			LOG_INFO("Application initialized successfully ({}x{})", width, height);
+			NENE_LOG_INFO("Application initialized successfully ({}x{})", width, height);
 
 			return true;
 		}
 		catch (const std::exception& e)
 		{
-			LOG_ERROR("Init failed: {}", e.what());
+			NENE_LOG_ERROR("Init failed: {}", e.what());
 
 			return false;
 		}
@@ -149,14 +149,14 @@ namespace NeneEngine
 		windowContext.window = eastl::make_unique<Windows32Window>();
 		if (!windowContext.window->Create(width, height, title))
 		{
-			LOG_ERROR("Failed to create window '{}'", title);
+			NENE_LOG_ERROR("Failed to create window '{}'", title);
 			return false;
 		}
 
 		windowContext.renderer = eastl::make_unique<DiligentDX12Adapter>();
 		if (!windowContext.renderer->Init(windowContext.window->GetHWND(), width, height))
 		{
-			LOG_ERROR("Failed to initialize renderer for window '{}'", title);
+			NENE_LOG_ERROR("Failed to initialize renderer for window '{}'", title);
 			return false;
 		}
 
@@ -253,7 +253,7 @@ namespace NeneEngine
 
 		if (width == 0 || height == 0)
 		{
-			LOG_WARN("Application resize ignored for window {} with invalid size {}x{}", windowIndex, width, height);
+			NENE_LOG_WARN("Application resize ignored for window {} with invalid size {}x{}", windowIndex, width, height);
 			return;
 		}
 
@@ -264,7 +264,7 @@ namespace NeneEngine
 		if (auto* camera = m_world.GetComponent<ECS::CameraComponent>(windowContext.cameraEntity))
 			camera->aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
-		LOG_INFO("Window '{}' resized to {}x{}", windowContext.title, width, height);
+		NENE_LOG_INFO("Window '{}' resized to {}x{}", windowContext.title, width, height);
 	}
 
 	inline std::wstring AnsiToWString(const std::string& str)
@@ -335,7 +335,7 @@ namespace NeneEngine
 			? accumulatedDeltaTime / static_cast<float>(sampleCount)
 			: 0.0f;
 
-		LOG_INFO(
+		NENE_LOG_INFO(
 			"deltaTime: last={:.6f} s ({:.3f} ms), avg={:.6f} s ({:.3f} ms), samples={}",
 			lastDeltaTime,
 			lastDeltaTime * 1000.0f,
@@ -361,7 +361,7 @@ namespace NeneEngine
 
 		if (pathChanged)
 		{
-			LOG_INFO("App config path updated to '{}'", resolvedConfigPath.string());
+			NENE_LOG_INFO("App config path updated to '{}'", resolvedConfigPath.string());
 			m_appConfigPath = resolvedConfigPath;
 		}
 
@@ -376,7 +376,7 @@ namespace NeneEngine
 		ApplyAppConfig(updatedConfig);
 		m_appConfigLastWriteTime = currentWriteTime;
 
-		LOG_INFO("App config hot-reloaded from '{}'", m_appConfigPath.string());
+		NENE_LOG_INFO("App config hot-reloaded from '{}'", m_appConfigPath.string());
 	}
 
 

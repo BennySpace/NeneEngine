@@ -83,29 +83,29 @@ namespace NeneEngine
 
 } // namespace NeneEngine
 
-#ifdef LOG_TRACE
-#undef LOG_TRACE
+#ifdef NENE_LOG_TRACE
+#undef NENE_LOG_TRACE
 #endif
-#ifdef LOG_DEBUG
-#undef LOG_DEBUG
+#ifdef NENE_LOG_DEBUG
+#undef NENE_LOG_DEBUG
 #endif
-#ifdef LOG_INFO
-#undef LOG_INFO
+#ifdef NENE_LOG_INFO
+#undef NENE_LOG_INFO
 #endif
-#ifdef LOG_WARN
-#undef LOG_WARN
+#ifdef NENE_LOG_WARN
+#undef NENE_LOG_WARN
 #endif
 // Fix define conflict with DiligentEngine
-#ifdef LOG_ERROR
-#undef LOG_ERROR
+#ifdef NENE_LOG_ERROR
+#undef NENE_LOG_ERROR
 #endif
-#ifdef LOG_CRITICAL
-#undef LOG_CRITICAL
+#ifdef NENE_LOG_CRITICAL
+#undef NENE_LOG_CRITICAL
 #endif
 
-#define LOG_TRACE(...)   ::NeneEngine::CustomLogger::GetInstance().Trace(__VA_ARGS__)
-#define LOG_DEBUG(...)   ::NeneEngine::CustomLogger::GetInstance().Debug(__VA_ARGS__)
-#define LOG_INFO(...)    ::NeneEngine::CustomLogger::GetInstance().Info(__VA_ARGS__)
-#define LOG_WARN(...)    ::NeneEngine::CustomLogger::GetInstance().Warn(__VA_ARGS__)
-#define LOG_ERROR(...)   ::NeneEngine::CustomLogger::GetInstance().Error(__VA_ARGS__)
-#define LOG_CRITICAL(...)::NeneEngine::CustomLogger::GetInstance().Critical(__VA_ARGS__)
+#define NENE_LOG_TRACE(...)    ::NeneEngine::CustomLogger::GetInstance().Trace(__VA_ARGS__)
+#define NENE_LOG_DEBUG(...)    ::NeneEngine::CustomLogger::GetInstance().Debug(__VA_ARGS__)
+#define NENE_LOG_INFO(...)     ::NeneEngine::CustomLogger::GetInstance().Info(__VA_ARGS__)
+#define NENE_LOG_WARN(...)     ::NeneEngine::CustomLogger::GetInstance().Warn(__VA_ARGS__)
+#define NENE_LOG_ERROR(...)    ::NeneEngine::CustomLogger::GetInstance().Error(__VA_ARGS__)
+#define NENE_LOG_CRITICAL(...) ::NeneEngine::CustomLogger::GetInstance().Critical(__VA_ARGS__)

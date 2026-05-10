@@ -4,6 +4,7 @@
 
 #include <compare>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -55,9 +56,19 @@ namespace NeneEngine {
 		std::vector<uint32_t> indices;
 	};
 
+	struct GPUMesh
+	{
+		MeshId meshId{};
+		uint32_t vertexCount = 0;
+		uint32_t indexCount = 0;
+
+		constexpr bool IsValid() const noexcept { return meshId.IsValid(); }
+	};
+
 	struct Mesh
 	{
 		MeshData data;
+		std::optional<GPUMesh> gpuMesh;
 	};
 
 	struct Material

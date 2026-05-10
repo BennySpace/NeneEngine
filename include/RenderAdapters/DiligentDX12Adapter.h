@@ -13,6 +13,7 @@
 #include "../external/DiligentEngine/DiligentCore/Graphics/GraphicsEngine/interface/SwapChain.h"
 
 #include <array>
+#include <unordered_map>
 #include <vector>
 
 namespace NeneEngine {
@@ -25,6 +26,7 @@ namespace NeneEngine {
 		bool Init(HWND hwnd, uint32_t width, uint32_t height) override;
 		void Shutdown() override;
 
+		GPUMesh UploadMesh(const MeshData& meshData) override;
 		void BeginFrame() override;
 		void SubmitRenderItem(const RenderItem& item) override;
 		void CreateResources();
@@ -42,6 +44,14 @@ namespace NeneEngine {
 			glm::vec4 tint = { 1.0f, 1.0f, 1.0f, 1.0f };
 		};
 
+		struct UploadedMeshBuffers
+		{
+			Diligent::RefCntAutoPtr<Diligent::IBuffer> vertexBuffer;
+			Diligent::RefCntAutoPtr<Diligent::IBuffer> indexBuffer;
+			uint32_t vertexCount = 0;
+			uint32_t indexCount = 0;
+		};
+
 		Diligent::RefCntAutoPtr<Diligent::IRenderDevice>     m_pDevice;
 		Diligent::RefCntAutoPtr<Diligent::IDeviceContext>    m_pImmediateContext;
 		Diligent::RefCntAutoPtr<Diligent::ISwapChain>        m_pSwapChain;
@@ -50,7 +60,9 @@ namespace NeneEngine {
 		std::array<Diligent::RefCntAutoPtr<Diligent::IBuffer>, PrimitiveTypeCount> m_pPrimitiveConstantBuffers;
 		std::array<Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding>, PrimitiveTypeCount> m_pPrimitiveSRBs;
 		std::vector<RenderItem> m_renderQueue;
+		std::unordered_map<uint32_t, UploadedMeshBuffers> m_uploadedMeshes;
 		glm::vec4 m_clearColor{ 0.1f, 0.1f, 0.2f, 1.0f };
+		uint32_t m_nextMeshId = 1;
 
 		[[nodiscard]] Diligent::IPipelineState* GetPipelineState(PrimitiveType primitiveType) const;
 		[[nodiscard]] uint32_t GetVertexCount(PrimitiveType primitiveType) const;

@@ -82,9 +82,73 @@ namespace NeneEngine {
             srb.Release();
 
         m_renderQueue.clear();
+        m_uploadedMeshes.clear();
+        m_nextMeshId = 1;
         m_pSwapChain.Release();
         m_pImmediateContext.Release();
         m_pDevice.Release();
+    }
+
+    GPUMesh DiligentDX12Adapter::UploadMesh(const MeshData& meshData)
+    {
+        if (!m_pDevice)
+        {
+            NENE_LOG_ERROR("DiligentDX12Adapter: UploadMesh called before device initialization");
+            return {};
+        }
+
+        if (meshData.vertices.empty() || meshData.indices.empty())
+        {
+            NENE_LOG_ERROR("DiligentDX12Adapter: UploadMesh received empty mesh data");
+            return {};
+        }
+
+        BufferDesc vertexBufferDesc{};
+        vertexBufferDesc.Name = "Mesh Vertex Buffer";
+        vertexBufferDesc.BindFlags = BIND_VERTEX_BUFFER;
+        vertexBufferDesc.Usage = USAGE_IMMUTABLE;
+        vertexBufferDesc.Size = static_cast<Uint64>(meshData.vertices.size() * sizeof(Vertex));
+
+        BufferData vertexBufferData{};
+        vertexBufferData.pData = meshData.vertices.data();
+        vertexBufferData.DataSize = vertexBufferDesc.Size;
+
+        BufferDesc indexBufferDesc{};
+        indexBufferDesc.Name = "Mesh Index Buffer";
+        indexBufferDesc.BindFlags = BIND_INDEX_BUFFER;
+        indexBufferDesc.Usage = USAGE_IMMUTABLE;
+        indexBufferDesc.Size = static_cast<Uint64>(meshData.indices.size() * sizeof(uint32_t));
+
+        BufferData indexBufferData{};
+        indexBufferData.pData = meshData.indices.data();
+        indexBufferData.DataSize = indexBufferDesc.Size;
+
+        UploadedMeshBuffers uploadedMesh{};
+        m_pDevice->CreateBuffer(vertexBufferDesc, &vertexBufferData, &uploadedMesh.vertexBuffer);
+        m_pDevice->CreateBuffer(indexBufferDesc, &indexBufferData, &uploadedMesh.indexBuffer);
+
+        if (!uploadedMesh.vertexBuffer || !uploadedMesh.indexBuffer)
+        {
+            NENE_LOG_ERROR(
+                "DiligentDX12Adapter: failed to upload mesh buffers (vertices={}, indices={})",
+                meshData.vertices.size(),
+                meshData.indices.size());
+            return {};
+        }
+
+        uploadedMesh.vertexCount = static_cast<uint32_t>(meshData.vertices.size());
+        uploadedMesh.indexCount = static_cast<uint32_t>(meshData.indices.size());
+
+        const MeshId meshId{ m_nextMeshId++ };
+        m_uploadedMeshes.emplace(meshId.value, uploadedMesh);
+
+        NENE_LOG_INFO(
+            "DiligentDX12Adapter: uploaded mesh {} (vertices={}, indices={})",
+            meshId.value,
+            uploadedMesh.vertexCount,
+            uploadedMesh.indexCount);
+
+        return GPUMesh{ meshId, uploadedMesh.vertexCount, uploadedMesh.indexCount };
     }
 
     void DiligentDX12Adapter::BeginFrame()

@@ -1,19 +1,20 @@
 // NeneEngineApp.cpp
 
 #include "App/AppConfig.h"
-#include "ECS/Systems/CameraControllerSystem.h"
+#include "App/NeneEngineApp.h"
+#include "Core/CustomLogger.h"
+#include "Core/ExternalLibrarySmokeTest.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
 #include "ECS/Components/TagComponent.h"
 #include "ECS/Components/TransformComponent.h"
+#include "ECS/Systems/CameraControllerSystem.h"
 #include "ECS/Systems/MovementSystem.h"
 #include "ECS/Systems/PrimitiveControlSystem.h"
-#include "App/NeneEngineApp.h"
+#include "Platform/Windows32/Windows32Window.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
-#include "Platform/Windows32/Windows32Window.h"
-#include "Core/CustomLogger.h"
 
 #include <stdexcept>
 
@@ -51,7 +52,8 @@ namespace NeneEngine
 		{
 			// 1. Logger
 			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", true, spdlog::level::info, true);
-			LOG_INFO("===== NeneEngine v0.2 starting =====");
+			LOG_INFO("===== NeneEngine v0.3 starting =====");
+			RunExternalLibrarySmokeTests();
 
 			m_appConfigPath = DefaultAppConfigPath();
 			const AppConfig appConfig = LoadAppConfig(m_appConfigPath);

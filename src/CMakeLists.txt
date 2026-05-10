@@ -26,20 +26,38 @@ target_include_directories(NeneEngine
 )
 
 find_package(spdlog         CONFIG REQUIRED)
+find_package(assimp         CONFIG REQUIRED)
 find_package(nlohmann_json  CONFIG REQUIRED)
 find_package(EASTL          CONFIG REQUIRED)
 find_package(EnTT           CONFIG REQUIRED)
 find_package(glm            CONFIG REQUIRED)
+find_package(Stb            MODULE REQUIRED)
+
+target_include_directories(NeneEngine PRIVATE ${Stb_INCLUDE_DIR})
 
 target_link_libraries(NeneEngine
     PRIVATE
+        assimp::assimp
         spdlog::spdlog
         nlohmann_json::nlohmann_json
         EASTL
         EnTT::EnTT
         glm::glm
+        Diligent-Win32Platform
         Diligent-GraphicsEngineD3D12-shared
 )
+
+if(EXISTS "${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/debug/bin")
+    file(GLOB NENEENGINE_VCPKG_DEBUG_DLLS "${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/debug/bin/*.dll")
+    if(NENEENGINE_VCPKG_DEBUG_DLLS)
+        add_custom_command(TARGET NeneEngine POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${NENEENGINE_VCPKG_DEBUG_DLLS}
+                $<TARGET_FILE_DIR:NeneEngine>
+            COMMAND_EXPAND_LISTS
+        )
+    endif()
+endif()
 
 if(COMMAND copy_required_dlls)
     copy_required_dlls(NeneEngine)

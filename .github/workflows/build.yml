@@ -20,6 +20,9 @@ jobs:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-binary-cache
       VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg-binary-cache,readwrite
+      SCCACHE_DIR: ${{ github.workspace }}/.sccache
+      CMAKE_C_COMPILER_LAUNCHER: sccache
+      CMAKE_CXX_COMPILER_LAUNCHER: sccache
 
     steps:
       - name: Checkout repository
@@ -27,12 +30,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Restore vcpkg caches
+      - name: Restore caches
         uses: actions/cache@v4
         with:
           path: |
             ${{ github.workspace }}/vcpkg/downloads
             ${{ github.workspace }}/vcpkg-binary-cache
+            ${{ github.workspace }}/.sccache
           key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
           restore-keys: |
             vcpkg-${{ runner.os }}-
@@ -42,6 +46,14 @@ jobs:
         with:
           arch: amd64
 
+      - name: Install sccache
+        shell: pwsh
+        run: choco install sccache -y
+
+      - name: Show sccache version
+        shell: pwsh
+        run: sccache --version
+
       - name: Restore vcpkg dependencies
         uses: lukka/run-vcpkg@v11
         with:
@@ -50,8 +62,12 @@ jobs:
 
       - name: Configure CMake
         shell: pwsh
-        run: cmake --preset x64-debug
+        run: cmake --preset x64-debug -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
       - name: Build
         shell: pwsh
-        run: cmake --build out/build/x64-debug --config Debug
+        run: cmake --build out/build/x64-debug --config Debug --target NeneEngine
+
+      - name: Show sccache stats
+        shell: pwsh
+        run: sccache --show-stats

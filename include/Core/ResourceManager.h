@@ -18,25 +18,21 @@ namespace NeneEngine
 
 	class ResourceManager final
 	{
-	public:
-		template<typename T>
-		using ResourcePtr = std::shared_ptr<Resource<T>>;
+	  public:
+		template <typename T> using ResourcePtr = std::shared_ptr<Resource<T>>;
 
-		template<typename T>
-		using LoaderFn = std::function<T(const std::string&)>;
+		template <typename T> using LoaderFn = std::function<T(const std::string&)>;
 
 		static ResourceManager& GetInstance();
 
-		template<typename T>
-		void RegisterLoader(LoaderFn<T> loader)
+		template <typename T> void RegisterLoader(LoaderFn<T> loader)
 		{
 			std::scoped_lock lock(m_mutex);
 			m_loaders[std::type_index(typeid(T))] = std::move(loader);
 			NENE_LOG_INFO("ResourceManager: registered loader for type '{}'", typeid(T).name());
 		}
 
-		template<typename T>
-		ResourcePtr<T> Load(const std::string& path)
+		template <typename T> ResourcePtr<T> Load(const std::string& path)
 		{
 			std::scoped_lock lock(m_mutex);
 
@@ -63,7 +59,8 @@ namespace NeneEngine
 			}
 			catch (const std::exception& exception)
 			{
-				NENE_LOG_ERROR("ResourceManager: failed to load '{}' ({}): {}", path, typeid(T).name(), exception.what());
+				NENE_LOG_ERROR("ResourceManager: failed to load '{}' ({}): {}", path, typeid(T).name(),
+				               exception.what());
 			}
 			catch (...)
 			{
@@ -76,29 +73,24 @@ namespace NeneEngine
 		void RegisterDefaultLoaders();
 		void Clear();
 
-	private:
+	  private:
 		ResourceManager() = default;
 
-		template<typename T>
-		using CacheMap = std::unordered_map<std::string, ResourcePtr<T>>;
+		template <typename T> using CacheMap = std::unordered_map<std::string, ResourcePtr<T>>;
 
-		template<typename T>
-		CacheMap<T>& GetOrCreateCache()
+		template <typename T> CacheMap<T>& GetOrCreateCache()
 		{
 			const std::type_index type = std::type_index(typeid(T));
 			auto cacheIt = m_resourceCaches.find(type);
-			if (cacheIt == m_resourceCaches.end())
-				cacheIt = m_resourceCaches.emplace(type, CacheMap<T>{}).first;
+			if (cacheIt == m_resourceCaches.end()) cacheIt = m_resourceCaches.emplace(type, CacheMap<T>{}).first;
 
 			return *std::any_cast<CacheMap<T>>(&cacheIt->second);
 		}
 
-		template<typename T>
-		LoaderFn<T>* GetLoader()
+		template <typename T> LoaderFn<T>* GetLoader()
 		{
 			const auto loaderIt = m_loaders.find(std::type_index(typeid(T)));
-			if (loaderIt == m_loaders.end())
-				return nullptr;
+			if (loaderIt == m_loaders.end()) return nullptr;
 
 			return std::any_cast<LoaderFn<T>>(&loaderIt->second);
 		}

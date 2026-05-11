@@ -16,50 +16,41 @@
 #include <stdexcept>
 #include <string>
 
-namespace NeneEngine {
-	namespace {
+namespace NeneEngine
+{
+	namespace
+	{
 
 		nlohmann::json ToJson(const glm::vec3& value)
 		{
-			return { { "x", value.x }, { "y", value.y }, { "z", value.z } };
+			return {{"x", value.x}, {"y", value.y}, {"z", value.z}};
 		}
 
 		nlohmann::json ToJson(const glm::vec4& value)
 		{
-			return { { "x", value.x }, { "y", value.y }, { "z", value.z }, { "w", value.w } };
+			return {{"x", value.x}, {"y", value.y}, {"z", value.z}, {"w", value.w}};
 		}
 
 		nlohmann::json ToJson(const glm::quat& value)
 		{
-			return { { "x", value.x }, { "y", value.y }, { "z", value.z }, { "w", value.w } };
+			return {{"x", value.x}, {"y", value.y}, {"z", value.z}, {"w", value.w}};
 		}
 
 		glm::vec3 ReadVec3(const nlohmann::json& value)
 		{
-			return {
-				value.at("x").get<float>(),
-				value.at("y").get<float>(),
-				value.at("z").get<float>()
-			};
+			return {value.at("x").get<float>(), value.at("y").get<float>(), value.at("z").get<float>()};
 		}
 
 		glm::vec4 ReadVec4(const nlohmann::json& value)
 		{
-			return {
-				value.at("x").get<float>(),
-				value.at("y").get<float>(),
-				value.at("z").get<float>(),
-				value.at("w").get<float>()
-			};
+			return {value.at("x").get<float>(), value.at("y").get<float>(), value.at("z").get<float>(),
+			        value.at("w").get<float>()};
 		}
 
 		glm::quat ReadQuat(const nlohmann::json& value)
 		{
-			return glm::quat(
-				value.at("w").get<float>(),
-				value.at("x").get<float>(),
-				value.at("y").get<float>(),
-				value.at("z").get<float>());
+			return glm::quat(value.at("w").get<float>(), value.at("x").get<float>(), value.at("y").get<float>(),
+			                 value.at("z").get<float>());
 		}
 
 		std::string ToString(PrimitiveType primitiveType)
@@ -81,14 +72,10 @@ namespace NeneEngine {
 
 		PrimitiveType ReadPrimitiveType(const std::string& value)
 		{
-			if (value == "Line")
-				return PrimitiveType::Line;
-			if (value == "Triangle")
-				return PrimitiveType::Triangle;
-			if (value == "Quad")
-				return PrimitiveType::Quad;
-			if (value == "Cube")
-				return PrimitiveType::Cube;
+			if (value == "Line") return PrimitiveType::Line;
+			if (value == "Triangle") return PrimitiveType::Triangle;
+			if (value == "Quad") return PrimitiveType::Quad;
+			if (value == "Cube") return PrimitiveType::Cube;
 
 			throw std::runtime_error("Unknown PrimitiveType: " + value);
 		}
@@ -105,99 +92,83 @@ namespace NeneEngine {
 
 		nlohmann::json SerializeTag(const ECS::TagComponent& tag)
 		{
-			return { { "name", tag.name } };
+			return {{"name", tag.name}};
 		}
 
 		nlohmann::json SerializeTransform(const ECS::TransformComponent& transform)
 		{
-			return {
-				{ "position", ToJson(transform.position) },
-				{ "rotation", ToJson(transform.rotation) },
-				{ "scale", ToJson(transform.scale) }
-			};
+			return {{"position", ToJson(transform.position)},
+			        {"rotation", ToJson(transform.rotation)},
+			        {"scale", ToJson(transform.scale)}};
 		}
 
 		nlohmann::json SerializeCamera(const ECS::CameraComponent& camera)
 		{
-			return {
-				{ "fovDegrees", camera.fovDegrees },
-				{ "nearPlane", camera.nearPlane },
-				{ "farPlane", camera.farPlane },
-				{ "aspectRatio", camera.aspectRatio },
-				{ "isPrimary", camera.isPrimary }
-			};
+			return {{"fovDegrees", camera.fovDegrees},
+			        {"nearPlane", camera.nearPlane},
+			        {"farPlane", camera.farPlane},
+			        {"aspectRatio", camera.aspectRatio},
+			        {"isPrimary", camera.isPrimary}};
 		}
 
 		nlohmann::json SerializeCameraController(const ECS::CameraControllerComponent& controller)
 		{
-			return {
-				{ "moveSpeed", controller.moveSpeed },
-				{ "sprintMultiplier", controller.sprintMultiplier },
-				{ "lookSensitivity", controller.lookSensitivity },
-				{ "yawRadians", controller.yawRadians },
-				{ "pitchRadians", controller.pitchRadians },
-				{ "maxPitchRadians", controller.maxPitchRadians },
-				{ "rotateWithRightMouse", controller.rotateWithRightMouse }
-			};
+			return {{"moveSpeed", controller.moveSpeed},
+			        {"sprintMultiplier", controller.sprintMultiplier},
+			        {"lookSensitivity", controller.lookSensitivity},
+			        {"yawRadians", controller.yawRadians},
+			        {"pitchRadians", controller.pitchRadians},
+			        {"maxPitchRadians", controller.maxPitchRadians},
+			        {"rotateWithRightMouse", controller.rotateWithRightMouse}};
 		}
 
 		nlohmann::json SerializeMeshRenderer(const ECS::MeshRendererComponent& renderer)
 		{
-			return {
-				{ "primitiveType", ToString(renderer.primitiveType) },
-				{ "visible", renderer.visible },
-				{ "meshId", renderer.meshId.value },
-				{ "material", {
-					{ "materialId", renderer.material.materialId.value },
-					{ "shaderId", renderer.material.shaderId.value },
-					{ "tint", ToJson(renderer.material.tint) }
-				} }
-			};
+			return {{"primitiveType", ToString(renderer.primitiveType)},
+			        {"visible", renderer.visible},
+			        {"meshId", renderer.meshId.value},
+			        {"material",
+			         {{"materialId", renderer.material.materialId.value},
+			          {"shaderId", renderer.material.shaderId.value},
+			          {"tint", ToJson(renderer.material.tint)}}}};
 		}
 
 		nlohmann::json SerializeMovement(const ECS::MovementComponent& movement)
 		{
-			return {
-				{ "velocity", ToJson(movement.velocity) },
-				{ "origin", ToJson(movement.origin) },
-				{ "oscillationAxis", ToJson(movement.oscillationAxis) },
-				{ "oscillationAmplitude", movement.oscillationAmplitude },
-				{ "oscillationSpeed", movement.oscillationSpeed },
-				{ "elapsedTime", movement.elapsedTime },
-				{ "useOscillation", movement.useOscillation }
-			};
+			return {{"velocity", ToJson(movement.velocity)},
+			        {"origin", ToJson(movement.origin)},
+			        {"oscillationAxis", ToJson(movement.oscillationAxis)},
+			        {"oscillationAmplitude", movement.oscillationAmplitude},
+			        {"oscillationSpeed", movement.oscillationSpeed},
+			        {"elapsedTime", movement.elapsedTime},
+			        {"useOscillation", movement.useOscillation}};
 		}
 
 		nlohmann::json SerializeHierarchy(const ECS::HierarchyComponent& hierarchy)
 		{
 			nlohmann::json children = nlohmann::json::array();
-			for (ECS::Entity child : hierarchy.children)
-				children.push_back(ToEntityId(child));
+			for (ECS::Entity child : hierarchy.children) children.push_back(ToEntityId(child));
 
-			return {
-				{ "parent", hierarchy.parent == ECS::NullEntity ? nlohmann::json(nullptr) : nlohmann::json(ToEntityId(hierarchy.parent)) },
-				{ "children", std::move(children) }
-			};
+			return {{"parent", hierarchy.parent == ECS::NullEntity ? nlohmann::json(nullptr)
+			                                                       : nlohmann::json(ToEntityId(hierarchy.parent))},
+			        {"children", std::move(children)}};
 		}
 
 		nlohmann::json SerializePrimitiveControl(const ECS::PrimitiveControlComponent& control)
 		{
-			return {
-				{ "moveSpeed", control.moveSpeed },
-				{ "rotationStepRadians", control.rotationStepRadians },
-				{ "scaleSmoothing", control.scaleSmoothing },
-				{ "rotationSmoothing", control.rotationSmoothing },
-				{ "currentScaleLevel", control.currentScaleLevel },
-				{ "targetRotationRadians", control.targetRotationRadians },
-				{ "targetScale", ToJson(control.targetScale) }
-			};
+			return {{"moveSpeed", control.moveSpeed},
+			        {"rotationStepRadians", control.rotationStepRadians},
+			        {"scaleSmoothing", control.scaleSmoothing},
+			        {"rotationSmoothing", control.rotationSmoothing},
+			        {"currentScaleLevel", control.currentScaleLevel},
+			        {"targetRotationRadians", control.targetRotationRadians},
+			        {"targetScale", ToJson(control.targetScale)}};
 		}
 
 		void DeserializeTag(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
 		{
-			auto& tag = world.HasComponent<ECS::TagComponent>(entity)
-				? *world.GetComponent<ECS::TagComponent>(entity)
-				: world.AddComponent<ECS::TagComponent>(entity);
+			auto& tag = world.HasComponent<ECS::TagComponent>(entity) ? *world.GetComponent<ECS::TagComponent>(entity)
+			                                                          : world.AddComponent<ECS::TagComponent>(entity);
 			tag.name = value.at("name").get<std::string>();
 		}
 
@@ -237,11 +208,11 @@ namespace NeneEngine {
 			auto& renderer = world.AddComponent<ECS::MeshRendererComponent>(entity);
 			renderer.primitiveType = ReadPrimitiveType(value.at("primitiveType").get<std::string>());
 			renderer.visible = value.at("visible").get<bool>();
-			renderer.meshId = MeshId{ value.at("meshId").get<uint32_t>() };
+			renderer.meshId = MeshId{value.at("meshId").get<uint32_t>()};
 
 			const auto& material = value.at("material");
-			renderer.material.materialId = MaterialId{ material.at("materialId").get<uint32_t>() };
-			renderer.material.shaderId = ShaderId{ material.at("shaderId").get<uint32_t>() };
+			renderer.material.materialId = MaterialId{material.at("materialId").get<uint32_t>()};
+			renderer.material.shaderId = ShaderId{material.at("shaderId").get<uint32_t>()};
 			renderer.material.tint = ReadVec4(material.at("tint"));
 		}
 
@@ -288,45 +259,35 @@ namespace NeneEngine {
 
 	nlohmann::json SceneSerializer::Serialize(const ECS::World& world)
 	{
-		nlohmann::json sceneJson{
-			{ "version", CurrentVersion },
-			{ "entities", nlohmann::json::array() }
-		};
+		nlohmann::json sceneJson{{"version", CurrentVersion}, {"entities", nlohmann::json::array()}};
 
 		const auto allEntities = world.GetRegistry().view<entt::entity>();
 		for (auto entity : allEntities)
 		{
-			nlohmann::json entityJson{
-				{ "components", nlohmann::json::object() }
-			};
+			nlohmann::json entityJson{{"components", nlohmann::json::object()}};
 
 			const auto* tag = world.GetRegistry().try_get<ECS::TagComponent>(entity);
-			if (tag != nullptr)
-				entityJson["components"]["Tag"] = SerializeTag(*tag);
+			if (tag != nullptr) entityJson["components"]["Tag"] = SerializeTag(*tag);
 
 			const auto* transform = world.GetRegistry().try_get<ECS::TransformComponent>(entity);
-			if (transform != nullptr)
-				entityJson["components"]["Transform"] = SerializeTransform(*transform);
+			if (transform != nullptr) entityJson["components"]["Transform"] = SerializeTransform(*transform);
 
 			const auto* camera = world.GetRegistry().try_get<ECS::CameraComponent>(entity);
-			if (camera != nullptr)
-				entityJson["components"]["CameraComponent"] = SerializeCamera(*camera);
+			if (camera != nullptr) entityJson["components"]["CameraComponent"] = SerializeCamera(*camera);
 
 			const auto* cameraController = world.GetRegistry().try_get<ECS::CameraControllerComponent>(entity);
 			if (cameraController != nullptr)
 				entityJson["components"]["CameraControllerComponent"] = SerializeCameraController(*cameraController);
 
 			const auto* hierarchy = world.GetRegistry().try_get<ECS::HierarchyComponent>(entity);
-			if (hierarchy != nullptr)
-				entityJson["components"]["HierarchyComponent"] = SerializeHierarchy(*hierarchy);
+			if (hierarchy != nullptr) entityJson["components"]["HierarchyComponent"] = SerializeHierarchy(*hierarchy);
 
 			const auto* meshRenderer = world.GetRegistry().try_get<ECS::MeshRendererComponent>(entity);
 			if (meshRenderer != nullptr)
 				entityJson["components"]["MeshRenderer"] = SerializeMeshRenderer(*meshRenderer);
 
 			const auto* movement = world.GetRegistry().try_get<ECS::MovementComponent>(entity);
-			if (movement != nullptr)
-				entityJson["components"]["MovementComponent"] = SerializeMovement(*movement);
+			if (movement != nullptr) entityJson["components"]["MovementComponent"] = SerializeMovement(*movement);
 
 			const auto* primitiveControl = world.GetRegistry().try_get<ECS::PrimitiveControlComponent>(entity);
 			if (primitiveControl != nullptr)
@@ -351,10 +312,8 @@ namespace NeneEngine {
 			const ECS::Entity entity = world.GetRegistry().create();
 			const auto& components = entityJson.at("components");
 
-			if (components.contains("Tag"))
-				DeserializeTag(components.at("Tag"), world, entity);
-			if (components.contains("Transform"))
-				DeserializeTransform(components.at("Transform"), world, entity);
+			if (components.contains("Tag")) DeserializeTag(components.at("Tag"), world, entity);
+			if (components.contains("Transform")) DeserializeTransform(components.at("Transform"), world, entity);
 			if (components.contains("CameraComponent"))
 				DeserializeCamera(components.at("CameraComponent"), world, entity);
 			if (components.contains("CameraControllerComponent"))
@@ -373,8 +332,7 @@ namespace NeneEngine {
 	void SceneSerializer::SaveToFile(const ECS::World& world, const std::filesystem::path& path)
 	{
 		std::ofstream file(path);
-		if (!file.is_open())
-			throw std::runtime_error("Failed to open scene file for writing: " + path.string());
+		if (!file.is_open()) throw std::runtime_error("Failed to open scene file for writing: " + path.string());
 
 		file << Serialize(world).dump(4);
 	}
@@ -382,8 +340,7 @@ namespace NeneEngine {
 	void SceneSerializer::LoadFromFile(const std::filesystem::path& path, ECS::World& world)
 	{
 		std::ifstream file(path);
-		if (!file.is_open())
-			throw std::runtime_error("Failed to open scene file for reading: " + path.string());
+		if (!file.is_open()) throw std::runtime_error("Failed to open scene file for reading: " + path.string());
 
 		nlohmann::json sceneJson;
 		file >> sceneJson;

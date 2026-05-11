@@ -7,7 +7,8 @@
 #include "ECS/World.h"
 #include "RenderAdapters/IRenderAdapter.h"
 
-namespace NeneEngine {
+namespace NeneEngine
+{
 
 	void ResizeRenderResources(IRenderAdapter& renderer, ECS::World& world, uint32_t width, uint32_t height)
 	{
@@ -25,8 +26,7 @@ namespace NeneEngine {
 		for (auto entity : cameraView)
 		{
 			auto& camera = cameraView.get<ECS::CameraComponent>(entity);
-			if (camera.isPrimary)
-				camera.aspectRatio = aspectRatio;
+			if (camera.isPrimary) camera.aspectRatio = aspectRatio;
 		}
 	}
 

@@ -2,12 +2,14 @@
 
 #pragma once
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	class World;
 
-	class ISystem {
-	public:
+	class ISystem
+	{
+	  public:
 		virtual ~ISystem() = default;
 
 		virtual void Update(World& world, float deltaTime) = 0;

@@ -5,7 +5,8 @@
 #include <cstddef>
 #include <glm/glm.hpp>
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	struct PrimitiveControlComponent
 	{
@@ -15,7 +16,7 @@ namespace NeneEngine::ECS {
 		float rotationSmoothing = 10.0f;
 		size_t currentScaleLevel = 0;
 		float targetRotationRadians = 0.0f;
-		glm::vec3 targetScale = { 1.0f, 1.0f, 1.0f };
+		glm::vec3 targetScale = {1.0f, 1.0f, 1.0f};
 	};
 
 } // namespace NeneEngine::ECS

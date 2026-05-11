@@ -16,7 +16,7 @@ namespace NeneEngine
 
 	class CustomLogger final
 	{
-	public:
+	  public:
 		CustomLogger(const CustomLogger&) = delete;
 		CustomLogger& operator=(const CustomLogger&) = delete;
 		CustomLogger(CustomLogger&&) = delete;
@@ -24,57 +24,45 @@ namespace NeneEngine
 
 		static CustomLogger& GetInstance();
 
-		bool Initialize(
-			const std::string&			logFileName			= "NeneEngine.log",
-			bool						async				= true,
-			spdlog::level::level_enum	logLevel			= spdlog::level::level_enum::info,
-			bool						consoleWithColor	= true
-		);
+		bool Initialize(const std::string& logFileName = "NeneEngine.log", bool async = true,
+		                spdlog::level::level_enum logLevel = spdlog::level::level_enum::info,
+		                bool consoleWithColor = true);
 
 		void SetLevel(spdlog::level::level_enum lvl);
 
-		template<typename... Args>
-		void Trace(std::string_view fmt, Args&&... args) const
+		template <typename... Args> void Trace(std::string_view fmt, Args&&... args) const
 		{
 			if (m_logger) m_logger->trace(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
-		template<typename... Args>
-		void Debug(std::string_view fmt, Args&&... args) const
+		template <typename... Args> void Debug(std::string_view fmt, Args&&... args) const
 		{
 			if (m_logger) m_logger->debug(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
-		template<typename... Args>
-		void Info(std::string_view fmt, Args&&... args) const
+		template <typename... Args> void Info(std::string_view fmt, Args&&... args) const
 		{
 			if (m_logger) m_logger->info(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
-		template<typename... Args>
-		void Warn(std::string_view fmt, Args&&... args) const
+		template <typename... Args> void Warn(std::string_view fmt, Args&&... args) const
 		{
 			if (m_logger) m_logger->warn(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
-		template<typename... Args>
-		void Error(std::string_view fmt, Args&&... args) const
+		template <typename... Args> void Error(std::string_view fmt, Args&&... args) const
 		{
 			if (m_logger) m_logger->error(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
-		template<typename... Args>
-		void Critical(std::string_view fmt, Args&&... args) const
+		template <typename... Args> void Critical(std::string_view fmt, Args&&... args) const
 		{
 			if (m_logger) m_logger->critical(spdlog::fmt_lib::runtime(fmt), std::forward<Args>(args)...);
 		}
 
-		std::shared_ptr<spdlog::logger> GetRawLogger() const
-		{
-			return m_logger;
-		}
+		std::shared_ptr<spdlog::logger> GetRawLogger() const { return m_logger; }
 
-	private:
+	  private:
 		CustomLogger() = default;
 		~CustomLogger() = default;
 
@@ -103,9 +91,9 @@ namespace NeneEngine
 #undef NENE_LOG_CRITICAL
 #endif
 
-#define NENE_LOG_TRACE(...)    ::NeneEngine::CustomLogger::GetInstance().Trace(__VA_ARGS__)
-#define NENE_LOG_DEBUG(...)    ::NeneEngine::CustomLogger::GetInstance().Debug(__VA_ARGS__)
-#define NENE_LOG_INFO(...)     ::NeneEngine::CustomLogger::GetInstance().Info(__VA_ARGS__)
-#define NENE_LOG_WARN(...)     ::NeneEngine::CustomLogger::GetInstance().Warn(__VA_ARGS__)
-#define NENE_LOG_ERROR(...)    ::NeneEngine::CustomLogger::GetInstance().Error(__VA_ARGS__)
+#define NENE_LOG_TRACE(...) ::NeneEngine::CustomLogger::GetInstance().Trace(__VA_ARGS__)
+#define NENE_LOG_DEBUG(...) ::NeneEngine::CustomLogger::GetInstance().Debug(__VA_ARGS__)
+#define NENE_LOG_INFO(...) ::NeneEngine::CustomLogger::GetInstance().Info(__VA_ARGS__)
+#define NENE_LOG_WARN(...) ::NeneEngine::CustomLogger::GetInstance().Warn(__VA_ARGS__)
+#define NENE_LOG_ERROR(...) ::NeneEngine::CustomLogger::GetInstance().Error(__VA_ARGS__)
 #define NENE_LOG_CRITICAL(...) ::NeneEngine::CustomLogger::GetInstance().Critical(__VA_ARGS__)

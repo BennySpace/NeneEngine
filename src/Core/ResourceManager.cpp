@@ -15,10 +15,7 @@ namespace NeneEngine
 
 	void ResourceManager::RegisterDefaultLoaders()
 	{
-		RegisterLoader<Mesh>([](const std::string& path)
-		{
-			return LoadMeshFromFile(path);
-		});
+		RegisterLoader<Mesh>([](const std::string& path) { return LoadMeshFromFile(path); });
 	}
 
 	void ResourceManager::Clear()

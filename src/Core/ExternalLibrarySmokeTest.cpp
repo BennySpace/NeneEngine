@@ -25,12 +25,10 @@ namespace NeneEngine
 			while (!current.empty())
 			{
 				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode))
-					return candidate;
+				if (std::filesystem::exists(candidate, errorCode)) return candidate;
 
 				const auto parent = current.parent_path();
-				if (parent == current)
-					break;
+				if (parent == current) break;
 				current = parent;
 			}
 
@@ -39,7 +37,8 @@ namespace NeneEngine
 
 		std::filesystem::path ResolveAssetPath(const std::filesystem::path& relativePath)
 		{
-			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath); !fromCurrentDirectory.empty())
+			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath);
+			    !fromCurrentDirectory.empty())
 				return fromCurrentDirectory;
 
 			wchar_t modulePath[MAX_PATH]{};
@@ -47,7 +46,8 @@ namespace NeneEngine
 			if (length > 0)
 			{
 				const std::filesystem::path executableDirectory = std::filesystem::path(modulePath).parent_path();
-				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath); !fromExecutableDirectory.empty())
+				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath);
+				    !fromExecutableDirectory.empty())
 					return fromExecutableDirectory;
 			}
 
@@ -56,7 +56,7 @@ namespace NeneEngine
 
 		void RunAssimpSmokeTest()
 		{
-			const auto modelPath = ResolveAssetPath(std::filesystem::path{ "assets" } / "models" / "test_triangle.obj");
+			const auto modelPath = ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "test_triangle.obj");
 			if (modelPath.empty())
 			{
 				NENE_LOG_ERROR("Assimp smoke test: model file was not found");
@@ -68,16 +68,14 @@ namespace NeneEngine
 				auto meshResource = ResourceManager::GetInstance().Load<Mesh>(modelPath.string());
 				if (meshResource == nullptr)
 				{
-					NENE_LOG_ERROR("Assimp smoke test failed for '{}': resource manager returned null", modelPath.string());
+					NENE_LOG_ERROR("Assimp smoke test failed for '{}': resource manager returned null",
+					               modelPath.string());
 					return;
 				}
 
 				const MeshData& meshData = meshResource->GetData().data;
-				NENE_LOG_INFO(
-					"Assimp smoke test: loaded '{}' | vertices={} indices={}",
-					modelPath.string(),
-					meshData.vertices.size(),
-					meshData.indices.size());
+				NENE_LOG_INFO("Assimp smoke test: loaded '{}' | vertices={} indices={}", modelPath.string(),
+				              meshData.vertices.size(), meshData.indices.size());
 			}
 			catch (const std::exception& exception)
 			{
@@ -87,7 +85,7 @@ namespace NeneEngine
 
 		void RunStbImageSmokeTest()
 		{
-			const auto texturePath = ResolveAssetPath(std::filesystem::path{ "assets" } / "readme" / "banner.jpg");
+			const auto texturePath = ResolveAssetPath(std::filesystem::path{"assets"} / "readme" / "banner.jpg");
 			if (texturePath.empty())
 			{
 				NENE_LOG_ERROR("stb_image smoke test: texture file was not found");
@@ -104,16 +102,12 @@ namespace NeneEngine
 				return;
 			}
 
-			NENE_LOG_INFO(
-				"stb_image smoke test: loaded '{}' | width={} height={} channels={}",
-				texturePath.string(),
-				width,
-				height,
-				channels);
+			NENE_LOG_INFO("stb_image smoke test: loaded '{}' | width={} height={} channels={}", texturePath.string(),
+			              width, height, channels);
 
 			stbi_image_free(pixels);
 		}
-	}
+	} // namespace
 
 	void RunExternalLibrarySmokeTests()
 	{

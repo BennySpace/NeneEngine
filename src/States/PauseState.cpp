@@ -27,19 +27,14 @@ void NeneEngine::PauseState::OnExit()
 	spdlog::info("PauseState exited");
 }
 
-void NeneEngine::PauseState::Update(float /*dt*/)
-{
-}
+void NeneEngine::PauseState::Update(float /*dt*/) {}
 
 void NeneEngine::PauseState::HandleInput()
 {
 	InputDevice* input = m_context.app.GetFocusedInput();
-	if (input == nullptr)
-		return;
+	if (input == nullptr) return;
 
-	if (input->IsKeyPressed(KeyCode::Escape))
-		m_context.stateMachine.PopState();
+	if (input->IsKeyPressed(KeyCode::Escape)) m_context.stateMachine.PopState();
 
-	if (input->IsKeyPressed(KeyCode::Q))
-		m_context.app.RequestShutdown();
+	if (input->IsKeyPressed(KeyCode::Q)) m_context.app.RequestShutdown();
 }

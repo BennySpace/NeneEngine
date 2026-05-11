@@ -9,7 +9,8 @@
 
 #include <glm/glm.hpp>
 
-namespace NeneEngine {
+namespace NeneEngine
+{
 
 	struct MeshId
 	{
@@ -45,9 +46,9 @@ namespace NeneEngine {
 
 	struct Vertex
 	{
-		glm::vec3 position = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 normal = { 0.0f, 0.0f, 1.0f };
-		glm::vec2 uv = { 0.0f, 0.0f };
+		glm::vec3 position = {0.0f, 0.0f, 0.0f};
+		glm::vec3 normal = {0.0f, 0.0f, 1.0f};
+		glm::vec2 uv = {0.0f, 0.0f};
 	};
 
 	struct MeshData
@@ -74,22 +75,22 @@ namespace NeneEngine {
 	struct Material
 	{
 		MaterialId materialId{};
-		ShaderId   shaderId{};
-		glm::vec4  tint = { 1.0f, 1.0f, 1.0f, 1.0f };
+		ShaderId shaderId{};
+		glm::vec4 tint = {1.0f, 1.0f, 1.0f, 1.0f};
 	};
 
 	struct RenderItem
 	{
-		glm::mat4     modelMatrix = glm::mat4(1.0f);
-		glm::mat4     viewMatrix = glm::mat4(1.0f);
-		glm::mat4     projectionMatrix = glm::mat4(1.0f);
-		glm::mat4     viewProjectionMatrix = glm::mat4(1.0f);
-		glm::mat4     modelViewProjectionMatrix = glm::mat4(1.0f);
+		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		glm::mat4 viewMatrix = glm::mat4(1.0f);
+		glm::mat4 projectionMatrix = glm::mat4(1.0f);
+		glm::mat4 viewProjectionMatrix = glm::mat4(1.0f);
+		glm::mat4 modelViewProjectionMatrix = glm::mat4(1.0f);
 		PrimitiveType primitiveType = PrimitiveType::Triangle;
-		MeshId        meshId{};
-		MaterialId    materialId{};
-		ShaderId      shaderId{};
-		glm::vec4     tint = { 1.0f, 1.0f, 1.0f, 1.0f };
+		MeshId meshId{};
+		MaterialId materialId{};
+		ShaderId shaderId{};
+		glm::vec4 tint = {1.0f, 1.0f, 1.0f, 1.0f};
 	};
 
 } // namespace NeneEngine

@@ -3,7 +3,8 @@
 #include "ECS/World.h"
 #include "ECS/Components/TagComponent.h"
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	World::World() = default;
 
@@ -11,16 +12,14 @@ namespace NeneEngine::ECS {
 	{
 		Entity entity = m_registry.create();
 
-		if (!name.empty())
-			m_registry.emplace<TagComponent>(entity, name);
+		if (!name.empty()) m_registry.emplace<TagComponent>(entity, name);
 
 		return entity;
 	}
 
 	void World::DestroyEntity(Entity entity)
 	{
-		if (m_registry.valid(entity))
-			m_registry.destroy(entity);
+		if (m_registry.valid(entity)) m_registry.destroy(entity);
 	}
 
 	void World::AddSystem(std::unique_ptr<ISystem> system)
@@ -30,14 +29,12 @@ namespace NeneEngine::ECS {
 
 	void World::Update(float deltaTime)
 	{
-		for (auto& system : m_systems)
-			system->Update(*this, deltaTime);
+		for (auto& system : m_systems) system->Update(*this, deltaTime);
 	}
 
 	void World::Render()
 	{
-		for (auto& system : m_systems)
-			system->Render(*this);
+		for (auto& system : m_systems) system->Render(*this);
 	}
 
 } // namespace NeneEngine::ECS

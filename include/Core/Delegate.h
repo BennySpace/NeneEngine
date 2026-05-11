@@ -11,11 +11,12 @@
 #include <utility>
 #include <vector>
 
-namespace NeneEngine {
+namespace NeneEngine
+{
 
 	class DelegateHandle
 	{
-	public:
+	  public:
 		constexpr DelegateHandle() noexcept = default;
 
 		[[nodiscard]] bool IsValid() const noexcept { return m_id != 0; }
@@ -26,12 +27,9 @@ namespace NeneEngine {
 			return lhs.m_id == rhs.m_id;
 		}
 
-		[[nodiscard]] friend bool operator!=(DelegateHandle lhs, DelegateHandle rhs) noexcept
-		{
-			return !(lhs == rhs);
-		}
+		[[nodiscard]] friend bool operator!=(DelegateHandle lhs, DelegateHandle rhs) noexcept { return !(lhs == rhs); }
 
-	private:
+	  private:
 		friend class DelegateHandleFactory;
 		constexpr explicit DelegateHandle(uint64_t id) noexcept : m_id(id) {}
 
@@ -40,58 +38,41 @@ namespace NeneEngine {
 
 	class DelegateHandleFactory
 	{
-	public:
+	  public:
 		[[nodiscard]] static DelegateHandle Create()
 		{
-			static std::atomic_uint64_t nextId{ 1 };
+			static std::atomic_uint64_t nextId{1};
 			return DelegateHandle(nextId.fetch_add(1, std::memory_order_relaxed));
 		}
 	};
 
-	template<typename RetVal, typename... Args>
-	class Delegate
+	template <typename RetVal, typename... Args> class Delegate
 	{
-	public:
+	  public:
 		using Callback = std::function<RetVal(Args...)>;
 
 		Delegate() = default;
 		explicit Delegate(Callback callback) : m_callback(std::move(callback)) {}
 
-		void Bind(Callback callback)
+		void Bind(Callback callback) { m_callback = std::move(callback); }
+
+		template <typename T> void BindRaw(T* object, RetVal (T::*method)(Args...))
 		{
-			m_callback = std::move(callback);
+			Bind([object, method](Args... args) -> RetVal { return (object->*method)(std::forward<Args>(args)...); });
 		}
 
-		template<typename T>
-		void BindRaw(T* object, RetVal(T::* method)(Args...))
+		template <typename T> void BindRaw(const T* object, RetVal (T::*method)(Args...) const)
 		{
-			Bind([object, method](Args... args) -> RetVal {
-				return (object->*method)(std::forward<Args>(args)...);
-			});
+			Bind([object, method](Args... args) -> RetVal { return (object->*method)(std::forward<Args>(args)...); });
 		}
 
-		template<typename T>
-		void BindRaw(const T* object, RetVal(T::* method)(Args...) const)
-		{
-			Bind([object, method](Args... args) -> RetVal {
-				return (object->*method)(std::forward<Args>(args)...);
-			});
-		}
+		void Clear() { m_callback = nullptr; }
 
-		void Clear()
-		{
-			m_callback = nullptr;
-		}
-
-		[[nodiscard]] bool IsBound() const
-		{
-			return static_cast<bool>(m_callback);
-		}
+		[[nodiscard]] bool IsBound() const { return static_cast<bool>(m_callback); }
 
 		RetVal Execute(Args... args) const
 		{
-			if (!m_callback)
-				throw std::runtime_error("Delegate is not bound");
+			if (!m_callback) throw std::runtime_error("Delegate is not bound");
 
 			return m_callback(std::forward<Args>(args)...);
 		}
@@ -111,24 +92,21 @@ namespace NeneEngine {
 				}
 			}
 
-			if constexpr (!std::is_void_v<RetVal>)
-				return RetVal{};
+			if constexpr (!std::is_void_v<RetVal>) return RetVal{};
 		}
 
-	private:
+	  private:
 		Callback m_callback;
 	};
 
-	template<typename... Args>
-	class MulticastDelegate
+	template <typename... Args> class MulticastDelegate
 	{
-	public:
+	  public:
 		using Callback = std::function<void(Args...)>;
 
 		[[nodiscard]] DelegateHandle Add(Callback callback)
 		{
-			if (!callback)
-				return {};
+			if (!callback) return {};
 
 			Listener listener;
 			listener.handle = DelegateHandleFactory::Create();
@@ -137,40 +115,31 @@ namespace NeneEngine {
 			return m_listeners.back().handle;
 		}
 
-		template<typename Lambda>
-		[[nodiscard]] DelegateHandle AddLambda(Lambda&& lambda)
+		template <typename Lambda> [[nodiscard]] DelegateHandle AddLambda(Lambda&& lambda)
 		{
 			return Add(Callback(std::forward<Lambda>(lambda)));
 		}
 
-		template<typename T>
-		[[nodiscard]] DelegateHandle AddRaw(T* object, void(T::* method)(Args...))
+		template <typename T> [[nodiscard]] DelegateHandle AddRaw(T* object, void (T::*method)(Args...))
 		{
-			return Add([object, method](Args... args) {
-				(object->*method)(std::forward<Args>(args)...);
-			});
+			return Add([object, method](Args... args) { (object->*method)(std::forward<Args>(args)...); });
 		}
 
-		template<typename T>
-		[[nodiscard]] DelegateHandle AddRaw(const T* object, void(T::* method)(Args...) const)
+		template <typename T> [[nodiscard]] DelegateHandle AddRaw(const T* object, void (T::*method)(Args...) const)
 		{
-			return Add([object, method](Args... args) {
-				(object->*method)(std::forward<Args>(args)...);
-			});
+			return Add([object, method](Args... args) { (object->*method)(std::forward<Args>(args)...); });
 		}
 
 		bool Remove(DelegateHandle handle)
 		{
-			if (!handle.IsValid())
-				return false;
+			if (!handle.IsValid()) return false;
 
 			for (auto& listener : m_listeners)
 			{
 				if (listener.handle == handle)
 				{
 					listener.pendingRemove = true;
-					if (!IsBroadcasting())
-						Compact();
+					if (!IsBroadcasting()) Compact();
 					return true;
 				}
 			}
@@ -182,8 +151,7 @@ namespace NeneEngine {
 		{
 			if (IsBroadcasting())
 			{
-				for (auto& listener : m_listeners)
-					listener.pendingRemove = true;
+				for (auto& listener : m_listeners) listener.pendingRemove = true;
 				return;
 			}
 
@@ -192,19 +160,16 @@ namespace NeneEngine {
 
 		[[nodiscard]] bool IsBoundTo(DelegateHandle handle) const
 		{
-			if (!handle.IsValid())
-				return false;
+			if (!handle.IsValid()) return false;
 
-			return std::any_of(m_listeners.begin(), m_listeners.end(), [handle](const Listener& listener) {
-				return !listener.pendingRemove && listener.handle == handle;
-			});
+			return std::any_of(m_listeners.begin(), m_listeners.end(), [handle](const Listener& listener)
+			                   { return !listener.pendingRemove && listener.handle == handle; });
 		}
 
 		[[nodiscard]] size_t GetSize() const
 		{
-			return static_cast<size_t>(std::count_if(m_listeners.begin(), m_listeners.end(), [](const Listener& listener) {
-				return !listener.pendingRemove;
-			}));
+			return static_cast<size_t>(std::count_if(m_listeners.begin(), m_listeners.end(),
+			                                         [](const Listener& listener) { return !listener.pendingRemove; }));
 		}
 
 		void Broadcast(Args... args)
@@ -215,17 +180,15 @@ namespace NeneEngine {
 			for (size_t index = 0; index < listenerCount; ++index)
 			{
 				auto& listener = m_listeners[index];
-				if (!listener.pendingRemove && listener.callback)
-					listener.callback(args...);
+				if (!listener.pendingRemove && listener.callback) listener.callback(args...);
 			}
 
 			--m_broadcastDepth;
 
-			if (!IsBroadcasting())
-				Compact();
+			if (!IsBroadcasting()) Compact();
 		}
 
-	private:
+	  private:
 		struct Listener
 		{
 			DelegateHandle handle;
@@ -233,16 +196,11 @@ namespace NeneEngine {
 			bool pendingRemove = false;
 		};
 
-		[[nodiscard]] bool IsBroadcasting() const
-		{
-			return m_broadcastDepth > 0;
-		}
+		[[nodiscard]] bool IsBroadcasting() const { return m_broadcastDepth > 0; }
 
 		void Compact()
 		{
-			std::erase_if(m_listeners, [](const Listener& listener) {
-				return listener.pendingRemove;
-			});
+			std::erase_if(m_listeners, [](const Listener& listener) { return listener.pendingRemove; });
 		}
 
 		std::vector<Listener> m_listeners;

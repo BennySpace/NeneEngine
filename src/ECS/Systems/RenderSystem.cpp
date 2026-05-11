@@ -1,18 +1,19 @@
 // RenderSystem.cpp
 
+#include "ECS/Systems/RenderSystem.h"
+#include "Core/CustomLogger.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/HierarchyComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/TransformComponent.h"
-#include "ECS/Systems/RenderSystem.h"
 #include "ECS/World.h"
-#include "Core/CustomLogger.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <unordered_map>
 #include <unordered_set>
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 	namespace
 	{
 		uint32_t ToEntityId(Entity entity)
@@ -20,19 +21,14 @@ namespace NeneEngine::ECS {
 			return static_cast<uint32_t>(entt::to_integral(entity));
 		}
 
-		glm::mat4 ComputeWorldMatrix(
-			World& world,
-			Entity entity,
-			std::unordered_map<uint32_t, glm::mat4>& cache,
-			std::unordered_set<uint32_t>& recursionStack)
+		glm::mat4 ComputeWorldMatrix(World& world, Entity entity, std::unordered_map<uint32_t, glm::mat4>& cache,
+		                             std::unordered_set<uint32_t>& recursionStack)
 		{
 			const uint32_t entityId = ToEntityId(entity);
-			if (const auto cached = cache.find(entityId); cached != cache.end())
-				return cached->second;
+			if (const auto cached = cache.find(entityId); cached != cache.end()) return cached->second;
 
 			const auto* transform = world.GetComponent<TransformComponent>(entity);
-			if (transform == nullptr)
-				return glm::mat4(1.0f);
+			if (transform == nullptr) return glm::mat4(1.0f);
 
 			const glm::mat4 localMatrix = transform->GetModelMatrix();
 			const auto* hierarchy = world.GetComponent<HierarchyComponent>(entity);
@@ -56,12 +52,9 @@ namespace NeneEngine::ECS {
 			cache[entityId] = worldMatrix;
 			return worldMatrix;
 		}
-	}
+	} // namespace
 
-	void RenderSystem::Update(World& /*world*/, float /*deltaTime*/)
-	{
-		
-	}
+	void RenderSystem::Update(World& /*world*/, float /*deltaTime*/) {}
 
 	void RenderSystem::Render(World& world)
 	{
@@ -78,12 +71,10 @@ namespace NeneEngine::ECS {
 
 		for (auto entity : cameraView)
 		{
-			if (m_cameraEntity != NullEntity && entity != m_cameraEntity)
-				continue;
+			if (m_cameraEntity != NullEntity && entity != m_cameraEntity) continue;
 
 			const auto& camera = cameraView.get<CameraComponent>(entity);
-			if (m_cameraEntity == NullEntity && !camera.isPrimary)
-				continue;
+			if (m_cameraEntity == NullEntity && !camera.isPrimary) continue;
 
 			activeCameraEntity = entity;
 			activeCamera = &camera;
@@ -99,13 +90,12 @@ namespace NeneEngine::ECS {
 		std::unordered_map<uint32_t, glm::mat4> worldMatrixCache;
 		std::unordered_set<uint32_t> recursionStack;
 
-		const glm::mat4 cameraWorldMatrix = ComputeWorldMatrix(world, activeCameraEntity, worldMatrixCache, recursionStack);
+		const glm::mat4 cameraWorldMatrix =
+		    ComputeWorldMatrix(world, activeCameraEntity, worldMatrixCache, recursionStack);
 		const glm::mat4 viewMatrix = glm::inverse(cameraWorldMatrix);
-		const glm::mat4 projectionMatrix = glm::perspective(
-			glm::radians(activeCamera->fovDegrees),
-			activeCamera->aspectRatio,
-			activeCamera->nearPlane,
-			activeCamera->farPlane);
+		const glm::mat4 projectionMatrix =
+		    glm::perspective(glm::radians(activeCamera->fovDegrees), activeCamera->aspectRatio, activeCamera->nearPlane,
+		                     activeCamera->farPlane);
 		const glm::mat4 viewProjectionMatrix = projectionMatrix * viewMatrix;
 
 		auto view = world.GetRegistry().view<const TransformComponent, const MeshRendererComponent>();
@@ -117,8 +107,7 @@ namespace NeneEngine::ECS {
 			const auto& transform = view.get<TransformComponent>(entity);
 			const auto& meshRenderer = view.get<MeshRendererComponent>(entity);
 
-			if (!meshRenderer.visible)
-				continue;
+			if (!meshRenderer.visible) continue;
 
 			RenderItem item{};
 			item.modelMatrix = ComputeWorldMatrix(world, entity, worldMatrixCache, recursionStack);
@@ -135,11 +124,8 @@ namespace NeneEngine::ECS {
 			m_renderer->SubmitRenderItem(item);
 
 			NENE_LOG_DEBUG("RenderSystem: submitted entity {} | primitive={} | mesh={} | material={} | shader={}",
-				static_cast<uint32_t>(entt::to_integral(entity)),
-				static_cast<int>(item.primitiveType),
-				item.meshId.value,
-				item.materialId.value,
-				item.shaderId.value);
+			               static_cast<uint32_t>(entt::to_integral(entity)), static_cast<int>(item.primitiveType),
+			               item.meshId.value, item.materialId.value, item.shaderId.value);
 		}
 	}
 

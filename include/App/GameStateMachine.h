@@ -12,7 +12,7 @@ namespace NeneEngine
 
 	class GameStateMachine
 	{
-	public:
+	  public:
 		GameStateMachine() = default;
 		~GameStateMachine();
 
@@ -28,11 +28,9 @@ namespace NeneEngine
 
 		bool IsEmpty() const { return m_states.empty(); }
 
-		IGameState* GetCurrentState() const {
-			return m_states.empty() ? nullptr : m_states.back().get();
-		}
+		IGameState* GetCurrentState() const { return m_states.empty() ? nullptr : m_states.back().get(); }
 
-	private:
+	  private:
 		eastl::vector<eastl::unique_ptr<IGameState>> m_states;
 	};
 

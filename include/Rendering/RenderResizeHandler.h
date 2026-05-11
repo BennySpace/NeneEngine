@@ -4,11 +4,13 @@
 
 #include <cstdint>
 
-namespace NeneEngine {
+namespace NeneEngine
+{
 
 	class IRenderAdapter;
 
-	namespace ECS {
+	namespace ECS
+	{
 		class World;
 	}
 

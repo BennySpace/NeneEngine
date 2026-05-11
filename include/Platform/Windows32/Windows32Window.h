@@ -9,7 +9,7 @@ namespace NeneEngine
 {
 	class Windows32Window final : public IWindow
 	{
-	public:
+	  public:
 		Windows32Window() = default;
 		~Windows32Window() override;
 
@@ -29,7 +29,7 @@ namespace NeneEngine
 
 		static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-	private:
+	  private:
 		LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
 		static KeyCode TranslateKey(WPARAM wParam, LPARAM lParam);
 		static KeyCode TranslateMouseButton(UINT message, WPARAM wParam);

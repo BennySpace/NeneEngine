@@ -36,8 +36,7 @@ void NeneEngine::PlayState::Update(float dt)
 void NeneEngine::PlayState::HandleInput()
 {
 	InputDevice* input = m_context.app.GetFocusedInput();
-	if (input == nullptr)
-		return;
+	if (input == nullptr) return;
 
 	if (input->IsKeyPressed(KeyCode::Escape))
 		m_context.stateMachine.PushState(eastl::make_unique<PauseState>(m_context));

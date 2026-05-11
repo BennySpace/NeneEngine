@@ -16,13 +16,11 @@ namespace NeneEngine
 		return instance;
 	}
 
-	bool CustomLogger::Initialize(
-		const std::string&			logFileName,
-		bool						async,
-		spdlog::level::level_enum	logLevel,
-		bool						consoleWithColor)
+	bool CustomLogger::Initialize(const std::string& logFileName, bool async, spdlog::level::level_enum logLevel,
+	                              bool consoleWithColor)
 	{
-		try {
+		try
+		{
 			std::vector<spdlog::sink_ptr> sinks;
 			auto console = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
@@ -48,11 +46,7 @@ namespace NeneEngine
 			{
 				spdlog::init_thread_pool(8192, 1);
 				m_logger = std::make_shared<spdlog::async_logger>(
-					"game",
-					sinks.begin(), sinks.end(),
-					spdlog::thread_pool(),
-					spdlog::async_overflow_policy::block
-				);
+				    "game", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 			}
 			else
 			{
@@ -76,7 +70,8 @@ namespace NeneEngine
 
 	void CustomLogger::SetLevel(spdlog::level::level_enum lvl)
 	{
-		if (m_logger) {
+		if (m_logger)
+		{
 			m_logger->set_level(lvl);
 		}
 	}

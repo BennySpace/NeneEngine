@@ -4,11 +4,12 @@
 
 #include "ECS/Systems/ISystem.h"
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	class MovementSystem final : public ISystem
 	{
-	public:
+	  public:
 		void Update(World& world, float deltaTime) override;
 	};
 

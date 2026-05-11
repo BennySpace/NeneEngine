@@ -23,11 +23,8 @@ namespace NeneEngine
 
 	class IGameState
 	{
-	public:
-		explicit IGameState(const AppStateContext& context)
-			: m_context(context)
-		{
-		}
+	  public:
+		explicit IGameState(const AppStateContext& context) : m_context(context) {}
 
 		virtual ~IGameState() = default;
 
@@ -44,7 +41,7 @@ namespace NeneEngine
 		virtual bool IsTransparent() const { return false; }
 		virtual bool IsPausing() const { return false; }
 
-	protected:
+	  protected:
 		AppStateContext m_context;
 	};
 

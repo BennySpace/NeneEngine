@@ -7,11 +7,12 @@
 #include <filesystem>
 #include <nlohmann/json.hpp>
 
-namespace NeneEngine {
+namespace NeneEngine
+{
 
 	class SceneSerializer final
 	{
-	public:
+	  public:
 		static constexpr int CurrentVersion = 1;
 
 		[[nodiscard]] static nlohmann::json Serialize(const ECS::World& world);
@@ -20,7 +21,7 @@ namespace NeneEngine {
 		static void SaveToFile(const ECS::World& world, const std::filesystem::path& path);
 		static void LoadFromFile(const std::filesystem::path& path, ECS::World& world);
 
-	private:
+	  private:
 		SceneSerializer() = delete;
 	};
 

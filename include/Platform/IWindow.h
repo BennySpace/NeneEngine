@@ -4,17 +4,17 @@
 
 #include "Core/Delegate.h"
 
-#include <string>
 #include <cstdint>
+#include <string>
 #include <wtypes.h>
 
 namespace NeneEngine
 {
 	class InputDevice;
 
-	class IWindow 
+	class IWindow
 	{
-	public:
+	  public:
 		virtual ~IWindow() = default;
 
 		virtual bool Create(uint32_t width, uint32_t height, const std::string& title) = 0;

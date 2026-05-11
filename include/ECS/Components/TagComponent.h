@@ -4,7 +4,8 @@
 
 #include <string>
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	struct TagComponent
 	{

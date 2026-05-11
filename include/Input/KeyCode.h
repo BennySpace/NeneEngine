@@ -4,7 +4,8 @@
 
 #include <cstdint>
 
-namespace NeneEngine {
+namespace NeneEngine
+{
 
 	enum class KeyCode : uint16_t
 	{

@@ -4,7 +4,8 @@
 
 #include <entt/entt.hpp>
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	using Entity = entt::entity;
 

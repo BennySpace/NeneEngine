@@ -6,7 +6,8 @@
 
 #include <vector>
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	struct HierarchyComponent
 	{

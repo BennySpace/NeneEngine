@@ -2,7 +2,8 @@
 
 #pragma once
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	struct CameraComponent
 	{
@@ -10,7 +11,7 @@ namespace NeneEngine::ECS {
 		float nearPlane = 0.1f;
 		float farPlane = 100.0f;
 		float aspectRatio = 16.0f / 9.0f;
-		bool  isPrimary = true;
+		bool isPrimary = true;
 	};
 
 } // namespace NeneEngine::ECS

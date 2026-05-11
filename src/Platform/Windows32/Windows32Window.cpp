@@ -9,18 +9,15 @@ namespace
 
 	HICON LoadAppIcon(int systemMetric)
 	{
-		return static_cast<HICON>(LoadImageW(
-			GetModuleHandleW(nullptr),
-			MAKEINTRESOURCEW(IDI_APP_ICON),
-			IMAGE_ICON,
-			GetSystemMetrics(systemMetric),
-			GetSystemMetrics(systemMetric),
-			LR_DEFAULTCOLOR));
+		return static_cast<HICON>(LoadImageW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(IDI_APP_ICON), IMAGE_ICON,
+		                                     GetSystemMetrics(systemMetric), GetSystemMetrics(systemMetric),
+		                                     LR_DEFAULTCOLOR));
 	}
 
 	ATOM EnsureWindowClassRegistered()
 	{
-		static ATOM atom = []() {
+		static ATOM atom = []()
+		{
 			WNDCLASSEXW windowClass{};
 			windowClass.cbSize = sizeof(windowClass);
 			windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -35,7 +32,7 @@ namespace
 
 		return atom;
 	}
-}
+} // namespace
 
 namespace NeneEngine
 {
@@ -43,19 +40,17 @@ namespace NeneEngine
 	{
 		std::wstring ToWideString(const std::string& value)
 		{
-			if (value.empty())
-				return {};
+			if (value.empty()) return {};
 
 			const int length = MultiByteToWideChar(CP_UTF8, 0, value.c_str(), -1, nullptr, 0);
-			if (length <= 0)
-				return std::wstring(value.begin(), value.end());
+			if (length <= 0) return std::wstring(value.begin(), value.end());
 
 			std::wstring wideValue(static_cast<size_t>(length), L'\0');
 			MultiByteToWideChar(CP_UTF8, 0, value.c_str(), -1, wideValue.data(), length);
 			wideValue.pop_back();
 			return wideValue;
 		}
-	}
+	} // namespace
 
 	Windows32Window::~Windows32Window()
 	{
@@ -64,8 +59,7 @@ namespace NeneEngine
 
 	bool Windows32Window::Create(uint32_t width, uint32_t height, const std::string& title)
 	{
-		if (!EnsureWindowClassRegistered())
-			return false;
+		if (!EnsureWindowClassRegistered()) return false;
 
 		Destroy();
 
@@ -74,27 +68,16 @@ namespace NeneEngine
 		m_height = height;
 		m_shouldClose = false;
 
-		RECT windowRect{ 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+		RECT windowRect{0, 0, static_cast<LONG>(width), static_cast<LONG>(height)};
 		const DWORD style = WS_OVERLAPPEDWINDOW;
 		AdjustWindowRect(&windowRect, style, FALSE);
 
 		const std::wstring wideTitle = ToWideString(title);
-		m_hwnd = CreateWindowExW(
-			0,
-			kWindowClassName,
-			wideTitle.c_str(),
-			style,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			windowRect.right - windowRect.left,
-			windowRect.bottom - windowRect.top,
-			nullptr,
-			nullptr,
-			GetModuleHandleW(nullptr),
-			this);
+		m_hwnd = CreateWindowExW(0, kWindowClassName, wideTitle.c_str(), style, CW_USEDEFAULT, CW_USEDEFAULT,
+		                         windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, nullptr,
+		                         nullptr, GetModuleHandleW(nullptr), this);
 
-		if (!m_hwnd)
-			return false;
+		if (!m_hwnd) return false;
 
 		if (HICON largeIcon = LoadAppIcon(SM_CXICON))
 			SendMessageW(m_hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(largeIcon));
@@ -109,8 +92,7 @@ namespace NeneEngine
 
 	void Windows32Window::Destroy()
 	{
-		if (!m_hwnd)
-			return;
+		if (!m_hwnd) return;
 
 		HWND hwnd = m_hwnd;
 		m_hwnd = nullptr;
@@ -138,8 +120,7 @@ namespace NeneEngine
 		}
 
 		auto* window = reinterpret_cast<Windows32Window*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
-		if (!window)
-			return DefWindowProcW(hwnd, message, wParam, lParam);
+		if (!window) return DefWindowProcW(hwnd, message, wParam, lParam);
 
 		return window->HandleMessage(message, wParam, lParam);
 	}
@@ -172,19 +153,17 @@ namespace NeneEngine
 		case WM_SIZE:
 			m_width = static_cast<uint32_t>(LOWORD(lParam));
 			m_height = static_cast<uint32_t>(HIWORD(lParam));
-			if (wParam != SIZE_MINIMIZED)
-				m_resized.Broadcast(m_width, m_height);
+			if (wParam != SIZE_MINIMIZED) m_resized.Broadcast(m_width, m_height);
 			return 0;
 
 		case WM_MOUSEMOVE:
-			m_input.NotifyMouseMove({
-				static_cast<float>(GET_X_LPARAM(lParam)),
-				static_cast<float>(GET_Y_LPARAM(lParam))
-			});
+			m_input.NotifyMouseMove(
+			    {static_cast<float>(GET_X_LPARAM(lParam)), static_cast<float>(GET_Y_LPARAM(lParam))});
 			return 0;
 
 		case WM_MOUSEWHEEL:
-			m_input.NotifyMouseWheel(static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA));
+			m_input.NotifyMouseWheel(static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) /
+			                         static_cast<float>(WHEEL_DELTA));
 			return 0;
 
 		case WM_LBUTTONDOWN:
@@ -193,8 +172,7 @@ namespace NeneEngine
 		case WM_XBUTTONDOWN:
 		{
 			const KeyCode key = TranslateMouseButton(message, wParam);
-			if (key != KeyCode::None)
-				m_input.NotifyKeyDown(key);
+			if (key != KeyCode::None) m_input.NotifyKeyDown(key);
 			return 0;
 		}
 
@@ -204,15 +182,13 @@ namespace NeneEngine
 		case WM_XBUTTONUP:
 		{
 			const KeyCode key = TranslateMouseButton(message, wParam);
-			if (key != KeyCode::None)
-				m_input.NotifyKeyUp(key);
+			if (key != KeyCode::None) m_input.NotifyKeyUp(key);
 			return 0;
 		}
 
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
-			if ((lParam & (1LL << 30)) == 0)
-				m_input.NotifyKeyDown(TranslateKey(wParam, lParam));
+			if ((lParam & (1LL << 30)) == 0) m_input.NotifyKeyDown(TranslateKey(wParam, lParam));
 			return 0;
 
 		case WM_KEYUP:
@@ -229,7 +205,8 @@ namespace NeneEngine
 		switch (wParam)
 		{
 		case VK_SHIFT:
-			return (MapVirtualKeyW((lParam >> 16) & 0xFF, MAPVK_VSC_TO_VK_EX) == VK_RSHIFT) ? KeyCode::RightShift : KeyCode::LeftShift;
+			return (MapVirtualKeyW((lParam >> 16) & 0xFF, MAPVK_VSC_TO_VK_EX) == VK_RSHIFT) ? KeyCode::RightShift
+			                                                                                : KeyCode::LeftShift;
 		case VK_CONTROL:
 			return (lParam & (1LL << 24)) ? KeyCode::RightControl : KeyCode::LeftControl;
 		case VK_MENU:

@@ -3,82 +3,75 @@
 #include "Core/GameTimer.h"
 
 GameTimer::GameTimer()
-    : mBaseTime{},
-    mPausedDuration{},
-    mStopTime{},
-    mPrevTime{},
-    mCurrTime{},
-    mDeltaTime(-1.0),
-    mStopped(false)
+    : mBaseTime{}, mPausedDuration{}, mStopTime{}, mPrevTime{}, mCurrTime{}, mDeltaTime(-1.0), mStopped(false)
 {
 }
 
 float GameTimer::TotalTime() const
 {
-    clock::time_point currentTime = mStopped ? mStopTime : mCurrTime;
+	clock::time_point currentTime = mStopped ? mStopTime : mCurrTime;
 
-    auto effective = currentTime - mBaseTime - mPausedDuration;
+	auto effective = currentTime - mBaseTime - mPausedDuration;
 
-    return static_cast<float>(std::chrono::duration<double>(effective).count());
+	return static_cast<float>(std::chrono::duration<double>(effective).count());
 }
 
 float GameTimer::DeltaTime() const
 {
-    return static_cast<float>(mDeltaTime);
+	return static_cast<float>(mDeltaTime);
 }
 
 void GameTimer::Reset()
 {
-    auto currTime = clock::now();
+	auto currTime = clock::now();
 
-    mBaseTime = currTime;
-    mPrevTime = currTime;
-    mCurrTime = currTime;
-    mStopTime = {};
-    mPausedDuration = clock::duration::zero();
-    mStopped = false;
+	mBaseTime = currTime;
+	mPrevTime = currTime;
+	mCurrTime = currTime;
+	mStopTime = {};
+	mPausedDuration = clock::duration::zero();
+	mStopped = false;
 }
 
 void GameTimer::Start()
 {
-    if (mStopped)
-    {
-        auto startTime = clock::now();
+	if (mStopped)
+	{
+		auto startTime = clock::now();
 
-        mPausedDuration += (startTime - mStopTime);
+		mPausedDuration += (startTime - mStopTime);
 
-        mPrevTime = startTime;
-        mCurrTime = startTime;
-        mStopTime = {};
-        mStopped = false;
-    }
+		mPrevTime = startTime;
+		mCurrTime = startTime;
+		mStopTime = {};
+		mStopped = false;
+	}
 }
 
 void GameTimer::Stop()
 {
-    if (!mStopped)
-    {
-        mStopTime = clock::now();
-        mStopped = true;
-    }
+	if (!mStopped)
+	{
+		mStopTime = clock::now();
+		mStopped = true;
+	}
 }
 
 void GameTimer::Tick()
 {
-    if (mStopped)
-    {
-        mDeltaTime = 0.0;
-        return;
-    }
+	if (mStopped)
+	{
+		mDeltaTime = 0.0;
+		return;
+	}
 
-    auto currTime = clock::now();
-    mCurrTime = currTime;
+	auto currTime = clock::now();
+	mCurrTime = currTime;
 
-    auto deltaDuration = currTime - mPrevTime;
-    mDeltaTime = std::chrono::duration<double>(deltaDuration).count();
+	auto deltaDuration = currTime - mPrevTime;
+	mDeltaTime = std::chrono::duration<double>(deltaDuration).count();
 
-    if (mDeltaTime < 0.0)
-        mDeltaTime = 0.0;
+	if (mDeltaTime < 0.0) mDeltaTime = 0.0;
 
-    mPrevTime = currTime;
+	mPrevTime = currTime;
 }

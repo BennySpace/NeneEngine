@@ -1,7 +1,7 @@
 // NeneEngineApp.cpp
 
-#include "App/AppConfig.h"
 #include "App/NeneEngineApp.h"
+#include "App/AppConfig.h"
 #include "Core/CustomLogger.h"
 #include "Core/ExternalLibrarySmokeTest.h"
 #include "Core/ResourceManager.h"
@@ -33,12 +33,10 @@ namespace NeneEngine
 			while (!current.empty())
 			{
 				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode))
-					return candidate;
+				if (std::filesystem::exists(candidate, errorCode)) return candidate;
 
 				const auto parent = current.parent_path();
-				if (parent == current)
-					break;
+				if (parent == current) break;
 				current = parent;
 			}
 
@@ -47,7 +45,8 @@ namespace NeneEngine
 
 		std::filesystem::path ResolveAssetPath(const std::filesystem::path& relativePath)
 		{
-			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath); !fromCurrentDirectory.empty())
+			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath);
+			    !fromCurrentDirectory.empty())
 				return fromCurrentDirectory;
 
 			wchar_t modulePath[MAX_PATH]{};
@@ -55,13 +54,14 @@ namespace NeneEngine
 			if (length > 0)
 			{
 				const std::filesystem::path executableDirectory = std::filesystem::path(modulePath).parent_path();
-				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath); !fromExecutableDirectory.empty())
+				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath);
+				    !fromExecutableDirectory.empty())
 					return fromExecutableDirectory;
 			}
 
 			return {};
 		}
-	}
+	} // namespace
 
 	NeneEngineApp::NeneEngineApp() = default;
 
@@ -78,13 +78,12 @@ namespace NeneEngine
 			}
 		}
 
-		if (spdlog::default_logger())
-			spdlog::default_logger()->flush();
+		if (spdlog::default_logger()) spdlog::default_logger()->flush();
 
 		spdlog::shutdown();
 	}
 
-	bool NeneEngineApp::Init(uint32_t width, uint32_t height, const std::string& title) 
+	bool NeneEngineApp::Init(uint32_t width, uint32_t height, const std::string& title)
 	{
 		try
 		{
@@ -100,7 +99,7 @@ namespace NeneEngine
 				m_appConfigLastWriteTime = std::filesystem::last_write_time(m_appConfigPath);
 
 			// 2. States
-			AppStateContext stateContext{ *this, m_world, m_gameStateMachine };
+			AppStateContext stateContext{*this, m_world, m_gameStateMachine};
 			m_gameStateMachine.PushState(eastl::make_unique<PlayState>(stateContext));
 
 			// 3. ECS
@@ -138,7 +137,8 @@ namespace NeneEngine
 			}
 
 			if (mainWindowCount > 1)
-				NENE_LOG_WARN("App config: multiple windows marked as main, only the first one will control the primary camera");
+				NENE_LOG_WARN(
+				    "App config: multiple windows marked as main, only the first one will control the primary camera");
 
 			const auto secondaryCameraEntities = CreateAdditionalWindowCameras(secondaryWindowCount, width, height);
 			size_t secondaryCameraIndex = 0;
@@ -168,10 +168,12 @@ namespace NeneEngine
 
 			if (!m_windows.empty() && m_windows.front().renderer)
 			{
-				const auto meshPath = ResolveAssetPath(std::filesystem::path{ "assets" } / "models" / "test_triangle.obj");
+				const auto meshPath =
+				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "test_triangle.obj");
 				if (!meshPath.empty())
 				{
-					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string()); meshResource != nullptr)
+					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string());
+					    meshResource != nullptr)
 					{
 						Mesh& mesh = meshResource->GetData();
 						if (!mesh.gpuMesh.has_value() || !mesh.gpuMesh->IsValid())
@@ -181,28 +183,24 @@ namespace NeneEngine
 							{
 								mesh.gpuMesh = gpuMesh;
 
-								auto renderableView = m_world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
+								auto renderableView =
+								    m_world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
 								for (auto entity : renderableView)
 								{
 									auto& tag = renderableView.get<ECS::TagComponent>(entity);
-									if (tag.name != "SceneTriangle")
-										continue;
+									if (tag.name != "SceneTriangle") continue;
 
 									auto& meshRenderer = renderableView.get<ECS::MeshRendererComponent>(entity);
 									meshRenderer.meshId = gpuMesh.meshId;
-									NENE_LOG_INFO(
-										"Assigned uploaded meshId={} to entity '{}'",
-										gpuMesh.meshId.value,
-										tag.name);
+									NENE_LOG_INFO("Assigned uploaded meshId={} to entity '{}'", gpuMesh.meshId.value,
+									              tag.name);
 									break;
 								}
 
 								NENE_LOG_INFO(
-									"Uploaded mesh resource '{}' to GPU as meshId={} (vertices={}, indices={})",
-									meshResource->GetPath(),
-									gpuMesh.meshId.value,
-									gpuMesh.vertexCount,
-									gpuMesh.indexCount);
+								    "Uploaded mesh resource '{}' to GPU as meshId={} (vertices={}, indices={})",
+								    meshResource->GetPath(), gpuMesh.meshId.value, gpuMesh.vertexCount,
+								    gpuMesh.indexCount);
 							}
 						}
 					}
@@ -223,7 +221,8 @@ namespace NeneEngine
 		}
 	}
 
-	bool NeneEngineApp::CreateWindowContext(uint32_t width, uint32_t height, const std::string& title, ECS::Entity cameraEntity)
+	bool NeneEngineApp::CreateWindowContext(uint32_t width, uint32_t height, const std::string& title,
+	                                        ECS::Entity cameraEntity)
 	{
 		WindowContext windowContext{};
 		windowContext.title = title;
@@ -243,13 +242,14 @@ namespace NeneEngine
 		}
 
 		windowContext.renderSystem = std::make_unique<ECS::RenderSystem>(windowContext.renderer.get(), cameraEntity);
-		m_world.AddSystem(std::make_unique<ECS::CameraControllerSystem>(windowContext.window->GetInput(), cameraEntity));
+		m_world.AddSystem(
+		    std::make_unique<ECS::CameraControllerSystem>(windowContext.window->GetInput(), cameraEntity));
 		m_world.AddSystem(std::make_unique<ECS::PrimitiveControlSystem>(windowContext.window->GetInput()));
 
 		const size_t windowIndex = m_windows.size();
-		windowContext.resizeHandle = windowContext.window->OnResized().AddLambda([this, windowIndex](uint32_t newWidth, uint32_t newHeight) {
-			HandleWindowResize(windowIndex, newWidth, newHeight);
-		});
+		windowContext.resizeHandle =
+		    windowContext.window->OnResized().AddLambda([this, windowIndex](uint32_t newWidth, uint32_t newHeight)
+		                                                { HandleWindowResize(windowIndex, newWidth, newHeight); });
 
 		m_windows.push_back(std::move(windowContext));
 		HandleWindowResize(windowIndex, width, height);
@@ -262,8 +262,7 @@ namespace NeneEngine
 		secondaryCameraEntities.reserve(count);
 
 		const ECS::Entity primaryCameraEntity = FindPrimaryCameraEntity();
-		if (primaryCameraEntity == ECS::NullEntity)
-			return secondaryCameraEntities;
+		if (primaryCameraEntity == ECS::NullEntity) return secondaryCameraEntities;
 
 		const auto* primaryTransform = m_world.GetComponent<ECS::TransformComponent>(primaryCameraEntity);
 		const auto* primaryCamera = m_world.GetComponent<ECS::CameraComponent>(primaryCameraEntity);
@@ -273,7 +272,8 @@ namespace NeneEngine
 
 		for (size_t cameraIndex = 0; cameraIndex < count; ++cameraIndex)
 		{
-			const ECS::Entity secondaryCameraEntity = m_world.CreateEntity("SecondaryCamera" + std::to_string(cameraIndex + 1));
+			const ECS::Entity secondaryCameraEntity =
+			    m_world.CreateEntity("SecondaryCamera" + std::to_string(cameraIndex + 1));
 			auto& secondaryTransform = m_world.AddComponent<ECS::TransformComponent>(secondaryCameraEntity);
 			secondaryTransform = *primaryTransform;
 			secondaryTransform.position.x += 2.0f * static_cast<float>(cameraIndex + 1);
@@ -298,8 +298,7 @@ namespace NeneEngine
 		for (auto entity : cameraView)
 		{
 			const auto& camera = cameraView.get<ECS::CameraComponent>(entity);
-			if (camera.isPrimary)
-				return entity;
+			if (camera.isPrimary) return entity;
 		}
 
 		return ECS::NullEntity;
@@ -307,13 +306,11 @@ namespace NeneEngine
 
 	bool NeneEngineApp::AreAllWindowsClosed() const
 	{
-		if (m_windows.empty())
-			return true;
+		if (m_windows.empty()) return true;
 
 		for (const auto& windowContext : m_windows)
 		{
-			if (windowContext.window && !windowContext.window->ShouldClose())
-				return false;
+			if (windowContext.window && !windowContext.window->ShouldClose()) return false;
 		}
 
 		return true;
@@ -323,25 +320,23 @@ namespace NeneEngine
 	{
 		for (auto& windowContext : m_windows)
 		{
-			if (windowContext.renderer)
-				windowContext.renderer->SetClearColor(config.window.backgroundColor);
+			if (windowContext.renderer) windowContext.renderer->SetClearColor(config.window.backgroundColor);
 		}
 	}
 
 	void NeneEngineApp::HandleWindowResize(size_t windowIndex, uint32_t width, uint32_t height)
 	{
-		if (windowIndex >= m_windows.size())
-			return;
+		if (windowIndex >= m_windows.size()) return;
 
 		if (width == 0 || height == 0)
 		{
-			NENE_LOG_WARN("Application resize ignored for window {} with invalid size {}x{}", windowIndex, width, height);
+			NENE_LOG_WARN("Application resize ignored for window {} with invalid size {}x{}", windowIndex, width,
+			              height);
 			return;
 		}
 
 		auto& windowContext = m_windows[windowIndex];
-		if (windowContext.renderer)
-			windowContext.renderer->Resize(width, height);
+		if (windowContext.renderer) windowContext.renderer->Resize(width, height);
 
 		if (auto* camera = m_world.GetComponent<ECS::CameraComponent>(windowContext.cameraEntity))
 			camera->aspectRatio = static_cast<float>(width) / static_cast<float>(height);
@@ -358,8 +353,8 @@ namespace NeneEngine
 
 	void NeneEngineApp::CalculateFrameStats()
 	{
-		// Code computes the average frames per second, and also the 
-		// average time it takes to render one frame.  These stats 
+		// Code computes the average frames per second, and also the
+		// average time it takes to render one frame.  These stats
 		// are appended to the window caption bar.
 
 		static int frameCnt = 0;
@@ -383,12 +378,10 @@ namespace NeneEngine
 
 			for (const auto& windowContext : m_windows)
 			{
-				if (!windowContext.window || windowContext.window->ShouldClose())
-					continue;
+				if (!windowContext.window || windowContext.window->ShouldClose()) continue;
 
-				std::wstring windowText = AnsiToWString(windowContext.window->GetTitle()) +
-					L" | fps: " + fpsStr +
-					L" | mspf: " + mspfStr;
+				std::wstring windowText =
+				    AnsiToWString(windowContext.window->GetTitle()) + L" | fps: " + fpsStr + L" | mspf: " + mspfStr;
 
 				SetWindowTextW(windowContext.window->GetHWND(), windowText.c_str());
 			}
@@ -410,20 +403,12 @@ namespace NeneEngine
 		accumulatedDeltaTime += deltaTime;
 		lastDeltaTime = deltaTime;
 
-		if ((m_timer.TotalTime() - timeElapsed) < 1.0f)
-			return;
+		if ((m_timer.TotalTime() - timeElapsed) < 1.0f) return;
 
-		const float averageDeltaTime = sampleCount > 0
-			? accumulatedDeltaTime / static_cast<float>(sampleCount)
-			: 0.0f;
+		const float averageDeltaTime = sampleCount > 0 ? accumulatedDeltaTime / static_cast<float>(sampleCount) : 0.0f;
 
-		NENE_LOG_INFO(
-			"deltaTime: last={:.6f} s ({:.3f} ms), avg={:.6f} s ({:.3f} ms), samples={}",
-			lastDeltaTime,
-			lastDeltaTime * 1000.0f,
-			averageDeltaTime,
-			averageDeltaTime * 1000.0f,
-			sampleCount);
+		NENE_LOG_INFO("deltaTime: last={:.6f} s ({:.3f} ms), avg={:.6f} s ({:.3f} ms), samples={}", lastDeltaTime,
+		              lastDeltaTime * 1000.0f, averageDeltaTime, averageDeltaTime * 1000.0f, sampleCount);
 
 		sampleCount = 0;
 		accumulatedDeltaTime = 0.0f;
@@ -433,8 +418,7 @@ namespace NeneEngine
 	void NeneEngineApp::ReloadAppConfigIfChanged(float deltaTime)
 	{
 		m_configReloadAccumulator += deltaTime;
-		if (m_configReloadAccumulator < kConfigReloadIntervalSeconds)
-			return;
+		if (m_configReloadAccumulator < kConfigReloadIntervalSeconds) return;
 
 		m_configReloadAccumulator = 0.0f;
 
@@ -447,12 +431,10 @@ namespace NeneEngine
 			m_appConfigPath = resolvedConfigPath;
 		}
 
-		if (!std::filesystem::exists(m_appConfigPath))
-			return;
+		if (!std::filesystem::exists(m_appConfigPath)) return;
 
 		const auto currentWriteTime = std::filesystem::last_write_time(m_appConfigPath);
-		if (!pathChanged && currentWriteTime == m_appConfigLastWriteTime)
-			return;
+		if (!pathChanged && currentWriteTime == m_appConfigLastWriteTime) return;
 
 		const AppConfig updatedConfig = LoadAppConfig(m_appConfigPath);
 		ApplyAppConfig(updatedConfig);
@@ -461,8 +443,7 @@ namespace NeneEngine
 		NENE_LOG_INFO("App config hot-reloaded from '{}'", m_appConfigPath.string());
 	}
 
-
-	void NeneEngineApp::Run() 
+	void NeneEngineApp::Run()
 	{
 		m_running = true;
 		m_timer.Reset();
@@ -471,8 +452,7 @@ namespace NeneEngine
 		{
 			for (auto& windowContext : m_windows)
 			{
-				if (windowContext.window && !windowContext.window->ShouldClose())
-					windowContext.window->PumpMessages();
+				if (windowContext.window && !windowContext.window->ShouldClose()) windowContext.window->PumpMessages();
 			}
 
 			m_timer.Tick();
@@ -487,10 +467,8 @@ namespace NeneEngine
 
 				for (auto& windowContext : m_windows)
 				{
-					if (!windowContext.window || windowContext.window->ShouldClose())
-						continue;
-					if (!windowContext.renderer || !windowContext.renderSystem)
-						continue;
+					if (!windowContext.window || windowContext.window->ShouldClose()) continue;
+					if (!windowContext.renderer || !windowContext.renderSystem) continue;
 
 					windowContext.renderer->BeginFrame();
 					windowContext.renderSystem->Render(m_world);
@@ -501,8 +479,7 @@ namespace NeneEngine
 				CalculateFrameStats();
 				for (auto& windowContext : m_windows)
 				{
-					if (windowContext.window)
-						windowContext.window->GetInput().EndFrame();
+					if (windowContext.window) windowContext.window->GetInput().EndFrame();
 				}
 			}
 			else
@@ -521,12 +498,10 @@ namespace NeneEngine
 	{
 		for (auto& windowContext : m_windows)
 		{
-			if (!windowContext.window || windowContext.window->ShouldClose())
-				continue;
+			if (!windowContext.window || windowContext.window->ShouldClose()) continue;
 
 			InputDevice& input = windowContext.window->GetInput();
-			if (input.IsFocused())
-				return &input;
+			if (input.IsFocused()) return &input;
 		}
 
 		return nullptr;
@@ -536,12 +511,10 @@ namespace NeneEngine
 	{
 		for (const auto& windowContext : m_windows)
 		{
-			if (!windowContext.window || windowContext.window->ShouldClose())
-				continue;
+			if (!windowContext.window || windowContext.window->ShouldClose()) continue;
 
 			const InputDevice& input = windowContext.window->GetInput();
-			if (input.IsFocused())
-				return &input;
+			if (input.IsFocused()) return &input;
 		}
 
 		return nullptr;

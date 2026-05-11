@@ -16,10 +16,12 @@
 #include <unordered_map>
 #include <vector>
 
-namespace NeneEngine {
+namespace NeneEngine
+{
 
-	class DiligentDX12Adapter final : public IRenderAdapter {
-	public:
+	class DiligentDX12Adapter final : public IRenderAdapter
+	{
+	  public:
 		DiligentDX12Adapter();
 		~DiligentDX12Adapter() override;
 
@@ -35,13 +37,13 @@ namespace NeneEngine {
 		void Resize(uint32_t width, uint32_t height) override;
 		void SetClearColor(const glm::vec4& color) override;
 
-	private:
+	  private:
 		static constexpr size_t PrimitiveTypeCount = 4;
 
 		struct PrimitiveDrawConstants
 		{
 			glm::mat4 modelViewProjectionMatrix = glm::mat4(1.0f);
-			glm::vec4 tint = { 1.0f, 1.0f, 1.0f, 1.0f };
+			glm::vec4 tint = {1.0f, 1.0f, 1.0f, 1.0f};
 		};
 
 		struct UploadedMeshBuffers
@@ -52,9 +54,9 @@ namespace NeneEngine {
 			uint32_t indexCount = 0;
 		};
 
-		Diligent::RefCntAutoPtr<Diligent::IRenderDevice>     m_pDevice;
-		Diligent::RefCntAutoPtr<Diligent::IDeviceContext>    m_pImmediateContext;
-		Diligent::RefCntAutoPtr<Diligent::ISwapChain>        m_pSwapChain;
+		Diligent::RefCntAutoPtr<Diligent::IRenderDevice> m_pDevice;
+		Diligent::RefCntAutoPtr<Diligent::IDeviceContext> m_pImmediateContext;
+		Diligent::RefCntAutoPtr<Diligent::ISwapChain> m_pSwapChain;
 
 		std::array<Diligent::RefCntAutoPtr<Diligent::IPipelineState>, PrimitiveTypeCount> m_pPrimitivePSOs;
 		std::array<Diligent::RefCntAutoPtr<Diligent::IBuffer>, PrimitiveTypeCount> m_pPrimitiveConstantBuffers;
@@ -64,7 +66,7 @@ namespace NeneEngine {
 		Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> m_pMeshSRB;
 		std::vector<RenderItem> m_renderQueue;
 		std::unordered_map<uint32_t, UploadedMeshBuffers> m_uploadedMeshes;
-		glm::vec4 m_clearColor{ 0.1f, 0.1f, 0.2f, 1.0f };
+		glm::vec4 m_clearColor{0.1f, 0.1f, 0.2f, 1.0f};
 		uint32_t m_nextMeshId = 1;
 
 		[[nodiscard]] Diligent::IPipelineState* GetPipelineState(PrimitiveType primitiveType) const;

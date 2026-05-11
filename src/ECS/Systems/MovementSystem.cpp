@@ -1,13 +1,14 @@
 // MovementSystem.cpp
 
+#include "ECS/Systems/MovementSystem.h"
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/TransformComponent.h"
-#include "ECS/Systems/MovementSystem.h"
 #include "ECS/World.h"
 
 #include <cmath>
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	void MovementSystem::Update(World& world, float deltaTime)
 	{
@@ -25,7 +26,8 @@ namespace NeneEngine::ECS {
 				{
 					movement.elapsedTime += deltaTime;
 					const glm::vec3 axis = movement.oscillationAxis / std::sqrt(axisLengthSquared);
-					const float offset = std::sin(movement.elapsedTime * movement.oscillationSpeed) * movement.oscillationAmplitude;
+					const float offset =
+					    std::sin(movement.elapsedTime * movement.oscillationSpeed) * movement.oscillationAmplitude;
 					transform.position = movement.origin + axis * offset;
 					continue;
 				}

@@ -6,22 +6,23 @@
 #include "ECS/Systems/ISystem.h"
 #include "RenderAdapters/IRenderAdapter.h"
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	class RenderSystem final : public ISystem
 	{
-	public:
-		explicit RenderSystem(IRenderAdapter* adapter, Entity cameraEntity = NullEntity) :
-			m_renderer(adapter),
-			m_cameraEntity(cameraEntity)
-		{}
+	  public:
+		explicit RenderSystem(IRenderAdapter* adapter, Entity cameraEntity = NullEntity)
+		    : m_renderer(adapter), m_cameraEntity(cameraEntity)
+		{
+		}
 
 		void Update(World& world, float deltaTime) override;
 
 		void Render(World& world) override;
 		void SetCameraEntity(Entity cameraEntity) { m_cameraEntity = cameraEntity; }
 
-	private:
+	  private:
 		IRenderAdapter* m_renderer;
 		Entity m_cameraEntity = NullEntity;
 	};

@@ -2,7 +2,8 @@
 
 #pragma once
 
-namespace NeneEngine::ECS {
+namespace NeneEngine::ECS
+{
 
 	struct CameraControllerComponent
 	{

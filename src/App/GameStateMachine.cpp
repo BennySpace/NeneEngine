@@ -5,14 +5,18 @@
 namespace NeneEngine
 {
 
-	GameStateMachine::~GameStateMachine() {
-		while (!m_states.empty()) {
+	GameStateMachine::~GameStateMachine()
+	{
+		while (!m_states.empty())
+		{
 			PopState();
 		}
 	}
 
-	void GameStateMachine::ChangeState(eastl::unique_ptr<IGameState> newState) {
-		while (!m_states.empty()) {
+	void GameStateMachine::ChangeState(eastl::unique_ptr<IGameState> newState)
+	{
+		while (!m_states.empty())
+		{
 			m_states.back()->OnExit();
 			spdlog::info("Popped state during ChangeState: {}", typeid(*m_states.back()).name());
 			m_states.pop_back();
@@ -21,20 +25,24 @@ namespace NeneEngine
 		PushState(eastl::move(newState));
 	}
 
-	void GameStateMachine::PushState(eastl::unique_ptr<IGameState> newState) {
-		if (!m_states.empty()) {
+	void GameStateMachine::PushState(eastl::unique_ptr<IGameState> newState)
+	{
+		if (!m_states.empty())
+		{
 			m_states.back()->OnPause();
 		}
 
 		m_states.push_back(eastl::move(newState));
 
-		if (!m_states.empty()) {
+		if (!m_states.empty())
+		{
 			m_states.back()->OnEnter();
 			spdlog::info("Pushed state: {}", typeid(*m_states.back()).name());
 		}
 	}
 
-	void GameStateMachine::PopState() {
+	void GameStateMachine::PopState()
+	{
 		if (m_states.empty()) return;
 
 		m_states.back()->OnExit();
@@ -42,25 +50,31 @@ namespace NeneEngine
 
 		m_states.pop_back();
 
-		if (!m_states.empty()) {
+		if (!m_states.empty())
+		{
 			m_states.back()->OnResume();
 		}
 	}
 
-	void GameStateMachine::Update(float deltaTime) {
-		for (int i = static_cast<int>(m_states.size()) - 1; i >= 0; --i) {
+	void GameStateMachine::Update(float deltaTime)
+	{
+		for (int i = static_cast<int>(m_states.size()) - 1; i >= 0; --i)
+		{
 			auto& state = m_states[static_cast<size_t>(i)];
 
 			state->Update(deltaTime);
 
-			if (!state->IsPausing()) {
+			if (!state->IsPausing())
+			{
 				break;
 			}
 		}
 	}
 
-	void GameStateMachine::HandleInput() {
-		if (!m_states.empty()) {
+	void GameStateMachine::HandleInput()
+	{
+		if (!m_states.empty())
+		{
 			m_states.back()->HandleInput();
 		}
 	}

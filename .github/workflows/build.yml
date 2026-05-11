@@ -16,12 +16,26 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-binary-cache
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/vcpkg-binary-cache,readwrite
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Restore vcpkg caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/vcpkg/downloads
+            ${{ github.workspace }}/vcpkg-binary-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
 
       - name: Setup MSVC developer command prompt
         uses: ilammy/msvc-dev-cmd@v1
@@ -36,12 +50,8 @@ jobs:
 
       - name: Configure CMake
         shell: pwsh
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
         run: cmake --preset x64-debug
 
       - name: Build
         shell: pwsh
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
         run: cmake --build out/build/x64-debug --config Debug

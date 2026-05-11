@@ -1,0 +1,111 @@
+THIRD-PARTY NOTICES
+===================
+
+This project uses third-party open-source software.
+
+The list below reflects the dependencies that are currently integrated into the
+project through:
+- the vendored external/DiligentEngine subtree
+- the vcpkg.json manifest
+- the current CMake configuration in CMakeLists.txt and src/CMakeLists.txt
+
+This file is intended as a practical notice document, not as a replacement for
+the original license texts. When distributing the project, keep the original
+license files referenced below.
+
+
+INCLUDED COMPONENTS
+===================
+
+1. Diligent Engine / DiligentCore
+   Purpose:
+   Rendering backend and graphics infrastructure
+   License:
+   Apache License 2.0
+   Local license file:
+   external/DiligentEngine/License.txt
+
+2. Assimp
+   Purpose:
+   Model import (.obj, .fbx, etc.)
+   License:
+   BSD 3-Clause
+   Local license file:
+   out/build/x64-debug/vcpkg_installed/x64-windows/share/assimp/copyright
+
+3. stb
+   Purpose:
+   Image loading (stb_image)
+   License:
+   MIT or Public Domain / Unlicense
+   Local license file:
+   out/build/x64-debug/vcpkg_installed/x64-windows/share/stb/copyright
+
+4. spdlog
+   Purpose:
+   Logging
+   License:
+   MIT
+   Local license file:
+   out/build/x64-debug/vcpkg_installed/x64-windows/share/spdlog/copyright
+
+5. GLM
+   Purpose:
+   Math library
+   License:
+   MIT or Happy Bunny License
+   Local license file:
+   out/build/x64-debug/vcpkg_installed/x64-windows/share/glm/copyright
+
+6. EnTT
+   Purpose:
+   ECS library
+   License:
+   MIT
+   Local license file:
+   out/build/x64-debug/vcpkg_installed/x64-windows/share/entt/copyright
+
+7. EASTL
+   Purpose:
+   Containers and utilities
+   License:
+   BSD 3-Clause
+   Local license file:
+   out/build/x64-debug/vcpkg_installed/x64-windows/share/eastl/copyright
+
+8. nlohmann/json
+   Purpose:
+   JSON serialization
+   License:
+   MIT
+   Local license file:
+   out/build/x64-debug/vcpkg_installed/x64-windows/share/nlohmann-json/copyright
+
+
+NOTES
+=====
+
+- DiligentEngine contains its own third-party subcomponents. The primary
+  project license is Apache 2.0, but additional notices for bundled
+  subcomponents are present under the external/DiligentEngine tree. If you
+  redistribute that subtree or binaries produced from it, review those nested
+  license files as well.
+
+- spdlog notes a dependency on fmt. In the current build, fmt is present as a
+  transitive dependency in the vcpkg_installed tree.
+
+- The vcpkg_installed paths above are build-tree paths for the current
+  workspace. If the build directory is regenerated elsewhere, the referenced
+  files may move, but the corresponding package copyright files should still
+  exist in the matching vcpkg_installed/<triplet>/share/<package>/ directories.
+
+
+THIRD-PARTY SOURCE LOCATIONS
+============================
+
+- Vendored dependency:
+  external/DiligentEngine
+
+- Manifest-managed dependencies:
+  vcpkg.json
+  out/build/x64-debug/vcpkg_installed/x64-windows/share

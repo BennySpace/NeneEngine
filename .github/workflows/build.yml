@@ -62,7 +62,12 @@ jobs:
 
       - name: Configure CMake
         shell: pwsh
-        run: cmake --preset x64-debug -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
+        run: >
+          cmake --preset x64-debug
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+          -DCMAKE_C_FLAGS_DEBUG="/Z7 /Ob0 /Od /RTC1"
+          -DCMAKE_CXX_FLAGS_DEBUG="/Z7 /Ob0 /Od /RTC1"
 
       - name: Build
         shell: pwsh

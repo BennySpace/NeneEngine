@@ -31,6 +31,7 @@ namespace NeneEngine
 
 	  private:
 		LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
+		void BeginMouseLeaveTracking();
 		static KeyCode TranslateKey(WPARAM wParam, LPARAM lParam);
 		static KeyCode TranslateMouseButton(UINT message, WPARAM wParam);
 
@@ -39,6 +40,7 @@ namespace NeneEngine
 		uint32_t m_width = 0;
 		uint32_t m_height = 0;
 		bool m_shouldClose = false;
+		bool m_isTrackingMouseLeave = false;
 		InputDevice m_input;
 		MulticastDelegate<uint32_t, uint32_t> m_resized;
 	};

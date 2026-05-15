@@ -21,6 +21,8 @@ namespace NeneEngine
 	{
 		try
 		{
+			Shutdown();
+
 			std::vector<spdlog::sink_ptr> sinks;
 			auto console = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 
@@ -73,6 +75,17 @@ namespace NeneEngine
 		if (m_logger)
 		{
 			m_logger->set_level(lvl);
+		}
+	}
+
+	void CustomLogger::Shutdown()
+	{
+		if (m_logger)
+		{
+			m_logger->flush();
+			spdlog::set_default_logger({});
+			spdlog::drop(m_logger->name());
+			m_logger.reset();
 		}
 	}
 

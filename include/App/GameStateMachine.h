@@ -5,7 +5,6 @@
 #include <EASTL/unique_ptr.h>
 #include <EASTL/vector.h>
 #include <memory>
-#include <spdlog/spdlog.h>
 
 namespace NeneEngine
 {
@@ -21,6 +20,7 @@ namespace NeneEngine
 		void PushState(eastl::unique_ptr<IGameState> newState);
 
 		void PopState();
+		void Clear();
 
 		void Update(float deltaTime);
 

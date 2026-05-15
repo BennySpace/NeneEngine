@@ -3,29 +3,28 @@
 #include "States/PlayState.h"
 #include "App/GameStateMachine.h"
 #include "App/NeneEngineApp.h"
+#include "Core/CustomLogger.h"
 #include "Input/InputDevice.h"
 #include "States/PauseState.h"
 
-#include <spdlog/spdlog.h>
-
 void NeneEngine::PlayState::OnEnter()
 {
-	spdlog::info("PlayState entered");
+	NENE_LOG_INFO("PlayState entered");
 }
 
 void NeneEngine::PlayState::OnPause()
 {
-	spdlog::info("PlayState paused");
+	NENE_LOG_INFO("PlayState paused");
 }
 
 void NeneEngine::PlayState::OnResume()
 {
-	spdlog::info("PlayState resumed");
+	NENE_LOG_INFO("PlayState resumed");
 }
 
 void NeneEngine::PlayState::OnExit()
 {
-	spdlog::info("PlayState exited");
+	NENE_LOG_INFO("PlayState exited");
 }
 
 void NeneEngine::PlayState::Update(float dt)

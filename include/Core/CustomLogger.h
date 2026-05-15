@@ -24,9 +24,10 @@ namespace NeneEngine
 
 		static CustomLogger& GetInstance();
 
-		bool Initialize(const std::string& logFileName = "NeneEngine.log", bool async = true,
+		bool Initialize(const std::string& logFileName = "NeneEngine.log", bool async = false,
 		                spdlog::level::level_enum logLevel = spdlog::level::level_enum::info,
 		                bool consoleWithColor = true);
+		void Shutdown();
 
 		void SetLevel(spdlog::level::level_enum lvl);
 

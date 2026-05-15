@@ -96,6 +96,7 @@ namespace NeneEngine
 
 		HWND hwnd = m_hwnd;
 		m_hwnd = nullptr;
+		m_input.ResetState();
 		DestroyWindow(hwnd);
 	}
 
@@ -143,11 +144,14 @@ namespace NeneEngine
 
 		case WM_CLOSE:
 			m_shouldClose = true;
+			m_input.ResetState();
 			DestroyWindow(m_hwnd);
 			return 0;
 
 		case WM_DESTROY:
 			m_shouldClose = true;
+			m_input.ResetState();
+			m_isTrackingMouseLeave = false;
 			return 0;
 
 		case WM_SIZE:
@@ -157,8 +161,14 @@ namespace NeneEngine
 			return 0;
 
 		case WM_MOUSEMOVE:
+			BeginMouseLeaveTracking();
 			m_input.NotifyMouseMove(
 			    {static_cast<float>(GET_X_LPARAM(lParam)), static_cast<float>(GET_Y_LPARAM(lParam))});
+			return 0;
+
+		case WM_MOUSELEAVE:
+			m_isTrackingMouseLeave = false;
+			m_input.ResetState();
 			return 0;
 
 		case WM_MOUSEWHEEL:
@@ -219,6 +229,17 @@ namespace NeneEngine
 			return static_cast<KeyCode>(wParam);
 
 		return KeyCode::None;
+	}
+
+	void Windows32Window::BeginMouseLeaveTracking()
+	{
+		if (m_isTrackingMouseLeave || !m_hwnd) return;
+
+		TRACKMOUSEEVENT trackMouseEvent{};
+		trackMouseEvent.cbSize = sizeof(trackMouseEvent);
+		trackMouseEvent.dwFlags = TME_LEAVE;
+		trackMouseEvent.hwndTrack = m_hwnd;
+		m_isTrackingMouseLeave = TrackMouseEvent(&trackMouseEvent) == TRUE;
 	}
 
 	KeyCode Windows32Window::TranslateMouseButton(UINT message, WPARAM wParam)

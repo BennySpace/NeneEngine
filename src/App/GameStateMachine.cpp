@@ -1,16 +1,14 @@
 // GameStateMachine.cpp
 
 #include "App/GameStateMachine.h"
+#include "Core/CustomLogger.h"
 
 namespace NeneEngine
 {
 
 	GameStateMachine::~GameStateMachine()
 	{
-		while (!m_states.empty())
-		{
-			PopState();
-		}
+		Clear();
 	}
 
 	void GameStateMachine::ChangeState(eastl::unique_ptr<IGameState> newState)
@@ -18,7 +16,7 @@ namespace NeneEngine
 		while (!m_states.empty())
 		{
 			m_states.back()->OnExit();
-			spdlog::info("Popped state during ChangeState: {}", typeid(*m_states.back()).name());
+			NENE_LOG_INFO("Popped state during ChangeState: {}", typeid(*m_states.back()).name());
 			m_states.pop_back();
 		}
 
@@ -37,7 +35,7 @@ namespace NeneEngine
 		if (!m_states.empty())
 		{
 			m_states.back()->OnEnter();
-			spdlog::info("Pushed state: {}", typeid(*m_states.back()).name());
+			NENE_LOG_INFO("Pushed state: {}", typeid(*m_states.back()).name());
 		}
 	}
 
@@ -46,13 +44,23 @@ namespace NeneEngine
 		if (m_states.empty()) return;
 
 		m_states.back()->OnExit();
-		spdlog::info("Popped state: {}", typeid(*m_states.back()).name());
+		NENE_LOG_INFO("Popped state: {}", typeid(*m_states.back()).name());
 
 		m_states.pop_back();
 
 		if (!m_states.empty())
 		{
 			m_states.back()->OnResume();
+		}
+	}
+
+	void GameStateMachine::Clear()
+	{
+		while (!m_states.empty())
+		{
+			m_states.back()->OnExit();
+			NENE_LOG_INFO("Popped state during Clear: {}", typeid(*m_states.back()).name());
+			m_states.pop_back();
 		}
 	}
 

@@ -85,29 +85,6 @@ namespace NeneEngine
 			return {};
 		}
 
-		std::filesystem::path FindFirstAssetFile(const std::filesystem::path& directory,
-		                                         std::initializer_list<std::string_view> extensions)
-		{
-			if (directory.empty()) return {};
-
-			std::error_code errorCode;
-			for (const auto& entry : std::filesystem::recursive_directory_iterator(directory, errorCode))
-			{
-				if (errorCode || !entry.is_regular_file()) continue;
-
-				const std::string extension = entry.path().extension().string();
-				std::string normalizedExtension = extension;
-				std::ranges::transform(normalizedExtension, normalizedExtension.begin(),
-				                       [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
-				for (std::string_view expected : extensions)
-				{
-					if (normalizedExtension == expected) return entry.path();
-				}
-			}
-
-			return {};
-		}
-
 		std::filesystem::path FindDiffuseTextureFromObjMaterial(const std::filesystem::path& objPath)
 		{
 			std::ifstream objFile(objPath);
@@ -157,6 +134,7 @@ namespace NeneEngine
 	NeneEngineApp::~NeneEngineApp()
 	{
 		if (m_running) RequestShutdown();
+		m_gameStateMachine.Clear();
 
 		for (auto& windowContext : m_windows)
 		{
@@ -167,9 +145,8 @@ namespace NeneEngine
 			}
 		}
 
-		if (spdlog::default_logger()) spdlog::default_logger()->flush();
-
-		spdlog::shutdown();
+		m_windows.clear();
+		CustomLogger::GetInstance().Shutdown();
 	}
 
 	bool NeneEngineApp::Init(uint32_t width, uint32_t height, const std::string& title)
@@ -177,7 +154,7 @@ namespace NeneEngine
 		try
 		{
 			// 1. Logger
-			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", true, spdlog::level::info, true);
+			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", false, spdlog::level::info, true);
 			NENE_LOG_INFO("===== NeneEngine v0.3 starting =====");
 			ResourceManager::GetInstance().RegisterDefaultLoaders();
 			RunExternalLibrarySmokeTests();
@@ -257,11 +234,8 @@ namespace NeneEngine
 
 			if (!m_windows.empty() && m_windows.front().renderer)
 			{
-				const auto meshDirectory = ResolveAssetDirectory(std::filesystem::path{"assets"} / "Models");
-				const auto fallbackMeshDirectory =
-				    meshDirectory.empty() ? ResolveAssetDirectory(std::filesystem::path{"assets"} / "Model")
-				                          : meshDirectory;
-				const auto meshPath = FindFirstAssetFile(fallbackMeshDirectory, {".obj"});
+				const auto meshPath =
+				    ResolveAssetPath(std::filesystem::path{"assets"} / "Models" / "momosuzu_nene_posed.obj");
 				if (!meshPath.empty())
 				{
 					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string());
@@ -295,23 +269,7 @@ namespace NeneEngine
 								}
 
 								auto texturePath = FindDiffuseTextureFromObjMaterial(meshPath);
-								if (texturePath.empty() || !std::filesystem::exists(texturePath))
-									texturePath = FindFirstAssetFile(meshPath.parent_path(),
-									                                 {".png", ".jpg", ".jpeg", ".dds", ".ktx"});
-								if (texturePath.empty())
-								{
-									const auto textureDirectory =
-									    ResolveAssetDirectory(std::filesystem::path{"assets"} / "Textures");
-									texturePath = FindFirstAssetFile(textureDirectory,
-									                                 {".png", ".jpg", ".jpeg", ".dds", ".ktx"});
-								}
-								if (texturePath.empty())
-								{
-									const auto textureDirectory =
-									    ResolveAssetDirectory(std::filesystem::path{"assets"} / "Texture");
-									texturePath = FindFirstAssetFile(textureDirectory,
-									                                 {".png", ".jpg", ".jpeg", ".dds", ".ktx"});
-								}
+								if (!texturePath.empty() && !std::filesystem::exists(texturePath)) texturePath.clear();
 								if (!texturePath.empty())
 								{
 									if (auto textureResource =
@@ -357,6 +315,10 @@ namespace NeneEngine
 							}
 						}
 					}
+				}
+				else
+				{
+					NENE_LOG_WARN("OBJ model 'assets/Models/momosuzu_nene_posed.obj' was not found");
 				}
 			}
 

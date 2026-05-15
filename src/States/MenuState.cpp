@@ -1,27 +1,26 @@
 // MenuState.cpp
 
 #include "States/MenuState.h"
-
-#include <spdlog/spdlog.h>
+#include "Core/CustomLogger.h"
 
 void NeneEngine::MenuState::OnEnter()
 {
-	spdlog::info("MenuState entered");
+	NENE_LOG_INFO("MenuState entered");
 }
 
 void NeneEngine::MenuState::OnPause()
 {
-	spdlog::info("MenuState paused");
+	NENE_LOG_INFO("MenuState paused");
 }
 
 void NeneEngine::MenuState::OnResume()
 {
-	spdlog::info("MenuState resumed");
+	NENE_LOG_INFO("MenuState resumed");
 }
 
 void NeneEngine::MenuState::OnExit()
 {
-	spdlog::info("MenuState exited");
+	NENE_LOG_INFO("MenuState exited");
 }
 
 void NeneEngine::MenuState::Update(float /*dt*/)

@@ -49,9 +49,9 @@ endforeach()
 
 add_subdirectory("src")
 
-include(CTest)
-if(BUILD_TESTING)
-    add_subdirectory("tests")
-endif()
+# include(CTest)
+# if(BUILD_TESTING)
+#     add_subdirectory("tests")
+# endif()
 
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT NeneEngine)

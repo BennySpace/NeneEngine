@@ -235,7 +235,8 @@ namespace NeneEngine
 			if (!m_windows.empty() && m_windows.front().renderer)
 			{
 				const auto meshPath =
-				    ResolveAssetPath(std::filesystem::path{"assets"} / "Models" / "momosuzu_nene_posed.obj");
+				    ResolveAssetPath(std::filesystem::path{"assets"} / "Models" / "momosuzu_nene_posed" /
+				                     "momosuzu_nene_posed.obj");
 				if (!meshPath.empty())
 				{
 					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string());
@@ -318,7 +319,8 @@ namespace NeneEngine
 				}
 				else
 				{
-					NENE_LOG_WARN("OBJ model 'assets/Models/momosuzu_nene_posed.obj' was not found");
+					NENE_LOG_WARN("OBJ model 'assets/Models/momosuzu_nene_posed/momosuzu_nene_posed.obj' was not "
+					              "found");
 				}
 			}
 

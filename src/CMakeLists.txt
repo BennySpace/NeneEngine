@@ -45,6 +45,7 @@ target_link_libraries(NeneEngine
         glm::glm
         Diligent-Win32Platform
         Diligent-GraphicsEngineD3D12-shared
+        Diligent-TextureLoader
 )
 
 if(EXISTS "${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/debug/bin")

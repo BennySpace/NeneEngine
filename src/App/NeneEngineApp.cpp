@@ -18,7 +18,11 @@
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
 
+#include <algorithm>
+#include <cctype>
+#include <fstream>
 #include <stdexcept>
+#include <sstream>
 
 namespace NeneEngine
 {
@@ -57,6 +61,91 @@ namespace NeneEngine
 				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath);
 				    !fromExecutableDirectory.empty())
 					return fromExecutableDirectory;
+			}
+
+			return {};
+		}
+
+		std::filesystem::path ResolveAssetDirectory(const std::filesystem::path& relativePath)
+		{
+			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath);
+			    !fromCurrentDirectory.empty() && std::filesystem::is_directory(fromCurrentDirectory))
+				return fromCurrentDirectory;
+
+			wchar_t modulePath[MAX_PATH]{};
+			const DWORD length = GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(std::size(modulePath)));
+			if (length > 0)
+			{
+				const std::filesystem::path executableDirectory = std::filesystem::path(modulePath).parent_path();
+				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath);
+				    !fromExecutableDirectory.empty() && std::filesystem::is_directory(fromExecutableDirectory))
+					return fromExecutableDirectory;
+			}
+
+			return {};
+		}
+
+		std::filesystem::path FindFirstAssetFile(const std::filesystem::path& directory,
+		                                         std::initializer_list<std::string_view> extensions)
+		{
+			if (directory.empty()) return {};
+
+			std::error_code errorCode;
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(directory, errorCode))
+			{
+				if (errorCode || !entry.is_regular_file()) continue;
+
+				const std::string extension = entry.path().extension().string();
+				std::string normalizedExtension = extension;
+				std::ranges::transform(normalizedExtension, normalizedExtension.begin(),
+				                       [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+				for (std::string_view expected : extensions)
+				{
+					if (normalizedExtension == expected) return entry.path();
+				}
+			}
+
+			return {};
+		}
+
+		std::filesystem::path FindDiffuseTextureFromObjMaterial(const std::filesystem::path& objPath)
+		{
+			std::ifstream objFile(objPath);
+			if (!objFile) return {};
+
+			std::string line;
+			std::filesystem::path materialPath;
+			while (std::getline(objFile, line))
+			{
+				std::istringstream stream(line);
+				std::string command;
+				stream >> command;
+				if (command != "mtllib") continue;
+
+				std::string materialFile;
+				std::getline(stream >> std::ws, materialFile);
+				if (!materialFile.empty())
+				{
+					materialPath = objPath.parent_path() / materialFile;
+					break;
+				}
+			}
+
+			if (materialPath.empty()) return {};
+
+			std::ifstream materialFile(materialPath);
+			if (!materialFile) return {};
+
+			while (std::getline(materialFile, line))
+			{
+				std::istringstream stream(line);
+				std::string command;
+				stream >> command;
+				if (command != "map_Kd") continue;
+
+				std::string textureFile;
+				std::getline(stream >> std::ws, textureFile);
+				if (!textureFile.empty()) return materialPath.parent_path() / textureFile;
 			}
 
 			return {};
@@ -168,8 +257,11 @@ namespace NeneEngine
 
 			if (!m_windows.empty() && m_windows.front().renderer)
 			{
-				const auto meshPath =
-				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "test_triangle.obj");
+				const auto meshDirectory = ResolveAssetDirectory(std::filesystem::path{"assets"} / "Models");
+				const auto fallbackMeshDirectory =
+				    meshDirectory.empty() ? ResolveAssetDirectory(std::filesystem::path{"assets"} / "Model")
+				                          : meshDirectory;
+				const auto meshPath = FindFirstAssetFile(fallbackMeshDirectory, {".obj"});
 				if (!meshPath.empty())
 				{
 					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string());
@@ -183,19 +275,80 @@ namespace NeneEngine
 							{
 								mesh.gpuMesh = gpuMesh;
 
-								auto renderableView =
-								    m_world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
-								for (auto entity : renderableView)
+								ShaderId shaderId{};
+								TextureId textureId{};
+
+								const auto shaderPath =
+								    ResolveAssetPath(std::filesystem::path{"assets"} / "Shaders" /
+								                     "textured_mesh.shader");
+								if (!shaderPath.empty())
 								{
-									auto& tag = renderableView.get<ECS::TagComponent>(entity);
+									if (auto shaderResource =
+									        ResourceManager::GetInstance().Load<ShaderProgramResource>(
+									            shaderPath.string());
+									    shaderResource != nullptr)
+									{
+										const GPUShaderProgram gpuShader =
+										    m_windows.front().renderer->CreateShaderProgram(shaderResource->GetData());
+										if (gpuShader.IsValid()) shaderId = gpuShader.shaderId;
+									}
+								}
+
+								auto texturePath = FindDiffuseTextureFromObjMaterial(meshPath);
+								if (texturePath.empty() || !std::filesystem::exists(texturePath))
+									texturePath = FindFirstAssetFile(meshPath.parent_path(),
+									                                 {".png", ".jpg", ".jpeg", ".dds", ".ktx"});
+								if (texturePath.empty())
+								{
+									const auto textureDirectory =
+									    ResolveAssetDirectory(std::filesystem::path{"assets"} / "Textures");
+									texturePath = FindFirstAssetFile(textureDirectory,
+									                                 {".png", ".jpg", ".jpeg", ".dds", ".ktx"});
+								}
+								if (texturePath.empty())
+								{
+									const auto textureDirectory =
+									    ResolveAssetDirectory(std::filesystem::path{"assets"} / "Texture");
+									texturePath = FindFirstAssetFile(textureDirectory,
+									                                 {".png", ".jpg", ".jpeg", ".dds", ".ktx"});
+								}
+								if (!texturePath.empty())
+								{
+									if (auto textureResource =
+									        ResourceManager::GetInstance().Load<TextureResource>(texturePath.string());
+									    textureResource != nullptr)
+									{
+										const GPUTexture gpuTexture =
+										    m_windows.front().renderer->CreateTexture2D(textureResource->GetData());
+										if (gpuTexture.IsValid()) textureId = gpuTexture.textureId;
+									}
+								}
+
+								const ECS::Entity modelEntity = m_world.CreateEntity("LoadedObjModel");
+								auto& modelTransform = m_world.AddComponent<ECS::TransformComponent>(modelEntity);
+								modelTransform.position = {-1.2f, -1.4f, 0.0f};
+								modelTransform.scale = {1.4f, 1.4f, 1.4f};
+
+								auto& modelRenderer = m_world.AddComponent<ECS::MeshRendererComponent>(modelEntity);
+								modelRenderer.meshId = gpuMesh.meshId;
+								if (textureId.IsValid()) modelRenderer.material.textureId = textureId;
+								if (shaderId.IsValid() && textureId.IsValid()) modelRenderer.material.shaderId = shaderId;
+								modelRenderer.material.tint = {1.0f, 1.0f, 1.0f, 1.0f};
+
+								auto oldPrimitiveView =
+								    m_world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
+								for (auto entity : oldPrimitiveView)
+								{
+									auto& tag = oldPrimitiveView.get<ECS::TagComponent>(entity);
 									if (tag.name != "SceneTriangle") continue;
 
-									auto& meshRenderer = renderableView.get<ECS::MeshRendererComponent>(entity);
-									meshRenderer.meshId = gpuMesh.meshId;
-									NENE_LOG_INFO("Assigned uploaded meshId={} to entity '{}'", gpuMesh.meshId.value,
-									              tag.name);
+									auto& meshRenderer = oldPrimitiveView.get<ECS::MeshRendererComponent>(entity);
+									meshRenderer.visible = false;
 									break;
 								}
+
+								NENE_LOG_INFO("Assigned uploaded meshId={} to standalone entity 'LoadedObjModel'",
+								              gpuMesh.meshId.value);
 
 								NENE_LOG_INFO(
 								    "Uploaded mesh resource '{}' to GPU as meshId={} (vertices={}, indices={})",

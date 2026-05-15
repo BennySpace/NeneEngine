@@ -6,7 +6,7 @@ project(
     NeneEngine
     VERSION 0.2
     DESCRIPTION "Game engine"
-    LANGUAGES CXX
+    LANGUAGES CXX C
 )
 
 set(CMAKE_CXX_STANDARD          20)
@@ -18,6 +18,7 @@ set(DILIGENT_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
 set(DILIGENT_BUILD_TOOLS   OFF CACHE BOOL "" FORCE)
 set(DILIGENT_BUILD_FX      OFF CACHE BOOL "" FORCE)
 set(DILIGENT_BUILD_TESTS   OFF CACHE BOOL "" FORCE)
+set(DILIGENT_INSTALL_TOOLS OFF CACHE BOOL "" FORCE)
 
 set(DILIGENT_NO_DIRECT3D11 ON  CACHE BOOL "" FORCE)
 set(DILIGENT_NO_VULKAN     ON  CACHE BOOL "" FORCE)
@@ -27,6 +28,9 @@ set(DILIGENT_NO_METAL      ON  CACHE BOOL "" FORCE)
 set(DILIGENT_NO_DIRECT3D12 OFF CACHE BOOL "" FORCE)
 
 add_subdirectory("external/DiligentEngine/DiligentCore")
+set(DILIGENT_TOOLS_DIR "external/DiligentEngine/DiligentTools")
+add_subdirectory("external/DiligentEngine/DiligentTools/ThirdParty")
+add_subdirectory("external/DiligentEngine/DiligentTools/TextureLoader")
 
 foreach(target_name SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-core)
     if(TARGET ${target_name})
@@ -44,4 +48,10 @@ foreach(target_name SPIRV-Tools-opt SPIRV-Tools SPIRV-Tools-core)
 endforeach()
 
 add_subdirectory("src")
+
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory("tests")
+endif()
+
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT NeneEngine)

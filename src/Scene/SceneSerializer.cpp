@@ -130,6 +130,7 @@ namespace NeneEngine
 			        {"material",
 			         {{"materialId", renderer.material.materialId.value},
 			          {"shaderId", renderer.material.shaderId.value},
+			          {"textureId", renderer.material.textureId.value},
 			          {"tint", ToJson(renderer.material.tint)}}}};
 		}
 
@@ -213,6 +214,7 @@ namespace NeneEngine
 			const auto& material = value.at("material");
 			renderer.material.materialId = MaterialId{material.at("materialId").get<uint32_t>()};
 			renderer.material.shaderId = ShaderId{material.at("shaderId").get<uint32_t>()};
+			if (material.contains("textureId")) renderer.material.textureId = TextureId{material.at("textureId").get<uint32_t>()};
 			renderer.material.tint = ReadVec4(material.at("tint"));
 		}
 

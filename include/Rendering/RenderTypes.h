@@ -5,6 +5,7 @@
 #include <compare>
 #include <cstdint>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -28,12 +29,28 @@ namespace NeneEngine
 		auto operator<=>(const MaterialId&) const = default;
 	};
 
+	struct TextureId
+	{
+		uint32_t value = 0;
+
+		constexpr bool IsValid() const noexcept { return value != 0; }
+		auto operator<=>(const TextureId&) const = default;
+	};
+
 	struct ShaderId
 	{
 		uint32_t value = 0;
 
 		constexpr bool IsValid() const noexcept { return value != 0; }
 		auto operator<=>(const ShaderId&) const = default;
+	};
+
+	struct GPUBufferId
+	{
+		uint32_t value = 0;
+
+		constexpr bool IsValid() const noexcept { return value != 0; }
+		auto operator<=>(const GPUBufferId&) const = default;
 	};
 
 	enum class PrimitiveType : uint8_t
@@ -60,10 +77,58 @@ namespace NeneEngine
 	struct GPUMesh
 	{
 		MeshId meshId{};
+		GPUBufferId vertexBufferId{};
+		GPUBufferId indexBufferId{};
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
 
 		constexpr bool IsValid() const noexcept { return meshId.IsValid(); }
+	};
+
+	struct GPUBuffer
+	{
+		GPUBufferId bufferId{};
+		uint64_t sizeBytes = 0;
+		uint32_t elementCount = 0;
+
+		constexpr bool IsValid() const noexcept { return bufferId.IsValid(); }
+	};
+
+	enum class TextureFilterMode : uint8_t
+	{
+		Linear,
+		Nearest
+	};
+
+	struct TextureResource
+	{
+		std::string path;
+		bool isSrgb = true;
+		TextureFilterMode filterMode = TextureFilterMode::Linear;
+	};
+
+	struct GPUTexture
+	{
+		TextureId textureId{};
+		uint32_t width = 0;
+		uint32_t height = 0;
+
+		constexpr bool IsValid() const noexcept { return textureId.IsValid(); }
+	};
+
+	struct ShaderProgramResource
+	{
+		std::string vertexPath;
+		std::string pixelPath;
+		std::string vertexSource;
+		std::string pixelSource;
+	};
+
+	struct GPUShaderProgram
+	{
+		ShaderId shaderId{};
+
+		constexpr bool IsValid() const noexcept { return shaderId.IsValid(); }
 	};
 
 	struct Mesh
@@ -76,6 +141,7 @@ namespace NeneEngine
 	{
 		MaterialId materialId{};
 		ShaderId shaderId{};
+		TextureId textureId{};
 		glm::vec4 tint = {1.0f, 1.0f, 1.0f, 1.0f};
 	};
 
@@ -90,6 +156,7 @@ namespace NeneEngine
 		MeshId meshId{};
 		MaterialId materialId{};
 		ShaderId shaderId{};
+		TextureId textureId{};
 		glm::vec4 tint = {1.0f, 1.0f, 1.0f, 1.0f};
 	};
 

@@ -19,7 +19,8 @@ namespace NeneEngine
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(
 		    path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices |
-		              aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure);
+		              aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure |
+		              aiProcess_FlipUVs);
 
 		if (scene == nullptr || scene->mRootNode == nullptr)
 			throw std::runtime_error("Assimp failed to load mesh '" + path + "': " + importer.GetErrorString());

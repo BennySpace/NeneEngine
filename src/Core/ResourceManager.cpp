@@ -3,6 +3,8 @@
 #include "Core/ResourceManager.h"
 
 #include "Rendering/MeshLoader.h"
+#include "Rendering/ShaderLoader.h"
+#include "Rendering/TextureLoader.h"
 
 namespace NeneEngine
 {
@@ -16,6 +18,9 @@ namespace NeneEngine
 	void ResourceManager::RegisterDefaultLoaders()
 	{
 		RegisterLoader<Mesh>([](const std::string& path) { return LoadMeshFromFile(path); });
+		RegisterLoader<TextureResource>([](const std::string& path) { return LoadTextureResourceFromFile(path); });
+		RegisterLoader<ShaderProgramResource>(
+		    [](const std::string& path) { return LoadShaderProgramResourceFromFile(path); });
 	}
 
 	void ResourceManager::Clear()

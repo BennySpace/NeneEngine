@@ -4,6 +4,7 @@
 
 #include "../external/DiligentEngine/DiligentCore/Graphics/GraphicsEngine/interface/Shader.h"
 #include "../external/DiligentEngine/DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h"
+#include "TextureLoader.h"
 
 #include "Core/CustomLogger.h"
 
@@ -81,24 +82,30 @@ namespace NeneEngine
 		m_pMeshSRB.Release();
 
 		m_renderQueue.clear();
+		m_uploadedBuffers.clear();
 		m_uploadedMeshes.clear();
+		m_uploadedTextures.clear();
+		m_uploadedShaderPrograms.clear();
+		m_nextBufferId = 1;
 		m_nextMeshId = 1;
+		m_nextTextureId = 1;
+		m_nextShaderId = 1;
 		m_pSwapChain.Release();
 		m_pImmediateContext.Release();
 		m_pDevice.Release();
 	}
 
-	GPUMesh DiligentDX12Adapter::UploadMesh(const MeshData& meshData)
+	GPUBuffer DiligentDX12Adapter::CreateVertexBuffer(const void* vertexData, uint64_t sizeBytes, uint32_t vertexCount)
 	{
 		if (!m_pDevice)
 		{
-			NENE_LOG_ERROR("DiligentDX12Adapter: UploadMesh called before device initialization");
+			NENE_LOG_ERROR("DiligentDX12Adapter: CreateVertexBuffer called before device initialization");
 			return {};
 		}
 
-		if (meshData.vertices.empty() || meshData.indices.empty())
+		if (vertexData == nullptr || sizeBytes == 0 || vertexCount == 0)
 		{
-			NENE_LOG_ERROR("DiligentDX12Adapter: UploadMesh received empty mesh data");
+			NENE_LOG_ERROR("DiligentDX12Adapter: CreateVertexBuffer received empty data");
 			return {};
 		}
 
@@ -106,33 +113,93 @@ namespace NeneEngine
 		vertexBufferDesc.Name = "Mesh Vertex Buffer";
 		vertexBufferDesc.BindFlags = BIND_VERTEX_BUFFER;
 		vertexBufferDesc.Usage = USAGE_IMMUTABLE;
-		vertexBufferDesc.Size = static_cast<Uint64>(meshData.vertices.size() * sizeof(Vertex));
+		vertexBufferDesc.Size = static_cast<Uint64>(sizeBytes);
 
 		BufferData vertexBufferData{};
-		vertexBufferData.pData = meshData.vertices.data();
+		vertexBufferData.pData = vertexData;
 		vertexBufferData.DataSize = vertexBufferDesc.Size;
+
+		UploadedBuffer uploadedBuffer{};
+		m_pDevice->CreateBuffer(vertexBufferDesc, &vertexBufferData, &uploadedBuffer.buffer);
+		if (!uploadedBuffer.buffer)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create vertex buffer (bytes={}, vertices={})", sizeBytes,
+			               vertexCount);
+			return {};
+		}
+
+		uploadedBuffer.sizeBytes = sizeBytes;
+		uploadedBuffer.elementCount = vertexCount;
+
+		const GPUBufferId bufferId{m_nextBufferId++};
+		m_uploadedBuffers.emplace(bufferId.value, uploadedBuffer);
+		return GPUBuffer{bufferId, sizeBytes, vertexCount};
+	}
+
+	GPUBuffer DiligentDX12Adapter::CreateIndexBuffer(const uint32_t* indices, uint32_t indexCount)
+	{
+		if (!m_pDevice)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: CreateIndexBuffer called before device initialization");
+			return {};
+		}
+
+		if (indices == nullptr || indexCount == 0)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: CreateIndexBuffer received empty data");
+			return {};
+		}
 
 		BufferDesc indexBufferDesc{};
 		indexBufferDesc.Name = "Mesh Index Buffer";
 		indexBufferDesc.BindFlags = BIND_INDEX_BUFFER;
 		indexBufferDesc.Usage = USAGE_IMMUTABLE;
-		indexBufferDesc.Size = static_cast<Uint64>(meshData.indices.size() * sizeof(uint32_t));
+		indexBufferDesc.Size = static_cast<Uint64>(indexCount * sizeof(uint32_t));
 
 		BufferData indexBufferData{};
-		indexBufferData.pData = meshData.indices.data();
+		indexBufferData.pData = indices;
 		indexBufferData.DataSize = indexBufferDesc.Size;
 
-		UploadedMeshBuffers uploadedMesh{};
-		m_pDevice->CreateBuffer(vertexBufferDesc, &vertexBufferData, &uploadedMesh.vertexBuffer);
-		m_pDevice->CreateBuffer(indexBufferDesc, &indexBufferData, &uploadedMesh.indexBuffer);
-
-		if (!uploadedMesh.vertexBuffer || !uploadedMesh.indexBuffer)
+		UploadedBuffer uploadedBuffer{};
+		m_pDevice->CreateBuffer(indexBufferDesc, &indexBufferData, &uploadedBuffer.buffer);
+		if (!uploadedBuffer.buffer)
 		{
-			NENE_LOG_ERROR("DiligentDX12Adapter: failed to upload mesh buffers (vertices={}, indices={})",
-			               meshData.vertices.size(), meshData.indices.size());
+			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create index buffer (indices={})", indexCount);
 			return {};
 		}
 
+		uploadedBuffer.sizeBytes = indexBufferDesc.Size;
+		uploadedBuffer.elementCount = indexCount;
+
+		const GPUBufferId bufferId{m_nextBufferId++};
+		m_uploadedBuffers.emplace(bufferId.value, uploadedBuffer);
+		return GPUBuffer{bufferId, indexBufferDesc.Size, indexCount};
+	}
+
+	GPUMesh DiligentDX12Adapter::UploadMesh(const MeshData& meshData)
+	{
+		if (meshData.vertices.empty() || meshData.indices.empty())
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: UploadMesh received empty mesh data");
+			return {};
+		}
+
+		const GPUBuffer vertexBuffer =
+		    CreateVertexBuffer(meshData.vertices.data(), meshData.vertices.size() * sizeof(Vertex),
+		                       static_cast<uint32_t>(meshData.vertices.size()));
+		const GPUBuffer indexBuffer =
+		    CreateIndexBuffer(meshData.indices.data(), static_cast<uint32_t>(meshData.indices.size()));
+		if (!vertexBuffer.IsValid() || !indexBuffer.IsValid()) return {};
+
+		const auto vertexIt = m_uploadedBuffers.find(vertexBuffer.bufferId.value);
+		const auto indexIt = m_uploadedBuffers.find(indexBuffer.bufferId.value);
+		if (vertexIt == m_uploadedBuffers.end() || indexIt == m_uploadedBuffers.end()) return {};
+
+		UploadedMeshBuffers uploadedMesh{};
+		uploadedMesh.vertexBufferId = vertexBuffer.bufferId;
+		uploadedMesh.indexBufferId = indexBuffer.bufferId;
+		uploadedMesh.vertexBuffer = vertexIt->second.buffer;
+		uploadedMesh.indexBuffer = indexIt->second.buffer;
 		uploadedMesh.vertexCount = static_cast<uint32_t>(meshData.vertices.size());
 		uploadedMesh.indexCount = static_cast<uint32_t>(meshData.indices.size());
 
@@ -142,7 +209,165 @@ namespace NeneEngine
 		NENE_LOG_INFO("DiligentDX12Adapter: uploaded mesh {} (vertices={}, indices={})", meshId.value,
 		              uploadedMesh.vertexCount, uploadedMesh.indexCount);
 
-		return GPUMesh{meshId, uploadedMesh.vertexCount, uploadedMesh.indexCount};
+		return GPUMesh{meshId, vertexBuffer.bufferId, indexBuffer.bufferId, uploadedMesh.vertexCount,
+		               uploadedMesh.indexCount};
+	}
+
+	GPUTexture DiligentDX12Adapter::CreateTexture2D(const TextureResource& texture)
+	{
+		if (!m_pDevice)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: CreateTexture2D called before device initialization");
+			return {};
+		}
+
+		TextureLoadInfo loadInfo{};
+		loadInfo.IsSRGB = texture.isSrgb;
+
+		RefCntAutoPtr<ITextureLoader> textureLoader;
+		CreateTextureLoaderFromFile(texture.path.c_str(), IMAGE_FILE_FORMAT_UNKNOWN, loadInfo, &textureLoader);
+		if (!textureLoader)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create texture loader for '{}'", texture.path);
+			return {};
+		}
+
+		UploadedTexture uploadedTexture{};
+		textureLoader->CreateTexture(m_pDevice, &uploadedTexture.texture);
+		if (!uploadedTexture.texture)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create GPU texture for '{}'", texture.path);
+			return {};
+		}
+
+		const auto textureDesc = uploadedTexture.texture->GetDesc();
+		uploadedTexture.filterMode = texture.filterMode;
+		uploadedTexture.width = textureDesc.Width;
+		uploadedTexture.height = textureDesc.Height;
+		uploadedTexture.shaderResourceView = uploadedTexture.texture->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
+		if (!uploadedTexture.shaderResourceView)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: texture '{}' has no shader resource view", texture.path);
+			return {};
+		}
+
+		if (m_pImmediateContext)
+		{
+			StateTransitionDesc barrier(uploadedTexture.texture, RESOURCE_STATE_UNKNOWN, RESOURCE_STATE_SHADER_RESOURCE,
+			                            STATE_TRANSITION_FLAG_UPDATE_STATE);
+			m_pImmediateContext->TransitionResourceState(barrier);
+		}
+
+		const TextureId textureId{m_nextTextureId++};
+		m_uploadedTextures.emplace(textureId.value, uploadedTexture);
+		NENE_LOG_INFO("DiligentDX12Adapter: uploaded texture {} '{}' ({}x{})", textureId.value, texture.path,
+		              textureDesc.Width, textureDesc.Height);
+		return GPUTexture{textureId, textureDesc.Width, textureDesc.Height};
+	}
+
+	GPUShaderProgram DiligentDX12Adapter::CreateShaderProgram(const ShaderProgramResource& shaderProgram)
+	{
+		if (!m_pDevice || !m_pSwapChain)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: CreateShaderProgram called before renderer initialization");
+			return {};
+		}
+
+		GraphicsPipelineStateCreateInfo psoCreateInfo{};
+		psoCreateInfo.PSODesc.Name = "Resource Shader Program PSO";
+		psoCreateInfo.PSODesc.PipelineType = PIPELINE_TYPE_GRAPHICS;
+		psoCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
+		psoCreateInfo.GraphicsPipeline.RTVFormats[0] = m_pSwapChain->GetDesc().ColorBufferFormat;
+		psoCreateInfo.GraphicsPipeline.DSVFormat = m_pSwapChain->GetDesc().DepthBufferFormat;
+		psoCreateInfo.GraphicsPipeline.PrimitiveTopology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		psoCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = CULL_MODE_NONE;
+		psoCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = true;
+		psoCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthWriteEnable = true;
+		psoCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthFunc = COMPARISON_FUNC_LESS;
+
+		LayoutElement meshLayoutElements[] = {LayoutElement{0, 0, 3, VT_FLOAT32, false},
+		                                      LayoutElement{1, 0, 3, VT_FLOAT32, false},
+		                                      LayoutElement{2, 0, 2, VT_FLOAT32, false}};
+		psoCreateInfo.GraphicsPipeline.InputLayout.LayoutElements = meshLayoutElements;
+		psoCreateInfo.GraphicsPipeline.InputLayout.NumElements = _countof(meshLayoutElements);
+
+		ShaderResourceVariableDesc variables[] = {
+		    {SHADER_TYPE_VERTEX, "Constants", SHADER_RESOURCE_VARIABLE_TYPE_STATIC},
+		    {SHADER_TYPE_PIXEL, "g_Texture", SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE}};
+		psoCreateInfo.PSODesc.ResourceLayout.Variables = variables;
+		psoCreateInfo.PSODesc.ResourceLayout.NumVariables = _countof(variables);
+
+		ShaderCreateInfo shaderCI{};
+		shaderCI.SourceLanguage = SHADER_SOURCE_LANGUAGE_HLSL;
+		shaderCI.Desc.UseCombinedTextureSamplers = true;
+
+		RefCntAutoPtr<IShader> vertexShader;
+		RefCntAutoPtr<IShader> pixelShader;
+
+		shaderCI.Desc.ShaderType = SHADER_TYPE_VERTEX;
+		shaderCI.Desc.Name = shaderProgram.vertexPath.c_str();
+		shaderCI.Source = shaderProgram.vertexSource.c_str();
+		m_pDevice->CreateShader(shaderCI, &vertexShader);
+
+		shaderCI.Desc.ShaderType = SHADER_TYPE_PIXEL;
+		shaderCI.Desc.Name = shaderProgram.pixelPath.c_str();
+		shaderCI.Source = shaderProgram.pixelSource.c_str();
+		m_pDevice->CreateShader(shaderCI, &pixelShader);
+
+		if (!vertexShader || !pixelShader)
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create shader program '{}', '{}'",
+			               shaderProgram.vertexPath, shaderProgram.pixelPath);
+			return {};
+		}
+
+		psoCreateInfo.pVS = vertexShader;
+		psoCreateInfo.pPS = pixelShader;
+
+		UploadedShaderProgram uploadedShader{};
+
+		const auto createPipelineStateWithSampler =
+		    [this, &psoCreateInfo, &uploadedShader](TextureFilterMode filterMode,
+		                                           RefCntAutoPtr<IPipelineState>& pipelineState)
+		{
+			GraphicsPipelineStateCreateInfo samplerPsoCreateInfo = psoCreateInfo;
+			SamplerDesc samplerDesc{};
+			const FILTER_TYPE filterType =
+			    filterMode == TextureFilterMode::Nearest ? FILTER_TYPE_POINT : FILTER_TYPE_LINEAR;
+			samplerDesc.MinFilter = filterType;
+			samplerDesc.MagFilter = filterType;
+			samplerDesc.MipFilter = filterType;
+			samplerDesc.AddressU = TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressV = TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressW = TEXTURE_ADDRESS_WRAP;
+
+			ImmutableSamplerDesc immutableSamplers[] = {{SHADER_TYPE_PIXEL, "g_Texture", samplerDesc}};
+			samplerPsoCreateInfo.PSODesc.ResourceLayout.ImmutableSamplers = immutableSamplers;
+			samplerPsoCreateInfo.PSODesc.ResourceLayout.NumImmutableSamplers = _countof(immutableSamplers);
+
+			m_pDevice->CreateGraphicsPipelineState(samplerPsoCreateInfo, &pipelineState);
+			if (!pipelineState) return false;
+
+			if (m_pMeshConstantBuffer)
+			{
+				auto* constantsVariable = pipelineState->GetStaticVariableByName(SHADER_TYPE_VERTEX, "Constants");
+				if (constantsVariable != nullptr) constantsVariable->Set(m_pMeshConstantBuffer);
+			}
+
+			return true;
+		};
+
+		if (!createPipelineStateWithSampler(TextureFilterMode::Linear, uploadedShader.linearPipelineState) ||
+		    !createPipelineStateWithSampler(TextureFilterMode::Nearest, uploadedShader.nearestPipelineState))
+		{
+			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create shader program pipelines");
+			return {};
+		}
+
+		const ShaderId shaderId{m_nextShaderId++};
+		m_uploadedShaderPrograms.emplace(shaderId.value, std::move(uploadedShader));
+		NENE_LOG_INFO("DiligentDX12Adapter: created shader program {}", shaderId.value);
+		return GPUShaderProgram{shaderId};
 	}
 
 	void DiligentDX12Adapter::BeginFrame()
@@ -193,7 +418,25 @@ namespace NeneEngine
 		{
 			if (const UploadedMeshBuffers* uploadedMesh = GetUploadedMesh(item.meshId); uploadedMesh != nullptr)
 			{
-				if (m_pMeshPSO == nullptr || m_pMeshConstantBuffer == nullptr)
+				UploadedShaderProgram* shaderProgram = GetUploadedShaderProgram(item.shaderId);
+				const UploadedTexture* uploadedTexture = GetUploadedTexture(item.textureId);
+				IPipelineState* meshPipelineState =
+				    shaderProgram != nullptr && uploadedTexture != nullptr
+				        ? GetShaderPipelineState(*shaderProgram, uploadedTexture->filterMode)
+				        : m_pMeshPSO.RawPtr();
+				IShaderResourceBinding* meshSRB =
+				    shaderProgram != nullptr ? GetShaderResourceBinding(*shaderProgram, item.textureId)
+				                             : m_pMeshSRB.RawPtr();
+				if (shaderProgram != nullptr && meshSRB == nullptr)
+				{
+					NENE_LOG_WARN("DiligentDX12Adapter: shader {} requires texture {}, falling back to default mesh "
+					              "pipeline for mesh {}",
+					              item.shaderId.value, item.textureId.value, item.meshId.value);
+					meshPipelineState = m_pMeshPSO.RawPtr();
+					meshSRB = m_pMeshSRB.RawPtr();
+				}
+
+				if (meshPipelineState == nullptr || m_pMeshConstantBuffer == nullptr)
 				{
 					NENE_LOG_WARN("DiligentDX12Adapter: mesh pipeline resources are missing for mesh {}",
 					              item.meshId.value);
@@ -216,22 +459,22 @@ namespace NeneEngine
 				IBuffer* vertexBuffers[] = {uploadedMesh->vertexBuffer.RawPtr()};
 				Uint64 offsets[] = {0};
 
-				m_pImmediateContext->SetPipelineState(m_pMeshPSO);
+				m_pImmediateContext->SetPipelineState(meshPipelineState);
 				m_pImmediateContext->SetVertexBuffers(0, 1, vertexBuffers, offsets,
 				                                      RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
 				                                      SET_VERTEX_BUFFERS_FLAG_RESET);
 				m_pImmediateContext->SetIndexBuffer(uploadedMesh->indexBuffer, 0,
 				                                    RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-				if (m_pMeshSRB != nullptr)
-					m_pImmediateContext->CommitShaderResources(m_pMeshSRB, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+				if (meshSRB != nullptr)
+					m_pImmediateContext->CommitShaderResources(meshSRB, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 
 				DrawIndexedAttribs drawIndexedAttrs{uploadedMesh->indexCount, VT_UINT32, DRAW_FLAG_VERIFY_ALL};
 				m_pImmediateContext->DrawIndexed(drawIndexedAttrs);
 
 				NENE_LOG_DEBUG("DiligentDX12Adapter: drew uploaded mesh={} material={} shader={} indices={} "
-				               "tint=({:.2f}, {:.2f}, {:.2f}, {:.2f})",
+				               "texture={} tint=({:.2f}, {:.2f}, {:.2f}, {:.2f})",
 				               item.meshId.value, item.materialId.value, item.shaderId.value, uploadedMesh->indexCount,
-				               item.tint.r, item.tint.g, item.tint.b, item.tint.a);
+				               item.textureId.value, item.tint.r, item.tint.g, item.tint.b, item.tint.a);
 			}
 			else
 			{
@@ -693,6 +936,56 @@ namespace NeneEngine
 
 		const auto it = m_uploadedMeshes.find(meshId.value);
 		return it != m_uploadedMeshes.end() ? &it->second : nullptr;
+	}
+
+	const DiligentDX12Adapter::UploadedTexture* DiligentDX12Adapter::GetUploadedTexture(TextureId textureId) const
+	{
+		if (!textureId.IsValid()) return nullptr;
+
+		const auto it = m_uploadedTextures.find(textureId.value);
+		return it != m_uploadedTextures.end() ? &it->second : nullptr;
+	}
+
+	DiligentDX12Adapter::UploadedShaderProgram* DiligentDX12Adapter::GetUploadedShaderProgram(ShaderId shaderId)
+	{
+		if (!shaderId.IsValid()) return nullptr;
+
+		const auto it = m_uploadedShaderPrograms.find(shaderId.value);
+		return it != m_uploadedShaderPrograms.end() ? &it->second : nullptr;
+	}
+
+	IPipelineState* DiligentDX12Adapter::GetShaderPipelineState(UploadedShaderProgram& shaderProgram,
+	                                                            TextureFilterMode filterMode) const
+	{
+		return filterMode == TextureFilterMode::Nearest ? shaderProgram.nearestPipelineState.RawPtr()
+		                                                : shaderProgram.linearPipelineState.RawPtr();
+	}
+
+	IShaderResourceBinding* DiligentDX12Adapter::GetShaderResourceBinding(UploadedShaderProgram& shaderProgram,
+	                                                                      TextureId textureId)
+	{
+		if (!textureId.IsValid()) return nullptr;
+
+		if (const auto cached = shaderProgram.srbsByTexture.find(textureId.value);
+		    cached != shaderProgram.srbsByTexture.end())
+			return cached->second.RawPtr();
+
+		const UploadedTexture* texture = GetUploadedTexture(textureId);
+		if (texture == nullptr || texture->shaderResourceView == nullptr) return nullptr;
+
+		IPipelineState* pipelineState = GetShaderPipelineState(shaderProgram, texture->filterMode);
+		if (pipelineState == nullptr) return nullptr;
+
+		RefCntAutoPtr<IShaderResourceBinding> srb;
+		pipelineState->CreateShaderResourceBinding(&srb, true);
+		if (srb == nullptr) return nullptr;
+
+		if (auto* textureVariable = srb->GetVariableByName(SHADER_TYPE_PIXEL, "g_Texture");
+		    textureVariable != nullptr)
+			textureVariable->Set(texture->shaderResourceView);
+
+		auto [inserted, _] = shaderProgram.srbsByTexture.emplace(textureId.value, srb);
+		return inserted->second.RawPtr();
 	}
 
 	uint32_t DiligentDX12Adapter::GetVertexCount(PrimitiveType primitiveType) const

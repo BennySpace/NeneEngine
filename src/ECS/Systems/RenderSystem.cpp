@@ -119,13 +119,15 @@ namespace NeneEngine::ECS
 			item.meshId = meshRenderer.meshId;
 			item.materialId = meshRenderer.material.materialId;
 			item.shaderId = meshRenderer.material.shaderId;
+			item.textureId = meshRenderer.material.textureId;
 			item.tint = meshRenderer.material.tint;
 
 			m_renderer->SubmitRenderItem(item);
 
-			NENE_LOG_DEBUG("RenderSystem: submitted entity {} | primitive={} | mesh={} | material={} | shader={}",
+			NENE_LOG_DEBUG("RenderSystem: submitted entity {} | primitive={} | mesh={} | material={} | shader={} | "
+			               "texture={}",
 			               static_cast<uint32_t>(entt::to_integral(entity)), static_cast<int>(item.primitiveType),
-			               item.meshId.value, item.materialId.value, item.shaderId.value);
+			               item.meshId.value, item.materialId.value, item.shaderId.value, item.textureId.value);
 		}
 	}
 

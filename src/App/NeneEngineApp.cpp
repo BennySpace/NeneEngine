@@ -254,7 +254,7 @@ namespace NeneEngine
 								TextureId textureId{};
 
 								const auto shaderPath =
-								    ResolveAssetPath(std::filesystem::path{"assets"} / "Shaders" /
+								    ResolveAssetPath(std::filesystem::path{"assets"} / "shaders" /
 								                     "textured_mesh.shader");
 								if (!shaderPath.empty())
 								{

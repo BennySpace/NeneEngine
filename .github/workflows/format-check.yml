@@ -21,6 +21,9 @@ on:
       - ".github/workflows/format-check.yml"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   clang-format:
     runs-on: ubuntu-latest
@@ -36,7 +39,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang-format
 
-      - name: Check formatting of changed files
+      - name: Collect changed files
+        id: changed-files
         shell: bash
         run: |
           set -euo pipefail
@@ -54,9 +58,61 @@ jobs:
           mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.h' '*.hpp' '*.cpp' '*.cxx' '*.cc' | grep -Ev '^(external|out)/' || true)
 
           if [[ ${#files[@]} -eq 0 ]]; then
-            echo "No changed C/C++ source files to format-check."
+            echo "has_files=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          echo "has_files=true" >> "$GITHUB_OUTPUT"
+          printf 'Found changed files:\n'
+          printf ' - %s\n' "${files[@]}"
+          {
+            echo 'files<<EOF'
+            printf '%s\n' "${files[@]}"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Auto-format changed files on push
+        if: steps.changed-files.outputs.has_files == 'true' && github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t files <<'EOF'
+          ${{ steps.changed-files.outputs.files }}
+          EOF
+
+          printf 'Formatting files:\n'
+          printf ' - %s\n' "${files[@]}"
+
+          clang-format -i --style=file "${files[@]}"
+
+      - name: Commit formatting changes
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet; then
+            echo "No formatting changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          git commit -m "style: apply clang-format"
+          git push
+
+      - name: Check formatting of changed files
+        if: steps.changed-files.outputs.has_files == 'true' && github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t files <<'EOF'
+          ${{ steps.changed-files.outputs.files }}
+          EOF
 
           printf 'Checking formatting for:\n'
           printf ' - %s\n' "${files[@]}"

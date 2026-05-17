@@ -81,6 +81,14 @@ INCLUDED COMPONENTS
    Local license file:
    out/build/x64-debug/vcpkg_installed/x64-windows/share/nlohmann-json/copyright
 
+9. Momosuzu Nene 3D model
+   Purpose:
+   Demo mesh asset used by the sample application
+   License:
+   Creative Commons Attribution 4.0 International (CC BY 4.0)
+   Local license file:
+   assets/models/momosuzu_nene_posed/LICENSE.txt
+
 
 NOTES
 =====
@@ -93,6 +101,10 @@ NOTES
 
 - spdlog notes a dependency on fmt. In the current build, fmt is present as a
   transitive dependency in the vcpkg_installed tree.
+
+- The bundled Momosuzu Nene model is sourced from Sketchfab and requires
+  attribution under CC BY 4.0. The local asset license file also records the
+  original source URL and author name.
 
 - The vcpkg_installed paths above are build-tree paths for the current
   workspace. If the build directory is regenerated elsewhere, the referenced

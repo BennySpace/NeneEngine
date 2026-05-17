@@ -1,0 +1,12 @@
+Asset: Momosuzu Nene
+Local path: assets/models/momosuzu_nene_posed
+
+Source:
+https://sketchfab.com/3d-models/momosuzu-nene-4e05b1f2fb704a9586756f48e2f539e7
+
+Author:
+kingBobston
+
+License:
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/

@@ -37,6 +37,7 @@ namespace NeneEngine
 		const InputDevice* GetFocusedInput() const;
 
 	  private:
+		// Each OS window owns its rendering path and camera binding; the ECS world is shared.
 		struct WindowContext
 		{
 			eastl::unique_ptr<IWindow> window;

@@ -330,6 +330,7 @@ namespace NeneEngine
 		    [this, &psoCreateInfo, &uploadedShader](TextureFilterMode filterMode,
 		                                           RefCntAutoPtr<IPipelineState>& pipelineState)
 		{
+			// Immutable samplers require separate PSOs for nearest and linear texture filtering.
 			GraphicsPipelineStateCreateInfo samplerPsoCreateInfo = psoCreateInfo;
 			SamplerDesc samplerDesc{};
 			const FILTER_TYPE filterType =
@@ -397,6 +398,7 @@ namespace NeneEngine
 
 	void DiligentDX12Adapter::SubmitRenderItem(const RenderItem& item)
 	{
+		// Queueing keeps ECS submission separate from the backend draw execution in EndFrame().
 		m_renderQueue.push_back(item);
 	}
 
@@ -478,6 +480,7 @@ namespace NeneEngine
 			}
 			else
 			{
+				// Built-in primitives are generated in the shader from SV_VertexID and need no vertex buffer.
 				const size_t primitiveIndex = static_cast<size_t>(item.primitiveType);
 				auto* pipelineState = GetPipelineState(item.primitiveType);
 				auto* constantBuffer = m_pPrimitiveConstantBuffers[primitiveIndex].RawPtr();
@@ -546,7 +549,7 @@ namespace NeneEngine
 		              m_clearColor.g, m_clearColor.b, m_clearColor.a);
 	}
 
-	// Create all resources for app
+	// Create built-in primitive pipelines plus the fallback mesh pipeline.
 	void DiligentDX12Adapter::CreateResources()
 	{
 		const auto createPipelineState =
@@ -976,6 +979,7 @@ namespace NeneEngine
 		IPipelineState* pipelineState = GetShaderPipelineState(shaderProgram, texture->filterMode);
 		if (pipelineState == nullptr) return nullptr;
 
+		// SRBs are cached per texture because the mutable texture binding differs for each material.
 		RefCntAutoPtr<IShaderResourceBinding> srb;
 		pipelineState->CreateShaderResourceBinding(&srb, true);
 		if (srb == nullptr) return nullptr;

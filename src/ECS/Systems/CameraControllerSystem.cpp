@@ -35,6 +35,7 @@ namespace NeneEngine::ECS
 
 			if (canRotate && glm::dot(mouseDelta, mouseDelta) > 0.0f)
 			{
+				// Store yaw/pitch explicitly to avoid extracting Euler angles from the camera quaternion every frame.
 				controller.yawRadians -= mouseDelta.x * controller.lookSensitivity;
 				controller.pitchRadians -= mouseDelta.y * controller.lookSensitivity;
 				controller.pitchRadians =

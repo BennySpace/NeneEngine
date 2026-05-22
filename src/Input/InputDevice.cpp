@@ -9,6 +9,7 @@ namespace NeneEngine
 	{
 		const bool wasDown = IsKeyDown(key);
 		m_pressedKeys.insert(key);
+		// IsKeyPressed is edge-triggered; held keys remain only in m_pressedKeys.
 		if (!wasDown) m_pressedThisFrame.insert(key);
 
 		KeyDown.Broadcast(KeyEvent{key, wasDown});
@@ -45,6 +46,7 @@ namespace NeneEngine
 
 	void InputDevice::EndFrame()
 	{
+		// Transient input state is valid for exactly one application frame.
 		m_pressedThisFrame.clear();
 		m_mouseDelta = {0.0f, 0.0f};
 		m_mouseWheelDelta = 0.0f;

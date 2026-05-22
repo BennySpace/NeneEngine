@@ -38,6 +38,7 @@ namespace NeneEngine
 			throw std::runtime_error("Shader program file does not exist: " + path);
 
 		const nlohmann::json description = nlohmann::json::parse(ReadTextFile(programPath));
+		// Shader descriptors are portable: source paths are resolved next to the .shader file.
 		const std::filesystem::path vertexPath = ResolveRelativeTo(programPath, description.at("vertex").get<std::string>());
 		const std::filesystem::path pixelPath = ResolveRelativeTo(programPath, description.at("pixel").get<std::string>());
 

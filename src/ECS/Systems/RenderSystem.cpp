@@ -24,6 +24,7 @@ namespace NeneEngine::ECS
 		glm::mat4 ComputeWorldMatrix(World& world, Entity entity, std::unordered_map<uint32_t, glm::mat4>& cache,
 		                             std::unordered_set<uint32_t>& recursionStack)
 		{
+			// Hierarchy traversal is cached per render pass and guarded against accidental parent cycles.
 			const uint32_t entityId = ToEntityId(entity);
 			if (const auto cached = cache.find(entityId); cached != cache.end()) return cached->second;
 
@@ -92,6 +93,7 @@ namespace NeneEngine::ECS
 
 		const glm::mat4 cameraWorldMatrix =
 		    ComputeWorldMatrix(world, activeCameraEntity, worldMatrixCache, recursionStack);
+		// Camera transform is stored as a regular world matrix; the view matrix is its inverse.
 		const glm::mat4 viewMatrix = glm::inverse(cameraWorldMatrix);
 		const glm::mat4 projectionMatrix =
 		    glm::perspective(glm::radians(activeCamera->fovDegrees), activeCamera->aspectRatio, activeCamera->nearPlane,

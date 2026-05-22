@@ -138,6 +138,7 @@ namespace NeneEngine
 			{
 				if (listener.handle == handle)
 				{
+					// Removal can be requested from inside a callback, so compaction is deferred until broadcast ends.
 					listener.pendingRemove = true;
 					if (!IsBroadcasting()) Compact();
 					return true;
@@ -177,6 +178,7 @@ namespace NeneEngine
 			++m_broadcastDepth;
 			const size_t listenerCount = m_listeners.size();
 
+			// New listeners added during broadcast are handled by the next broadcast, keeping iteration stable.
 			for (size_t index = 0; index < listenerCount; ++index)
 			{
 				auto& listener = m_listeners[index];

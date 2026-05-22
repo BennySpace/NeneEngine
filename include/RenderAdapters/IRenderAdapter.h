@@ -20,6 +20,7 @@ namespace NeneEngine
 		virtual bool Init(HWND hwnd, uint32_t width, uint32_t height) = 0;
 		virtual void Shutdown() = 0;
 
+		// Returned ids are backend-local GPU handles, not serialized asset identifiers.
 		virtual GPUBuffer CreateVertexBuffer(const void* vertexData, uint64_t sizeBytes, uint32_t vertexCount) = 0;
 		virtual GPUBuffer CreateIndexBuffer(const uint32_t* indices, uint32_t indexCount) = 0;
 		virtual GPUMesh UploadMesh(const MeshData& meshData) = 0;

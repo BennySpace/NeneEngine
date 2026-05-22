@@ -17,6 +17,7 @@ namespace NeneEngine::ECS
 
 		glm::mat4 GetModelMatrix() const
 		{
+			// Local transforms use T * R * S so scale is applied in local space before rotation and translation.
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, position);
 			model = model * glm::mat4_cast(rotation);

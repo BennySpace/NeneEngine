@@ -50,6 +50,7 @@ namespace NeneEngine::ECS
 
 			if (m_input.IsKeyPressed(KeyCode::MouseRight)) control.targetRotationRadians += control.rotationStepRadians;
 
+			// Clicks update intent; smoothing makes the visible transform interpolate toward that target.
 			const float scaleAlpha = std::clamp(control.scaleSmoothing * deltaTime, 0.0f, 1.0f);
 			transform.scale = glm::mix(transform.scale, control.targetScale, scaleAlpha);
 

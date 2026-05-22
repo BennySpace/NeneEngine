@@ -32,6 +32,7 @@ namespace NeneEngine
 
 		std::filesystem::path ResolveFrom(const std::filesystem::path& start, const std::filesystem::path& relativePath)
 		{
+			// The app may run from the repo root or a build folder, so asset lookup walks upward from both anchors.
 			std::error_code errorCode;
 			auto current = start;
 			while (!current.empty())
@@ -234,6 +235,7 @@ namespace NeneEngine
 
 			if (!m_windows.empty() && m_windows.front().renderer)
 			{
+				// Demo resource upload lives here until scene files carry persistent asset references.
 				const auto meshPath =
 				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "momosuzu_nene_posed" /
 				                     "momosuzu_nene_posed.obj");
@@ -293,18 +295,6 @@ namespace NeneEngine
 								if (textureId.IsValid()) modelRenderer.material.textureId = textureId;
 								if (shaderId.IsValid() && textureId.IsValid()) modelRenderer.material.shaderId = shaderId;
 								modelRenderer.material.tint = {1.0f, 1.0f, 1.0f, 1.0f};
-
-								auto oldPrimitiveView =
-								    m_world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
-								for (auto entity : oldPrimitiveView)
-								{
-									auto& tag = oldPrimitiveView.get<ECS::TagComponent>(entity);
-									if (tag.name != "SceneTriangle") continue;
-
-									auto& meshRenderer = oldPrimitiveView.get<ECS::MeshRendererComponent>(entity);
-									meshRenderer.visible = false;
-									break;
-								}
 
 								NENE_LOG_INFO("Assigned uploaded meshId={} to standalone entity 'LoadedObjModel'",
 								              gpuMesh.meshId.value);
@@ -587,6 +577,7 @@ namespace NeneEngine
 					if (!windowContext.window || windowContext.window->ShouldClose()) continue;
 					if (!windowContext.renderer || !windowContext.renderSystem) continue;
 
+					// Render systems are per-window so the same world can be drawn from different cameras.
 					windowContext.renderer->BeginFrame();
 					windowContext.renderSystem->Render(m_world);
 					windowContext.renderer->EndFrame();

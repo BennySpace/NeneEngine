@@ -87,6 +87,7 @@ namespace NeneEngine
 
 		ECS::Entity FromEntityId(uint32_t entityId)
 		{
+			// Entity ids are restored only within one serialized scene snapshot.
 			return static_cast<ECS::Entity>(entityId);
 		}
 
@@ -304,6 +305,7 @@ namespace NeneEngine
 	void SceneSerializer::Deserialize(const nlohmann::json& sceneJson, ECS::World& world)
 	{
 		const int version = sceneJson.at("version").get<int>();
+		// Keep loading strict so scene migrations are explicit instead of silently dropping component data.
 		if (version != CurrentVersion)
 			throw std::runtime_error("Unsupported scene version: " + std::to_string(version));
 

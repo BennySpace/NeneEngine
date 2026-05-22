@@ -66,6 +66,7 @@ namespace NeneEngine
 
 	void GameStateMachine::Update(float deltaTime)
 	{
+		// Overlay states can keep lower states ticking by returning true from IsPausing().
 		for (int i = static_cast<int>(m_states.size()) - 1; i >= 0; --i)
 		{
 			auto& state = m_states[static_cast<size_t>(i)];

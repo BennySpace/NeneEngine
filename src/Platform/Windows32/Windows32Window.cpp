@@ -116,6 +116,7 @@ namespace NeneEngine
 		{
 			const auto* createStruct = reinterpret_cast<CREATESTRUCTW*>(lParam);
 			auto* window = static_cast<Windows32Window*>(createStruct->lpCreateParams);
+			// Store the instance pointer so the static Win32 callback can forward messages to this object.
 			SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
 			window->m_hwnd = hwnd;
 		}
@@ -198,6 +199,7 @@ namespace NeneEngine
 
 		case WM_KEYDOWN:
 		case WM_SYSKEYDOWN:
+			// Bit 30 marks autorepeat; filtering it keeps IsKeyPressed edge-based.
 			if ((lParam & (1LL << 30)) == 0) m_input.NotifyKeyDown(TranslateKey(wParam, lParam));
 			return 0;
 

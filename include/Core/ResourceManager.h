@@ -96,6 +96,7 @@ namespace NeneEngine
 		}
 
 		std::mutex m_mutex;
+		// Type-erased registries keep the public API templated while storing one typed loader/cache per resource type.
 		std::unordered_map<std::type_index, std::any> m_loaders;
 		std::unordered_map<std::type_index, std::any> m_resourceCaches;
 	};

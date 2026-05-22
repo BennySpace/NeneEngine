@@ -87,15 +87,8 @@ namespace NeneEngine
 		if (!std::filesystem::exists(path)) throw std::runtime_error("Mesh file does not exist: " + path);
 
 		Assimp::Importer importer;
-<<<<<<< Updated upstream
 		// PreTransformVertices bakes Assimp node transforms into vertices for the current single-mesh draw path.
-		const aiScene* scene = importer.ReadFile(
-		    path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices |
-		              aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure |
-		              aiProcess_FlipUVs);
-=======
 		const aiScene* scene = importer.ReadFile(path, kMeshImportFlags);
->>>>>>> Stashed changes
 
 		if (scene == nullptr || scene->mRootNode == nullptr)
 			throw std::runtime_error("Assimp failed to load mesh '" + path + "': " + importer.GetErrorString());

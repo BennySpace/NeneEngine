@@ -40,16 +40,11 @@ namespace NeneEngine
 		if (!std::filesystem::exists(path)) throw std::runtime_error("Texture file does not exist: " + path);
 
 		const std::filesystem::path texturePath{path};
-<<<<<<< Updated upstream
 		// The loader keeps CPU metadata only; backend adapters perform the actual GPU upload.
-		const std::filesystem::path metadataPath = texturePath.parent_path() / (texturePath.stem().string() + ".texture.json");
-		return TextureResource{path, true, ReadFilterMode(metadataPath)};
-=======
 		const std::filesystem::path metadataPath =
 		    texturePath.parent_path() / (texturePath.stem().string() + ".texture.json");
 		const nlohmann::json metadata = ReadMetadata(metadataPath);
 		return TextureResource{path, true, ReadFilterMode(metadata), ReadAddressMode(metadata)};
->>>>>>> Stashed changes
 	}
 
 } // namespace NeneEngine

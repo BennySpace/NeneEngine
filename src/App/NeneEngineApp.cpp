@@ -206,86 +206,8 @@ namespace NeneEngine
 
 			if (!m_windows.empty() && m_windows.front().renderer)
 			{
-<<<<<<< Updated upstream
-				// Demo resource upload lives here until scene files carry persistent asset references.
-				const auto meshPath =
-				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "momosuzu_nene_posed" /
-				                     "momosuzu_nene_posed.obj");
-				if (!meshPath.empty())
-				{
-					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string());
-					    meshResource != nullptr)
-					{
-						Mesh& mesh = meshResource->GetData();
-						if (!mesh.gpuMesh.has_value() || !mesh.gpuMesh->IsValid())
-						{
-							const GPUMesh gpuMesh = m_windows.front().renderer->UploadMesh(mesh.data);
-							if (gpuMesh.IsValid())
-							{
-								mesh.gpuMesh = gpuMesh;
-
-								ShaderId shaderId{};
-								TextureId textureId{};
-
-								const auto shaderPath =
-								    ResolveAssetPath(std::filesystem::path{"assets"} / "shaders" /
-								                     "textured_mesh.shader");
-								if (!shaderPath.empty())
-								{
-									if (auto shaderResource =
-									        ResourceManager::GetInstance().Load<ShaderProgramResource>(
-									            shaderPath.string());
-									    shaderResource != nullptr)
-									{
-										const GPUShaderProgram gpuShader =
-										    m_windows.front().renderer->CreateShaderProgram(shaderResource->GetData());
-										if (gpuShader.IsValid()) shaderId = gpuShader.shaderId;
-									}
-								}
-
-								auto texturePath = FindDiffuseTextureFromObjMaterial(meshPath);
-								if (!texturePath.empty() && !std::filesystem::exists(texturePath)) texturePath.clear();
-								if (!texturePath.empty())
-								{
-									if (auto textureResource =
-									        ResourceManager::GetInstance().Load<TextureResource>(texturePath.string());
-									    textureResource != nullptr)
-									{
-										const GPUTexture gpuTexture =
-										    m_windows.front().renderer->CreateTexture2D(textureResource->GetData());
-										if (gpuTexture.IsValid()) textureId = gpuTexture.textureId;
-									}
-								}
-
-								const ECS::Entity modelEntity = m_world.CreateEntity("LoadedObjModel");
-								auto& modelTransform = m_world.AddComponent<ECS::TransformComponent>(modelEntity);
-								modelTransform.position = {-1.2f, -1.4f, 0.0f};
-								modelTransform.scale = {1.4f, 1.4f, 1.4f};
-
-								auto& modelRenderer = m_world.AddComponent<ECS::MeshRendererComponent>(modelEntity);
-								modelRenderer.meshId = gpuMesh.meshId;
-								if (textureId.IsValid()) modelRenderer.material.textureId = textureId;
-								if (shaderId.IsValid() && textureId.IsValid()) modelRenderer.material.shaderId = shaderId;
-								modelRenderer.material.tint = {1.0f, 1.0f, 1.0f, 1.0f};
-
-								NENE_LOG_INFO("Assigned uploaded meshId={} to standalone entity 'LoadedObjModel'",
-								              gpuMesh.meshId.value);
-
-								NENE_LOG_INFO(
-								    "Uploaded mesh resource '{}' to GPU as meshId={} (vertices={}, indices={})",
-								    meshResource->GetPath(), gpuMesh.meshId.value, gpuMesh.vertexCount,
-								    gpuMesh.indexCount);
-							}
-						}
-					}
-				}
-				else
-				{
-					NENE_LOG_WARN("OBJ model 'assets/models/momosuzu_nene_posed/momosuzu_nene_posed.obj' was not "
-					              "found");
-				}
-=======
 				IRenderAdapter& renderer = *m_windows.front().renderer;
+				// Demo resource spawn still happens at startup until scene files own persistent asset references.
 				const auto shaderPath =
 				    ResolveAssetPath(std::filesystem::path{"assets"} / "shaders" / "textured_mesh.shader");
 				const ShaderId shaderId = CreateTexturedMeshShader(renderer, shaderPath);
@@ -293,7 +215,6 @@ namespace NeneEngine
 				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "spawn_manifest.json");
 				const ModelSpawnResult spawnResult = SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
 				if (spawnResult.hideSceneTriangle) HideSceneTriangle(m_world);
->>>>>>> Stashed changes
 			}
 
 			ApplyAppConfig(appConfig);

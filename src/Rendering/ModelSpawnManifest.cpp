@@ -29,8 +29,6 @@ namespace NeneEngine
 			nlohmann::json root;
 			input >> root;
 
-			config.hideSceneTriangle = root.value("hideSceneTriangle", true);
-
 			const auto modelsIt = root.find("models");
 			if (modelsIt != root.end() && modelsIt->is_array())
 			{

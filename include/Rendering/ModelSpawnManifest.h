@@ -17,7 +17,6 @@ namespace NeneEngine
 
 	struct ModelSpawnManifestConfig
 	{
-		bool hideSceneTriangle = true;
 		std::vector<ModelSpawnEntryConfig> models;
 	};
 

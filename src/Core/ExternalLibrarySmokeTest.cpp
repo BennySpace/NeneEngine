@@ -56,7 +56,8 @@ namespace NeneEngine
 
 		void RunAssimpSmokeTest()
 		{
-			const auto modelPath = ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "test_triangle.obj");
+			const auto modelPath = ResolveAssetPath(std::filesystem::path{"assets"} / "models" /
+			                                       "momosuzu_nene_posed" / "momosuzu_nene_posed.obj");
 			if (modelPath.empty())
 			{
 				NENE_LOG_ERROR("Assimp smoke test: model file was not found");
@@ -85,7 +86,7 @@ namespace NeneEngine
 
 		void RunStbImageSmokeTest()
 		{
-			const auto texturePath = ResolveAssetPath(std::filesystem::path{"assets"} / "readme" / "banner.jpg");
+			const auto texturePath = ResolveAssetPath(std::filesystem::path{"assets"} / "readme" / "banner.png");
 			if (texturePath.empty())
 			{
 				NENE_LOG_ERROR("stb_image smoke test: texture file was not found");

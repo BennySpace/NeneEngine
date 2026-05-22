@@ -18,6 +18,24 @@ namespace NeneEngine
 {
 	namespace
 	{
+		std::filesystem::path ResolveFromAncestors(const std::filesystem::path& start,
+		                                           const std::filesystem::path& relativePath)
+		{
+			std::error_code errorCode;
+			auto current = start;
+			while (!current.empty())
+			{
+				const auto candidate = current / relativePath;
+				if (std::filesystem::exists(candidate, errorCode)) return candidate;
+
+				const auto parent = current.parent_path();
+				if (parent == current) break;
+				current = parent;
+			}
+
+			return {};
+		}
+
 		std::filesystem::path FindDiffuseTextureFromObjMaterial(const std::filesystem::path& objPath)
 		{
 			std::ifstream objFile(objPath);
@@ -103,8 +121,15 @@ namespace NeneEngine
 			const std::filesystem::path manifestDirectory = manifestPath.parent_path();
 			const std::filesystem::path relativeToManifest = manifestDirectory / path;
 			if (std::filesystem::exists(relativeToManifest)) return relativeToManifest;
-			return std::filesystem::exists(path) ? path : std::filesystem::path{};
+			if (std::filesystem::exists(path)) return path;
+
+			if (const auto resolvedFromCurrent = ResolveFromAncestors(std::filesystem::current_path(), path);
+			    !resolvedFromCurrent.empty())
+				return resolvedFromCurrent;
+
+			return ResolveFromAncestors(manifestDirectory, path);
 		}
+
 	} // namespace
 
 	ShaderId CreateTexturedMeshShader(IRenderAdapter& renderer, const std::filesystem::path& shaderPath)
@@ -118,12 +143,10 @@ namespace NeneEngine
 		return gpuShader.shaderId;
 	}
 
-	ModelSpawnResult SpawnModelsFromManifest(ECS::World& world, IRenderAdapter& renderer, ShaderId shaderId,
-	                                         const std::filesystem::path& manifestPath)
+	void SpawnModelsFromManifest(ECS::World& world, IRenderAdapter& renderer, ShaderId shaderId,
+	                             const std::filesystem::path& manifestPath)
 	{
-		ModelSpawnResult result{};
 		const ModelSpawnManifestConfig manifest = LoadModelSpawnManifest(manifestPath);
-		result.hideSceneTriangle = manifest.hideSceneTriangle;
 
 		for (const auto& modelEntry : manifest.models)
 		{
@@ -196,12 +219,10 @@ namespace NeneEngine
 				                          rotationOffsetDegrees, visible);
 
 				NENE_LOG_INFO("Uploaded mesh part '{}' for '{}' as meshId={} (vertices={}, indices={}, texture='{}')",
-				              meshPart.name, modelEntry.entityName, gpuMesh.meshId.value, gpuMesh.vertexCount,
-				              gpuMesh.indexCount, texturePath.string());
+			              meshPart.name, modelEntry.entityName, gpuMesh.meshId.value, gpuMesh.vertexCount,
+			              gpuMesh.indexCount, texturePath.string());
 			}
 		}
-
-		return result;
 	}
 
 } // namespace NeneEngine

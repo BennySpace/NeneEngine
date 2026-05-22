@@ -9,12 +9,32 @@
 #include "ECS/Components/MovementComponent.h"
 #include "ECS/Components/PrimitiveControlComponent.h"
 #include "ECS/Components/TransformComponent.h"
+#include "Scene/SceneConfig.h"
 #include "Scene/SceneSerializer.h"
 
 namespace NeneEngine::TestScene
 {
 	namespace
 	{
+		std::filesystem::path ResolveFromAncestors(const std::filesystem::path& start,
+		                                           const std::filesystem::path& relativePath,
+		                                           bool allowMissingLeaf = false)
+		{
+			std::error_code errorCode;
+			auto current = start;
+			while (!current.empty())
+			{
+				const auto candidate = current / relativePath;
+				if (std::filesystem::exists(candidate, errorCode)) return candidate;
+				if (allowMissingLeaf && std::filesystem::exists(candidate.parent_path(), errorCode)) return candidate;
+
+				const auto parent = current.parent_path();
+				if (parent == current) break;
+				current = parent;
+			}
+
+			return {};
+		}
 
 		ECS::Entity CreatePrimitiveEntity(ECS::World& world, std::string_view name, PrimitiveType primitiveType,
 		                                  const glm::vec3& position, const glm::vec3& scale, const glm::vec4& tint,
@@ -40,6 +60,11 @@ namespace NeneEngine::TestScene
 	std::filesystem::path DefaultScenePath()
 	{
 		return std::filesystem::path{"assets"} / "scenes" / "test_scene.json";
+	}
+
+	std::filesystem::path DefaultSceneConfigPath()
+	{
+		return std::filesystem::path{"assets"} / "scenes" / "test_scene.config.json";
 	}
 
 	void Create(ECS::World& world, uint32_t width, uint32_t height)
@@ -93,20 +118,35 @@ namespace NeneEngine::TestScene
 		cubeHierarchy.parent = movingQuad;
 	}
 
-	void LoadOrCreate(ECS::World& world, uint32_t width, uint32_t height, const std::filesystem::path& scenePath)
+	void LoadOrCreate(ECS::World& world, uint32_t width, uint32_t height, const std::filesystem::path& scenePath,
+	                  const std::filesystem::path& sceneConfigPath)
 	{
-		if (std::filesystem::exists(scenePath))
+		const std::filesystem::path resolvedScenePath =
+		    scenePath.is_absolute() ? scenePath
+		                            : ResolveFromAncestors(std::filesystem::current_path(), scenePath, true);
+		const std::filesystem::path resolvedSceneConfigPath =
+		    sceneConfigPath.is_absolute() ? sceneConfigPath
+		                                  : ResolveFromAncestors(std::filesystem::current_path(), sceneConfigPath);
+
+		const std::filesystem::path effectiveScenePath = resolvedScenePath.empty() ? scenePath : resolvedScenePath;
+		const std::filesystem::path effectiveSceneConfigPath =
+		    resolvedSceneConfigPath.empty() ? sceneConfigPath : resolvedSceneConfigPath;
+
+		if (std::filesystem::exists(effectiveScenePath))
 		{
-			SceneSerializer::LoadFromFile(scenePath, world);
-			return;
+			SceneSerializer::LoadFromFile(effectiveScenePath, world);
+		}
+		else
+		{
+			Create(world, width, height);
+
+			const std::filesystem::path parentPath = effectiveScenePath.parent_path();
+			if (!parentPath.empty()) std::filesystem::create_directories(parentPath);
+
+			SceneSerializer::SaveToFile(world, effectiveScenePath);
 		}
 
-		Create(world, width, height);
-
-		const std::filesystem::path parentPath = scenePath.parent_path();
-		if (!parentPath.empty()) std::filesystem::create_directories(parentPath);
-
-		SceneSerializer::SaveToFile(world, scenePath);
+		ApplySceneConfig(world, LoadSceneConfig(effectiveSceneConfigPath));
 	}
 
 } // namespace NeneEngine::TestScene

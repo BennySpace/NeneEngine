@@ -7,8 +7,6 @@
 #include "Core/ResourceManager.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
-#include "ECS/Components/MeshRendererComponent.h"
-#include "ECS/Components/TagComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Systems/CameraControllerSystem.h"
 #include "ECS/Systems/MovementSystem.h"
@@ -85,19 +83,6 @@ namespace NeneEngine
 			return {};
 		}
 
-		void HideSceneTriangle(ECS::World& world)
-		{
-			auto primitiveView = world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
-			for (auto entity : primitiveView)
-			{
-				auto& tag = primitiveView.get<ECS::TagComponent>(entity);
-				if (tag.name != "SceneTriangle") continue;
-
-				auto& meshRenderer = primitiveView.get<ECS::MeshRendererComponent>(entity);
-				meshRenderer.visible = false;
-				return;
-			}
-		}
 	} // namespace
 
 	NeneEngineApp::NeneEngineApp() = default;
@@ -213,8 +198,7 @@ namespace NeneEngine
 				const ShaderId shaderId = CreateTexturedMeshShader(renderer, shaderPath);
 				const auto manifestPath =
 				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "spawn_manifest.json");
-				const ModelSpawnResult spawnResult = SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
-				if (spawnResult.hideSceneTriangle) HideSceneTriangle(m_world);
+				SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
 			}
 
 			ApplyAppConfig(appConfig);

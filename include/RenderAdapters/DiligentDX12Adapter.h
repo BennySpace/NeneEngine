@@ -74,14 +74,17 @@ namespace NeneEngine
 			Diligent::RefCntAutoPtr<Diligent::ITexture> texture;
 			Diligent::RefCntAutoPtr<Diligent::ITextureView> shaderResourceView;
 			TextureFilterMode filterMode = TextureFilterMode::Linear;
+			TextureAddressMode addressMode = TextureAddressMode::Wrap;
 			uint32_t width = 0;
 			uint32_t height = 0;
 		};
 
 		struct UploadedShaderProgram
 		{
-			Diligent::RefCntAutoPtr<Diligent::IPipelineState> linearPipelineState;
-			Diligent::RefCntAutoPtr<Diligent::IPipelineState> nearestPipelineState;
+			Diligent::RefCntAutoPtr<Diligent::IPipelineState> linearWrapPipelineState;
+			Diligent::RefCntAutoPtr<Diligent::IPipelineState> nearestWrapPipelineState;
+			Diligent::RefCntAutoPtr<Diligent::IPipelineState> linearClampPipelineState;
+			Diligent::RefCntAutoPtr<Diligent::IPipelineState> nearestClampPipelineState;
 			std::unordered_map<uint32_t, Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding>> srbsByTexture;
 		};
 
@@ -111,7 +114,8 @@ namespace NeneEngine
 		[[nodiscard]] const UploadedTexture* GetUploadedTexture(TextureId textureId) const;
 		[[nodiscard]] UploadedShaderProgram* GetUploadedShaderProgram(ShaderId shaderId);
 		[[nodiscard]] Diligent::IPipelineState* GetShaderPipelineState(UploadedShaderProgram& shaderProgram,
-		                                                               TextureFilterMode filterMode) const;
+		                                                               TextureFilterMode filterMode,
+		                                                               TextureAddressMode addressMode) const;
 		[[nodiscard]] uint32_t GetVertexCount(PrimitiveType primitiveType) const;
 		[[nodiscard]] Diligent::IShaderResourceBinding* GetShaderResourceBinding(UploadedShaderProgram& shaderProgram,
 		                                                                         TextureId textureId);

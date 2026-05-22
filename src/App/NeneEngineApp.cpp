@@ -15,14 +15,13 @@
 #include "ECS/Systems/PrimitiveControlSystem.h"
 #include "Platform/Windows32/Windows32Window.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
+#include "Rendering/ModelSpawner.h"
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
 
 #include <algorithm>
 #include <cctype>
-#include <fstream>
 #include <stdexcept>
-#include <sstream>
 
 namespace NeneEngine
 {
@@ -86,47 +85,18 @@ namespace NeneEngine
 			return {};
 		}
 
-		std::filesystem::path FindDiffuseTextureFromObjMaterial(const std::filesystem::path& objPath)
+		void HideSceneTriangle(ECS::World& world)
 		{
-			std::ifstream objFile(objPath);
-			if (!objFile) return {};
-
-			std::string line;
-			std::filesystem::path materialPath;
-			while (std::getline(objFile, line))
+			auto primitiveView = world.GetRegistry().view<ECS::TagComponent, ECS::MeshRendererComponent>();
+			for (auto entity : primitiveView)
 			{
-				std::istringstream stream(line);
-				std::string command;
-				stream >> command;
-				if (command != "mtllib") continue;
+				auto& tag = primitiveView.get<ECS::TagComponent>(entity);
+				if (tag.name != "SceneTriangle") continue;
 
-				std::string materialFile;
-				std::getline(stream >> std::ws, materialFile);
-				if (!materialFile.empty())
-				{
-					materialPath = objPath.parent_path() / materialFile;
-					break;
-				}
+				auto& meshRenderer = primitiveView.get<ECS::MeshRendererComponent>(entity);
+				meshRenderer.visible = false;
+				return;
 			}
-
-			if (materialPath.empty()) return {};
-
-			std::ifstream materialFile(materialPath);
-			if (!materialFile) return {};
-
-			while (std::getline(materialFile, line))
-			{
-				std::istringstream stream(line);
-				std::string command;
-				stream >> command;
-				if (command != "map_Kd") continue;
-
-				std::string textureFile;
-				std::getline(stream >> std::ws, textureFile);
-				if (!textureFile.empty()) return materialPath.parent_path() / textureFile;
-			}
-
-			return {};
 		}
 	} // namespace
 
@@ -155,7 +125,8 @@ namespace NeneEngine
 		try
 		{
 			// 1. Logger
-			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", false, spdlog::level::info, true);
+			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", false, spdlog::level::info,
+			                                       true);
 			NENE_LOG_INFO("===== NeneEngine v0.3 starting =====");
 			ResourceManager::GetInstance().RegisterDefaultLoaders();
 			RunExternalLibrarySmokeTests();
@@ -235,6 +206,7 @@ namespace NeneEngine
 
 			if (!m_windows.empty() && m_windows.front().renderer)
 			{
+<<<<<<< Updated upstream
 				// Demo resource upload lives here until scene files carry persistent asset references.
 				const auto meshPath =
 				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "momosuzu_nene_posed" /
@@ -312,6 +284,16 @@ namespace NeneEngine
 					NENE_LOG_WARN("OBJ model 'assets/models/momosuzu_nene_posed/momosuzu_nene_posed.obj' was not "
 					              "found");
 				}
+=======
+				IRenderAdapter& renderer = *m_windows.front().renderer;
+				const auto shaderPath =
+				    ResolveAssetPath(std::filesystem::path{"assets"} / "shaders" / "textured_mesh.shader");
+				const ShaderId shaderId = CreateTexturedMeshShader(renderer, shaderPath);
+				const auto manifestPath =
+				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "spawn_manifest.json");
+				const ModelSpawnResult spawnResult = SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
+				if (spawnResult.hideSceneTriangle) HideSceneTriangle(m_world);
+>>>>>>> Stashed changes
 			}
 
 			ApplyAppConfig(appConfig);

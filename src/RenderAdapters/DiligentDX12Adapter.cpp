@@ -242,6 +242,7 @@ namespace NeneEngine
 
 		const auto textureDesc = uploadedTexture.texture->GetDesc();
 		uploadedTexture.filterMode = texture.filterMode;
+		uploadedTexture.addressMode = texture.addressMode;
 		uploadedTexture.width = textureDesc.Width;
 		uploadedTexture.height = textureDesc.Height;
 		uploadedTexture.shaderResourceView = uploadedTexture.texture->GetDefaultView(TEXTURE_VIEW_SHADER_RESOURCE);
@@ -316,8 +317,8 @@ namespace NeneEngine
 
 		if (!vertexShader || !pixelShader)
 		{
-			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create shader program '{}', '{}'",
-			               shaderProgram.vertexPath, shaderProgram.pixelPath);
+			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create shader program '{}', '{}'", shaderProgram.vertexPath,
+			               shaderProgram.pixelPath);
 			return {};
 		}
 
@@ -327,20 +328,22 @@ namespace NeneEngine
 		UploadedShaderProgram uploadedShader{};
 
 		const auto createPipelineStateWithSampler =
-		    [this, &psoCreateInfo, &uploadedShader](TextureFilterMode filterMode,
-		                                           RefCntAutoPtr<IPipelineState>& pipelineState)
+		    [this, &psoCreateInfo, &uploadedShader](TextureFilterMode filterMode, TextureAddressMode addressMode,
+		                                            RefCntAutoPtr<IPipelineState>& pipelineState)
 		{
 			// Immutable samplers require separate PSOs for nearest and linear texture filtering.
 			GraphicsPipelineStateCreateInfo samplerPsoCreateInfo = psoCreateInfo;
 			SamplerDesc samplerDesc{};
 			const FILTER_TYPE filterType =
 			    filterMode == TextureFilterMode::Nearest ? FILTER_TYPE_POINT : FILTER_TYPE_LINEAR;
+			const TEXTURE_ADDRESS_MODE diligentAddressMode =
+			    addressMode == TextureAddressMode::Clamp ? TEXTURE_ADDRESS_CLAMP : TEXTURE_ADDRESS_WRAP;
 			samplerDesc.MinFilter = filterType;
 			samplerDesc.MagFilter = filterType;
 			samplerDesc.MipFilter = filterType;
-			samplerDesc.AddressU = TEXTURE_ADDRESS_WRAP;
-			samplerDesc.AddressV = TEXTURE_ADDRESS_WRAP;
-			samplerDesc.AddressW = TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressU = diligentAddressMode;
+			samplerDesc.AddressV = diligentAddressMode;
+			samplerDesc.AddressW = diligentAddressMode;
 
 			ImmutableSamplerDesc immutableSamplers[] = {{SHADER_TYPE_PIXEL, "g_Texture", samplerDesc}};
 			samplerPsoCreateInfo.PSODesc.ResourceLayout.ImmutableSamplers = immutableSamplers;
@@ -358,8 +361,14 @@ namespace NeneEngine
 			return true;
 		};
 
-		if (!createPipelineStateWithSampler(TextureFilterMode::Linear, uploadedShader.linearPipelineState) ||
-		    !createPipelineStateWithSampler(TextureFilterMode::Nearest, uploadedShader.nearestPipelineState))
+		if (!createPipelineStateWithSampler(TextureFilterMode::Linear, TextureAddressMode::Wrap,
+		                                    uploadedShader.linearWrapPipelineState) ||
+		    !createPipelineStateWithSampler(TextureFilterMode::Nearest, TextureAddressMode::Wrap,
+		                                    uploadedShader.nearestWrapPipelineState) ||
+		    !createPipelineStateWithSampler(TextureFilterMode::Linear, TextureAddressMode::Clamp,
+		                                    uploadedShader.linearClampPipelineState) ||
+		    !createPipelineStateWithSampler(TextureFilterMode::Nearest, TextureAddressMode::Clamp,
+		                                    uploadedShader.nearestClampPipelineState))
 		{
 			NENE_LOG_ERROR("DiligentDX12Adapter: failed to create shader program pipelines");
 			return {};
@@ -424,11 +433,12 @@ namespace NeneEngine
 				const UploadedTexture* uploadedTexture = GetUploadedTexture(item.textureId);
 				IPipelineState* meshPipelineState =
 				    shaderProgram != nullptr && uploadedTexture != nullptr
-				        ? GetShaderPipelineState(*shaderProgram, uploadedTexture->filterMode)
+				        ? GetShaderPipelineState(*shaderProgram, uploadedTexture->filterMode,
+				                                 uploadedTexture->addressMode)
 				        : m_pMeshPSO.RawPtr();
-				IShaderResourceBinding* meshSRB =
-				    shaderProgram != nullptr ? GetShaderResourceBinding(*shaderProgram, item.textureId)
-				                             : m_pMeshSRB.RawPtr();
+				IShaderResourceBinding* meshSRB = shaderProgram != nullptr
+				                                      ? GetShaderResourceBinding(*shaderProgram, item.textureId)
+				                                      : m_pMeshSRB.RawPtr();
 				if (shaderProgram != nullptr && meshSRB == nullptr)
 				{
 					NENE_LOG_WARN("DiligentDX12Adapter: shader {} requires texture {}, falling back to default mesh "
@@ -958,10 +968,15 @@ namespace NeneEngine
 	}
 
 	IPipelineState* DiligentDX12Adapter::GetShaderPipelineState(UploadedShaderProgram& shaderProgram,
-	                                                            TextureFilterMode filterMode) const
+	                                                            TextureFilterMode filterMode,
+	                                                            TextureAddressMode addressMode) const
 	{
-		return filterMode == TextureFilterMode::Nearest ? shaderProgram.nearestPipelineState.RawPtr()
-		                                                : shaderProgram.linearPipelineState.RawPtr();
+		if (addressMode == TextureAddressMode::Clamp)
+			return filterMode == TextureFilterMode::Nearest ? shaderProgram.nearestClampPipelineState.RawPtr()
+			                                                : shaderProgram.linearClampPipelineState.RawPtr();
+
+		return filterMode == TextureFilterMode::Nearest ? shaderProgram.nearestWrapPipelineState.RawPtr()
+		                                                : shaderProgram.linearWrapPipelineState.RawPtr();
 	}
 
 	IShaderResourceBinding* DiligentDX12Adapter::GetShaderResourceBinding(UploadedShaderProgram& shaderProgram,
@@ -976,7 +991,8 @@ namespace NeneEngine
 		const UploadedTexture* texture = GetUploadedTexture(textureId);
 		if (texture == nullptr || texture->shaderResourceView == nullptr) return nullptr;
 
-		IPipelineState* pipelineState = GetShaderPipelineState(shaderProgram, texture->filterMode);
+		IPipelineState* pipelineState =
+		    GetShaderPipelineState(shaderProgram, texture->filterMode, texture->addressMode);
 		if (pipelineState == nullptr) return nullptr;
 
 		// SRBs are cached per texture because the mutable texture binding differs for each material.
@@ -984,8 +1000,7 @@ namespace NeneEngine
 		pipelineState->CreateShaderResourceBinding(&srb, true);
 		if (srb == nullptr) return nullptr;
 
-		if (auto* textureVariable = srb->GetVariableByName(SHADER_TYPE_PIXEL, "g_Texture");
-		    textureVariable != nullptr)
+		if (auto* textureVariable = srb->GetVariableByName(SHADER_TYPE_PIXEL, "g_Texture"); textureVariable != nullptr)
 			textureVariable->Set(texture->shaderResourceView);
 
 		auto [inserted, _] = shaderProgram.srbsByTexture.emplace(textureId.value, srb);

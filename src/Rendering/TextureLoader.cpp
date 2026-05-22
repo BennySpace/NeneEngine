@@ -12,16 +12,26 @@ namespace NeneEngine
 {
 	namespace
 	{
-		TextureFilterMode ReadFilterMode(const std::filesystem::path& metadataPath)
+		nlohmann::json ReadMetadata(const std::filesystem::path& metadataPath)
 		{
-			if (!std::filesystem::exists(metadataPath)) return TextureFilterMode::Linear;
+			if (!std::filesystem::exists(metadataPath)) return {};
 
 			std::ifstream file(metadataPath);
-			if (!file) return TextureFilterMode::Linear;
+			if (!file) return {};
 
-			const nlohmann::json metadata = nlohmann::json::parse(file);
+			return nlohmann::json::parse(file);
+		}
+
+		TextureFilterMode ReadFilterMode(const nlohmann::json& metadata)
+		{
 			const std::string filter = metadata.value("filter", "linear");
 			return filter == "nearest" || filter == "point" ? TextureFilterMode::Nearest : TextureFilterMode::Linear;
+		}
+
+		TextureAddressMode ReadAddressMode(const nlohmann::json& metadata)
+		{
+			const std::string addressMode = metadata.value("addressMode", "wrap");
+			return addressMode == "clamp" ? TextureAddressMode::Clamp : TextureAddressMode::Wrap;
 		}
 	} // namespace
 
@@ -30,9 +40,16 @@ namespace NeneEngine
 		if (!std::filesystem::exists(path)) throw std::runtime_error("Texture file does not exist: " + path);
 
 		const std::filesystem::path texturePath{path};
+<<<<<<< Updated upstream
 		// The loader keeps CPU metadata only; backend adapters perform the actual GPU upload.
 		const std::filesystem::path metadataPath = texturePath.parent_path() / (texturePath.stem().string() + ".texture.json");
 		return TextureResource{path, true, ReadFilterMode(metadataPath)};
+=======
+		const std::filesystem::path metadataPath =
+		    texturePath.parent_path() / (texturePath.stem().string() + ".texture.json");
+		const nlohmann::json metadata = ReadMetadata(metadataPath);
+		return TextureResource{path, true, ReadFilterMode(metadata), ReadAddressMode(metadata)};
+>>>>>>> Stashed changes
 	}
 
 } // namespace NeneEngine

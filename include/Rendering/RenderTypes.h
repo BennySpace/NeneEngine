@@ -100,11 +100,18 @@ namespace NeneEngine
 		Nearest
 	};
 
+	enum class TextureAddressMode : uint8_t
+	{
+		Wrap,
+		Clamp
+	};
+
 	struct TextureResource
 	{
 		std::string path;
 		bool isSrgb = true;
 		TextureFilterMode filterMode = TextureFilterMode::Linear;
+		TextureAddressMode addressMode = TextureAddressMode::Wrap;
 	};
 
 	struct GPUTexture

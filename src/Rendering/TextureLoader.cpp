@@ -42,7 +42,8 @@ namespace NeneEngine
 		const std::filesystem::path texturePath{path};
 <<<<<<< Updated upstream
 		// The loader keeps CPU metadata only; backend adapters perform the actual GPU upload.
-		const std::filesystem::path metadataPath = texturePath.parent_path() / (texturePath.stem().string() + ".texture.json");
+		const std::filesystem::path metadataPath =
+		    texturePath.parent_path() / (texturePath.stem().string() + ".texture.json");
 		return TextureResource{path, true, ReadFilterMode(metadataPath)};
 =======
 		const std::filesystem::path metadataPath =

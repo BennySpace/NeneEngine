@@ -89,10 +89,10 @@ namespace NeneEngine
 		Assimp::Importer importer;
 <<<<<<< Updated upstream
 		// PreTransformVertices bakes Assimp node transforms into vertices for the current single-mesh draw path.
-		const aiScene* scene = importer.ReadFile(
-		    path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices |
-		              aiProcess_GenSmoothNormals | aiProcess_ImproveCacheLocality | aiProcess_ValidateDataStructure |
-		              aiProcess_FlipUVs);
+		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
+		                                                   aiProcess_PreTransformVertices | aiProcess_GenSmoothNormals |
+		                                                   aiProcess_ImproveCacheLocality |
+		                                                   aiProcess_ValidateDataStructure | aiProcess_FlipUVs);
 =======
 		const aiScene* scene = importer.ReadFile(path, kMeshImportFlags);
 >>>>>>> Stashed changes

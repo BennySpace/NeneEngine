@@ -208,9 +208,8 @@ namespace NeneEngine
 			{
 <<<<<<< Updated upstream
 				// Demo resource upload lives here until scene files carry persistent asset references.
-				const auto meshPath =
-				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "momosuzu_nene_posed" /
-				                     "momosuzu_nene_posed.obj");
+				const auto meshPath = ResolveAssetPath(std::filesystem::path{"assets"} / "models" /
+				                                       "momosuzu_nene_posed" / "momosuzu_nene_posed.obj");
 				if (!meshPath.empty())
 				{
 					if (auto meshResource = ResourceManager::GetInstance().Load<Mesh>(meshPath.string());
@@ -227,9 +226,8 @@ namespace NeneEngine
 								ShaderId shaderId{};
 								TextureId textureId{};
 
-								const auto shaderPath =
-								    ResolveAssetPath(std::filesystem::path{"assets"} / "shaders" /
-								                     "textured_mesh.shader");
+								const auto shaderPath = ResolveAssetPath(std::filesystem::path{"assets"} / "shaders" /
+								                                         "textured_mesh.shader");
 								if (!shaderPath.empty())
 								{
 									if (auto shaderResource =
@@ -265,7 +263,8 @@ namespace NeneEngine
 								auto& modelRenderer = m_world.AddComponent<ECS::MeshRendererComponent>(modelEntity);
 								modelRenderer.meshId = gpuMesh.meshId;
 								if (textureId.IsValid()) modelRenderer.material.textureId = textureId;
-								if (shaderId.IsValid() && textureId.IsValid()) modelRenderer.material.shaderId = shaderId;
+								if (shaderId.IsValid() && textureId.IsValid())
+									modelRenderer.material.shaderId = shaderId;
 								modelRenderer.material.tint = {1.0f, 1.0f, 1.0f, 1.0f};
 
 								NENE_LOG_INFO("Assigned uploaded meshId={} to standalone entity 'LoadedObjModel'",

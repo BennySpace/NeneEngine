@@ -39,8 +39,10 @@ namespace NeneEngine
 
 		const nlohmann::json description = nlohmann::json::parse(ReadTextFile(programPath));
 		// Shader descriptors are portable: source paths are resolved next to the .shader file.
-		const std::filesystem::path vertexPath = ResolveRelativeTo(programPath, description.at("vertex").get<std::string>());
-		const std::filesystem::path pixelPath = ResolveRelativeTo(programPath, description.at("pixel").get<std::string>());
+		const std::filesystem::path vertexPath =
+		    ResolveRelativeTo(programPath, description.at("vertex").get<std::string>());
+		const std::filesystem::path pixelPath =
+		    ResolveRelativeTo(programPath, description.at("pixel").get<std::string>());
 
 		ShaderProgramResource resource{};
 		resource.vertexPath = vertexPath.string();

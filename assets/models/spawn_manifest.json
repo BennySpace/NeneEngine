@@ -1,0 +1,17 @@
+{
+  "hideSceneTriangle": true,
+  "models": [
+    {
+      "entityName": "LoadedObjModel",
+      "meshPath": "assets/models/momosuzu_nene_posed/momosuzu_nene_posed.obj",
+      "instanceConfigPath": "assets/models/momosuzu_nene_posed/model.instance.json",
+      "splitByMeshParts": false
+    },
+    {
+      "entityName": "LoadedPaRappaModel",
+      "meshPath": "assets/models/parappa_anime/PaRappa The Rapper/PaRappa.obj",
+      "instanceConfigPath": "assets/models/parappa_anime/PaRappa The Rapper/model.instance.json",
+      "splitByMeshParts": true
+    }
+  ]
+}

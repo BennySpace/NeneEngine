@@ -1,0 +1,71 @@
+{
+  "position": {
+    "x": 1.15,
+    "y": -1.45,
+    "z": 0.0
+  },
+  "scale": {
+    "x": 0.2,
+    "y": 0.2,
+    "z": 0.2
+  },
+  "partOverrides": [
+    {
+      "nameContains": "Eyes_",
+      "visible": true,
+      "positionOffset": {
+        "x": 0.0,
+        "y": -0.012,
+        "z": 0.028
+      },
+      "rotationOffsetDegrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleMultiplier": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "nameContains": "Mouth_",
+      "visible": true,
+      "positionOffset": {
+        "x": 0.0,
+        "y": -0.006,
+        "z": 0.026
+      },
+      "rotationOffsetDegrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleMultiplier": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "nameContains": "FrogPatch_",
+      "visible": true,
+      "positionOffset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.018
+      },
+      "rotationOffsetDegrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleMultiplier": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    }
+  ]
+}

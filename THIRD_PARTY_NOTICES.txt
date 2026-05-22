@@ -89,6 +89,16 @@ INCLUDED COMPONENTS
    Local license file:
    assets/models/momosuzu_nene_posed/LICENSE.txt
 
+10. PaRappa Anime Design 3D model
+   Purpose:
+   Demo mesh asset used by the sample application
+   Source:
+   https://models.spriters-resource.com/custom_edited/parappatherappercustoms/asset/318899/
+   Author / uploader credit:
+   CrashinAbox (Aksu)
+   Local notice file:
+   assets/models/parappa_anime/LICENSE.txt
+
 
 NOTES
 =====
@@ -105,6 +115,11 @@ NOTES
 - The bundled Momosuzu Nene model is sourced from Sketchfab and requires
   attribution under CC BY 4.0. The local asset license file also records the
   original source URL and author name.
+
+- The bundled PaRappa fan model is sourced from The Models Resource and is
+  credited to CrashinAbox / Aksu. PaRappa the Rapper is a Sony / NanaOn-Sha
+  property; review the original source page and rights before redistributing or
+  using the asset commercially.
 
 - The vcpkg_installed paths above are build-tree paths for the current
   workspace. If the build directory is regenerated elsewhere, the referenced

@@ -1,0 +1,8 @@
+PaRappa, but modeled after his anime design.
+As you can probably see, I've evolved a lot with my modeling skills.
+This model was made from scratch by me, using Blender 2.79. I mainly
+just use subdivided squares, and continue to extrude & merge them
+around. I surely do much more than that, but I'm not here to tutor
+people on modeling like me.
+
+Created by CrashinAbox (a.k.a Aksu)

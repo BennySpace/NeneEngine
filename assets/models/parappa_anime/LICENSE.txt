@@ -1,0 +1,21 @@
+PaRappa Anime Design model notice
+=================================
+
+Source:
+https://models.spriters-resource.com/custom_edited/parappatherappercustoms/asset/318899/
+
+Local files:
+assets/models/parappa_anime/PaRappa The Rapper/
+
+Author / uploader credit:
+CrashinAbox, also credited in the bundled README as Aksu.
+
+Original bundled note:
+"PaRappa, but modeled after his anime design."
+"This model was made from scratch by me, using Blender 2.79."
+"Created by CrashinAbox (a.k.a Aksu)"
+
+Character notice:
+PaRappa the Rapper is a Sony / NanaOn-Sha property. This repository includes this
+fan-made model only as a local demo asset; review the original source page and
+rights before redistributing or using it commercially.

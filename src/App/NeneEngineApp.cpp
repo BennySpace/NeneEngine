@@ -2,9 +2,11 @@
 
 #include "App/NeneEngineApp.h"
 #include "App/AppConfig.h"
+#include "App/AppRuntimeConfigPolicy.h"
+#include "App/AppStartupConfigService.h"
+#include "App/DemoBootstrapRunner.h"
 #include "Core/CustomLogger.h"
 #include "Core/ExternalLibrarySmokeTest.h"
-#include "Core/PathResolver.h"
 #include "Core/ResourceManager.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
@@ -14,12 +16,9 @@
 #include "ECS/Systems/PrimitiveControlSystem.h"
 #include "Platform/Windows32/Windows32Window.h"
 #include "RenderAdapters/DiligentDX12Adapter.h"
-#include "Rendering/ModelSpawner.h"
 #include "Scene/TestScene.h"
 #include "States/PlayState.h"
 
-#include <algorithm>
-#include <cctype>
 #include <stdexcept>
 
 namespace NeneEngine
@@ -27,25 +26,6 @@ namespace NeneEngine
 	namespace
 	{
 		constexpr float kConfigReloadIntervalSeconds = 0.5f;
-
-		bool WindowDefinitionsEqual(const WindowDefinitionConfig& lhs, const WindowDefinitionConfig& rhs)
-		{
-			return lhs.title == rhs.title && lhs.width == rhs.width && lhs.height == rhs.height &&
-			       lhs.isMain == rhs.isMain;
-		}
-
-		bool WindowListsEqual(const std::vector<WindowDefinitionConfig>& lhs, const std::vector<WindowDefinitionConfig>& rhs)
-		{
-			if (lhs.size() != rhs.size()) return false;
-
-			for (size_t index = 0; index < lhs.size(); ++index)
-			{
-				if (!WindowDefinitionsEqual(lhs[index], rhs[index])) return false;
-			}
-
-			return true;
-		}
-
 	} // namespace
 
 	NeneEngineApp::NeneEngineApp() = default;
@@ -79,11 +59,8 @@ namespace NeneEngine
 			ResourceManager::GetInstance().RegisterDefaultLoaders();
 			RunExternalLibrarySmokeTests();
 
-			m_appConfigPath = DefaultAppConfigPath();
-			const AppConfig appConfig = LoadAppConfig(m_appConfigPath);
-			m_loadedAppConfig = appConfig;
-			if (std::filesystem::exists(m_appConfigPath))
-				m_appConfigLastWriteTime = std::filesystem::last_write_time(m_appConfigPath);
+			m_loadedAppConfigState = LoadStartupAppConfigState();
+			const AppConfig& appConfig = m_loadedAppConfigState.config;
 
 			// 2. States
 			AppStateContext stateContext{*this, m_world, m_gameStateMachine};
@@ -153,9 +130,9 @@ namespace NeneEngine
 					return false;
 			}
 
-			RunDemoBootstrap();
+			RunDemoBootstrap(m_world, m_windows.empty() ? nullptr : m_windows.front().renderer.get());
 
-			ApplyAppConfig(appConfig);
+			ApplyRuntimeAppConfig(appConfig);
 
 			NENE_LOG_INFO("Application initialized successfully ({}x{})", width, height);
 
@@ -167,32 +144,6 @@ namespace NeneEngine
 
 			return false;
 		}
-	}
-
-	void NeneEngineApp::RunDemoBootstrap()
-	{
-		if (m_windows.empty() || !m_windows.front().renderer)
-		{
-			NENE_LOG_INFO("Demo bootstrap skipped: no primary renderer is available");
-			return;
-		}
-
-		IRenderAdapter& renderer = *m_windows.front().renderer;
-		const auto shaderPath =
-		    ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "shaders" / "textured_mesh.shader");
-		const auto manifestPath =
-		    ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "models" / "spawn_manifest.json");
-
-		if (shaderPath.empty() || manifestPath.empty())
-		{
-			NENE_LOG_INFO("Demo bootstrap skipped: demo shader or spawn manifest was not found");
-			return;
-		}
-
-		NENE_LOG_INFO("Demo bootstrap: spawning demo models from '{}'", manifestPath.string());
-		const ShaderId shaderId = CreateTexturedMeshShader(renderer, shaderPath);
-		SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
-		NENE_LOG_INFO("Demo bootstrap completed");
 	}
 
 	bool NeneEngineApp::CreateWindowContext(uint32_t width, uint32_t height, const std::string& title,
@@ -294,7 +245,7 @@ namespace NeneEngine
 		return true;
 	}
 
-	void NeneEngineApp::ApplyAppConfig(const AppConfig& config)
+	void NeneEngineApp::ApplyRuntimeAppConfig(const AppConfig& config)
 	{
 		for (auto& windowContext : m_windows)
 		{
@@ -400,33 +351,34 @@ namespace NeneEngine
 
 		m_configReloadAccumulator = 0.0f;
 
-		const std::filesystem::path resolvedConfigPath = DefaultAppConfigPath();
-		const bool pathChanged = resolvedConfigPath != m_appConfigPath;
+		const std::filesystem::path resolvedConfigPath = ResolveStartupAppConfigPath();
+		const bool pathChanged = resolvedConfigPath != m_loadedAppConfigState.path;
 
 		if (pathChanged)
 		{
 			NENE_LOG_INFO("App config path updated to '{}'", resolvedConfigPath.string());
-			m_appConfigPath = resolvedConfigPath;
 		}
 
-		if (!std::filesystem::exists(m_appConfigPath)) return;
+		if (!std::filesystem::exists(resolvedConfigPath)) return;
 
-		const auto currentWriteTime = std::filesystem::last_write_time(m_appConfigPath);
-		if (!pathChanged && currentWriteTime == m_appConfigLastWriteTime) return;
+		const auto currentWriteTime = std::filesystem::last_write_time(resolvedConfigPath);
+		if (!pathChanged && currentWriteTime == m_loadedAppConfigState.lastWriteTime) return;
 
-		const AppConfig updatedConfig = LoadAppConfig(m_appConfigPath);
-		if (!WindowListsEqual(updatedConfig.windows, m_loadedAppConfig.windows))
+		const LoadedAppConfigState resolvedConfigState = LoadStartupAppConfigState(resolvedConfigPath);
+
+		const auto hotReloadResult =
+		    EvaluateAppConfigHotReload(m_loadedAppConfigState.config, resolvedConfigState.config);
+		if (hotReloadResult.requiresRestart)
 		{
 			NENE_LOG_WARN("App config hot-reload: window definitions changed, but window creation, resizing, titles, "
 			              "and main-window reassignment require application restart");
 		}
 
-		ApplyAppConfig(updatedConfig);
-		m_loadedAppConfig.window = updatedConfig.window;
-		m_loadedAppConfig.windows = updatedConfig.windows;
-		m_appConfigLastWriteTime = currentWriteTime;
+		ApplyRuntimeAppConfig(hotReloadResult.runtimeAppliedConfig);
+		m_loadedAppConfigState = resolvedConfigState;
 
-		NENE_LOG_INFO("App config hot-reloaded from '{}'; applied runtime-supported changes only", m_appConfigPath.string());
+		NENE_LOG_INFO("App config hot-reloaded from '{}'; applied runtime-supported changes only",
+		              m_loadedAppConfigState.path.string());
 	}
 
 	void NeneEngineApp::PumpWindowMessagesPhase()

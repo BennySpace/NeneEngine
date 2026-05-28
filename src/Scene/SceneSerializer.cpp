@@ -287,8 +287,7 @@ namespace NeneEngine
 
 		const auto allEntities = world.GetRegistry().view<entt::entity>();
 		uint32_t nextSceneId = 1;
-		for (auto entity : allEntities)
-			sceneIdsByEntity.emplace(ToEntityKey(entity), nextSceneId++);
+		for (auto entity : allEntities) sceneIdsByEntity.emplace(ToEntityKey(entity), nextSceneId++);
 
 		for (auto entity : allEntities)
 		{
@@ -347,8 +346,7 @@ namespace NeneEngine
 			const ECS::Entity entity = world.GetRegistry().create();
 			const uint32_t sceneId = entityJson.at("id").get<uint32_t>();
 			const auto [_, inserted] = entitiesBySceneId.emplace(sceneId, entity);
-			if (!inserted)
-				throw std::runtime_error("Duplicate scene entity id: " + std::to_string(sceneId));
+			if (!inserted) throw std::runtime_error("Duplicate scene entity id: " + std::to_string(sceneId));
 		}
 
 		for (const auto& entityJson : sceneJson.at("entities"))

@@ -65,9 +65,9 @@ namespace NeneEngine::TestScene
 		CreatePrimitiveEntity(world, "SceneLine", PrimitiveType::Line, {-3.5f, 1.8f, 0.0f}, {2.5f, 1.0f, 1.0f},
 		                      {1.0f, 0.35f, 0.35f, 1.0f});
 
-		const ECS::Entity controllableTriangle = CreatePrimitiveEntity(
-		    world, "SceneTriangle", PrimitiveType::Triangle, {-1.2f, -1.4f, 0.0f}, {1.4f, 1.4f, 1.0f},
-		    {0.35f, 1.0f, 0.45f, 1.0f});
+		const ECS::Entity controllableTriangle =
+		    CreatePrimitiveEntity(world, "SceneTriangle", PrimitiveType::Triangle, {-1.2f, -1.4f, 0.0f},
+		                          {1.4f, 1.4f, 1.0f}, {0.35f, 1.0f, 0.45f, 1.0f});
 
 		auto& primitiveControl = world.AddComponent<ECS::PrimitiveControlComponent>(controllableTriangle);
 		primitiveControl.currentScaleLevel = 0;

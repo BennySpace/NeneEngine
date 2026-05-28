@@ -9,8 +9,8 @@
 #include "RenderAdapters/IRenderAdapter.h"
 #include "Rendering/MeshLoader.h"
 #include "Rendering/ModelInstanceConfig.h"
-#include "Rendering/RenderRuntimeBinder.h"
 #include "Rendering/ModelSpawnManifest.h"
+#include "Rendering/RenderRuntimeBinder.h"
 
 #include <fstream>
 #include <glm/gtc/quaternion.hpp>
@@ -206,8 +206,8 @@ namespace NeneEngine
 				                          rotationOffsetDegrees, visible);
 
 				NENE_LOG_INFO("Uploaded mesh part '{}' for '{}' as meshId={} (vertices={}, indices={}, texture='{}')",
-			              meshPart.name, modelEntry.entityName, gpuMesh.meshId.value, gpuMesh.vertexCount,
-			              gpuMesh.indexCount, texturePath.string());
+				              meshPart.name, modelEntry.entityName, gpuMesh.meshId.value, gpuMesh.vertexCount,
+				              gpuMesh.indexCount, texturePath.string());
 			}
 		}
 	}

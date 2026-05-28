@@ -82,14 +82,15 @@ namespace NeneEngine
 
 					SceneEntityTransformOverrideConfig overrideConfig{};
 					overrideConfig.tag = overrideValue.value("tag", "");
-					overrideConfig.position = ReadOptionalVec3(overrideValue.value("position", nlohmann::json::object()));
+					overrideConfig.position =
+					    ReadOptionalVec3(overrideValue.value("position", nlohmann::json::object()));
 					overrideConfig.rotationDegrees =
 					    ReadOptionalVec3(overrideValue.value("rotationDegrees", nlohmann::json::object()));
 					overrideConfig.scale = ReadOptionalVec3(overrideValue.value("scale", nlohmann::json::object()));
 
-					const bool hasAnyOverride =
-					    overrideConfig.position.has_value() || overrideConfig.rotationDegrees.has_value() ||
-					    overrideConfig.scale.has_value();
+					const bool hasAnyOverride = overrideConfig.position.has_value() ||
+					                            overrideConfig.rotationDegrees.has_value() ||
+					                            overrideConfig.scale.has_value();
 					if (!overrideConfig.tag.empty() && hasAnyOverride)
 						config.entityTransformOverrides.push_back(std::move(overrideConfig));
 				}
@@ -174,9 +175,10 @@ namespace NeneEngine
 				continue;
 			}
 
-			NENE_LOG_INFO("Applied scene transform override for tag '{}': position={}, rotationDegrees={}, scale={}, matched={}",
-			              overrideConfig.tag, overrideConfig.position.has_value(),
-			              overrideConfig.rotationDegrees.has_value(), overrideConfig.scale.has_value(), matchedCount);
+			NENE_LOG_INFO(
+			    "Applied scene transform override for tag '{}': position={}, rotationDegrees={}, scale={}, matched={}",
+			    overrideConfig.tag, overrideConfig.position.has_value(), overrideConfig.rotationDegrees.has_value(),
+			    overrideConfig.scale.has_value(), matchedCount);
 		}
 
 		for (const auto& overrideConfig : config.entityMaterialOverrides)

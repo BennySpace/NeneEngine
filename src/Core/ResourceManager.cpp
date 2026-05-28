@@ -19,8 +19,8 @@ namespace NeneEngine
 	{
 		RegisterLoader<Mesh>([](const std::string& path) { return LoadMeshFromFile(path); });
 		RegisterLoader<TextureResource>([](const std::string& path) { return LoadTextureResourceFromFile(path); });
-		RegisterLoader<ShaderProgramResource>(
-		    [](const std::string& path) { return LoadShaderProgramResourceFromFile(path); });
+		RegisterLoader<ShaderProgramResource>([](const std::string& path)
+		                                      { return LoadShaderProgramResourceFromFile(path); });
 	}
 
 	void ResourceManager::Clear()

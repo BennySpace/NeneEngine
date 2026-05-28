@@ -3,6 +3,7 @@
 #pragma once
 
 #include "App/AppConfig.h"
+#include "App/AppStartupConfigService.h"
 #include "App/GameStateMachine.h"
 #include "Core/Delegate.h"
 #include "Core/GameTimer.h"
@@ -55,21 +56,18 @@ namespace NeneEngine
 		GameTimer m_timer;
 		GameStateMachine m_gameStateMachine;
 		ECS::World m_world;
-		AppConfig m_loadedAppConfig{};
-		std::filesystem::path m_appConfigPath;
-		std::filesystem::file_time_type m_appConfigLastWriteTime{};
+		LoadedAppConfigState m_loadedAppConfigState{};
 		float m_configReloadAccumulator = 0.0f;
 
 		std::atomic<bool> m_running{false};
 		std::atomic<bool> m_isPaused{false};
 
 		bool CreateWindowContext(uint32_t width, uint32_t height, const std::string& title, ECS::Entity cameraEntity);
-		void RunDemoBootstrap();
 		void AddAppSystem(std::unique_ptr<ECS::ISystem> system);
 		std::vector<ECS::Entity> CreateAdditionalWindowCameras(size_t count, uint32_t width, uint32_t height);
 		ECS::Entity FindPrimaryCameraEntity() const;
 		bool AreAllWindowsClosed() const;
-		void ApplyAppConfig(const AppConfig& config);
+		void ApplyRuntimeAppConfig(const AppConfig& config);
 		void PumpWindowMessagesPhase();
 		void InputPhase(float deltaTime);
 		void GameplayPhase(float deltaTime);

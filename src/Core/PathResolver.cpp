@@ -14,8 +14,8 @@ namespace NeneEngine
 		return std::filesystem::path(modulePath).parent_path();
 	}
 
-	std::filesystem::path ResolveFromAncestors(const std::filesystem::path& start, const std::filesystem::path& relativePath,
-	                                           bool allowMissingLeaf)
+	std::filesystem::path ResolveFromAncestors(const std::filesystem::path& start,
+	                                           const std::filesystem::path& relativePath, bool allowMissingLeaf)
 	{
 		std::error_code errorCode;
 		auto current = start;
@@ -38,8 +38,8 @@ namespace NeneEngine
 
 	std::filesystem::path ResolveFromExecutionRoots(const std::filesystem::path& relativePath, bool allowMissingLeaf)
 	{
-		if (const auto fromCurrentDirectory = ResolveFromAncestors(std::filesystem::current_path(), relativePath,
-		                                                           allowMissingLeaf);
+		if (const auto fromCurrentDirectory =
+		        ResolveFromAncestors(std::filesystem::current_path(), relativePath, allowMissingLeaf);
 		    !fromCurrentDirectory.empty())
 			return fromCurrentDirectory;
 

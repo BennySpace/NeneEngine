@@ -429,10 +429,60 @@ namespace NeneEngine
 		NENE_LOG_INFO("App config hot-reloaded from '{}'; applied runtime-supported changes only", m_appConfigPath.string());
 	}
 
-	void NeneEngineApp::UpdateAppSystems(float deltaTime)
+	void NeneEngineApp::PumpWindowMessagesPhase()
+	{
+		for (auto& windowContext : m_windows)
+		{
+			if (windowContext.window && !windowContext.window->ShouldClose()) windowContext.window->PumpMessages();
+		}
+	}
+
+	void NeneEngineApp::InputPhase(float deltaTime)
 	{
 		// Window-bound input systems stay app-owned so World contains gameplay logic only.
 		for (auto& system : m_appSystems) system->Update(m_world, deltaTime);
+	}
+
+	void NeneEngineApp::GameplayPhase(float deltaTime)
+	{
+		m_gameStateMachine.HandleInput();
+		m_gameStateMachine.Update(deltaTime);
+		LogDeltaTimeStats(deltaTime);
+		ReloadAppConfigIfChanged(deltaTime);
+	}
+
+	void NeneEngineApp::PhysicsPhase(float /*deltaTime*/)
+	{
+		// Reserved explicit phase for future fixed-step physics integration.
+	}
+
+	void NeneEngineApp::SyncPhase(float /*deltaTime*/)
+	{
+		// Reserved explicit phase for synchronizing physics/runtime state back into scene transforms.
+	}
+
+	void NeneEngineApp::RenderPhase()
+	{
+		for (auto& windowContext : m_windows)
+		{
+			if (!windowContext.window || windowContext.window->ShouldClose()) continue;
+			if (!windowContext.renderer || !windowContext.renderSystem) continue;
+
+			// Render systems are per-window so the same world can be drawn from different cameras.
+			windowContext.renderer->BeginFrame();
+			windowContext.renderSystem->Render(m_world);
+			windowContext.renderer->EndFrame();
+			windowContext.renderer->Present();
+		}
+	}
+
+	void NeneEngineApp::EndFramePhase()
+	{
+		CalculateFrameStats();
+		for (auto& windowContext : m_windows)
+		{
+			if (windowContext.window) windowContext.window->GetInput().EndFrame();
+		}
 	}
 
 	void NeneEngineApp::Run()
@@ -442,38 +492,18 @@ namespace NeneEngine
 
 		while (m_running && !AreAllWindowsClosed())
 		{
-			for (auto& windowContext : m_windows)
-			{
-				if (windowContext.window && !windowContext.window->ShouldClose()) windowContext.window->PumpMessages();
-			}
-
+			PumpWindowMessagesPhase();
 			m_timer.Tick();
-			float deltaTime = m_timer.DeltaTime();
+			const float deltaTime = m_timer.DeltaTime();
 
 			if (!m_isPaused)
 			{
-				m_gameStateMachine.HandleInput();
-				m_gameStateMachine.Update(deltaTime);
-				LogDeltaTimeStats(deltaTime);
-				ReloadAppConfigIfChanged(deltaTime);
-
-				for (auto& windowContext : m_windows)
-				{
-					if (!windowContext.window || windowContext.window->ShouldClose()) continue;
-					if (!windowContext.renderer || !windowContext.renderSystem) continue;
-
-					// Render systems are per-window so the same world can be drawn from different cameras.
-					windowContext.renderer->BeginFrame();
-					windowContext.renderSystem->Render(m_world);
-					windowContext.renderer->EndFrame();
-					windowContext.renderer->Present();
-				}
-
-				CalculateFrameStats();
-				for (auto& windowContext : m_windows)
-				{
-					if (windowContext.window) windowContext.window->GetInput().EndFrame();
-				}
+				InputPhase(deltaTime);
+				GameplayPhase(deltaTime);
+				PhysicsPhase(deltaTime);
+				SyncPhase(deltaTime);
+				RenderPhase();
+				EndFramePhase();
 			}
 			else
 			{

@@ -34,7 +34,6 @@ namespace NeneEngine
 		bool Init(uint32_t width = 1280, uint32_t height = 720, const std::string& title = "NeneEngine");
 		void Run();
 		void RequestShutdown();
-		void UpdateAppSystems(float deltaTime);
 		InputDevice* GetFocusedInput();
 		const InputDevice* GetFocusedInput() const;
 
@@ -71,6 +70,13 @@ namespace NeneEngine
 		ECS::Entity FindPrimaryCameraEntity() const;
 		bool AreAllWindowsClosed() const;
 		void ApplyAppConfig(const AppConfig& config);
+		void PumpWindowMessagesPhase();
+		void InputPhase(float deltaTime);
+		void GameplayPhase(float deltaTime);
+		void PhysicsPhase(float deltaTime);
+		void SyncPhase(float deltaTime);
+		void RenderPhase();
+		void EndFramePhase();
 		void CalculateFrameStats();
 		void LogDeltaTimeStats(float deltaTime);
 		void HandleWindowResize(size_t windowIndex, uint32_t width, uint32_t height);

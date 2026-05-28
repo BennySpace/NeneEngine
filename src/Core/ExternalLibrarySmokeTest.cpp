@@ -3,10 +3,9 @@
 #include "Core/ExternalLibrarySmokeTest.h"
 
 #include "Core/CustomLogger.h"
+#include "Core/PathResolver.h"
 #include "Core/ResourceManager.h"
 #include "Rendering/RenderTypes.h"
-
-#include <Windows.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -18,46 +17,10 @@ namespace NeneEngine
 {
 	namespace
 	{
-		std::filesystem::path ResolveFrom(const std::filesystem::path& start, const std::filesystem::path& relativePath)
-		{
-			std::error_code errorCode;
-			auto current = start;
-			while (!current.empty())
-			{
-				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode)) return candidate;
-
-				const auto parent = current.parent_path();
-				if (parent == current) break;
-				current = parent;
-			}
-
-			return {};
-		}
-
-		std::filesystem::path ResolveAssetPath(const std::filesystem::path& relativePath)
-		{
-			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath);
-			    !fromCurrentDirectory.empty())
-				return fromCurrentDirectory;
-
-			wchar_t modulePath[MAX_PATH]{};
-			const DWORD length = GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(std::size(modulePath)));
-			if (length > 0)
-			{
-				const std::filesystem::path executableDirectory = std::filesystem::path(modulePath).parent_path();
-				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath);
-				    !fromExecutableDirectory.empty())
-					return fromExecutableDirectory;
-			}
-
-			return {};
-		}
-
 		void RunAssimpSmokeTest()
 		{
-			const auto modelPath = ResolveAssetPath(std::filesystem::path{"assets"} / "models" /
-			                                       "momosuzu_nene_posed" / "momosuzu_nene_posed.obj");
+			const auto modelPath = ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "models" /
+			                                                 "momosuzu_nene_posed" / "momosuzu_nene_posed.obj");
 			if (modelPath.empty())
 			{
 				NENE_LOG_ERROR("Assimp smoke test: model file was not found");
@@ -86,7 +49,8 @@ namespace NeneEngine
 
 		void RunStbImageSmokeTest()
 		{
-			const auto texturePath = ResolveAssetPath(std::filesystem::path{"assets"} / "readme" / "banner.png");
+			const auto texturePath =
+			    ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "readme" / "banner.png");
 			if (texturePath.empty())
 			{
 				NENE_LOG_ERROR("stb_image smoke test: texture file was not found");

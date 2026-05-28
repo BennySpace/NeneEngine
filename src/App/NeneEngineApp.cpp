@@ -4,6 +4,7 @@
 #include "App/AppConfig.h"
 #include "Core/CustomLogger.h"
 #include "Core/ExternalLibrarySmokeTest.h"
+#include "Core/PathResolver.h"
 #include "Core/ResourceManager.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
@@ -43,63 +44,6 @@ namespace NeneEngine
 			}
 
 			return true;
-		}
-
-		std::filesystem::path ResolveFrom(const std::filesystem::path& start, const std::filesystem::path& relativePath)
-		{
-			// The app may run from the repo root or a build folder, so asset lookup walks upward from both anchors.
-			std::error_code errorCode;
-			auto current = start;
-			std::filesystem::path resolvedPath;
-			while (!current.empty())
-			{
-				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode)) resolvedPath = candidate;
-
-				const auto parent = current.parent_path();
-				if (parent == current) break;
-				current = parent;
-			}
-
-			return resolvedPath;
-		}
-
-		std::filesystem::path ResolveAssetPath(const std::filesystem::path& relativePath)
-		{
-			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath);
-			    !fromCurrentDirectory.empty())
-				return fromCurrentDirectory;
-
-			wchar_t modulePath[MAX_PATH]{};
-			const DWORD length = GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(std::size(modulePath)));
-			if (length > 0)
-			{
-				const std::filesystem::path executableDirectory = std::filesystem::path(modulePath).parent_path();
-				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath);
-				    !fromExecutableDirectory.empty())
-					return fromExecutableDirectory;
-			}
-
-			return {};
-		}
-
-		std::filesystem::path ResolveAssetDirectory(const std::filesystem::path& relativePath)
-		{
-			if (const auto fromCurrentDirectory = ResolveFrom(std::filesystem::current_path(), relativePath);
-			    !fromCurrentDirectory.empty() && std::filesystem::is_directory(fromCurrentDirectory))
-				return fromCurrentDirectory;
-
-			wchar_t modulePath[MAX_PATH]{};
-			const DWORD length = GetModuleFileNameW(nullptr, modulePath, static_cast<DWORD>(std::size(modulePath)));
-			if (length > 0)
-			{
-				const std::filesystem::path executableDirectory = std::filesystem::path(modulePath).parent_path();
-				if (const auto fromExecutableDirectory = ResolveFrom(executableDirectory, relativePath);
-				    !fromExecutableDirectory.empty() && std::filesystem::is_directory(fromExecutableDirectory))
-					return fromExecutableDirectory;
-			}
-
-			return {};
 		}
 
 	} // namespace
@@ -213,11 +157,11 @@ namespace NeneEngine
 			{
 				IRenderAdapter& renderer = *m_windows.front().renderer;
 				// Demo resource spawn still happens at startup until scene files own persistent asset references.
-				const auto shaderPath =
-				    ResolveAssetPath(std::filesystem::path{"assets"} / "shaders" / "textured_mesh.shader");
+				const auto shaderPath = ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "shaders" /
+				                                                  "textured_mesh.shader");
 				const ShaderId shaderId = CreateTexturedMeshShader(renderer, shaderPath);
-				const auto manifestPath =
-				    ResolveAssetPath(std::filesystem::path{"assets"} / "models" / "spawn_manifest.json");
+				const auto manifestPath = ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "models" /
+				                                                    "spawn_manifest.json");
 				SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
 			}
 

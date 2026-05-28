@@ -3,11 +3,13 @@ target_sources(NeneEngine PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/Core/Delegate.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/Core/ExternalLibrarySmokeTest.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/Core/GameTimer.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../include/Core/PathResolver.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/Core/Resource.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/../../include/Core/ResourceManager.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/CustomLogger.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/EASTLAllocator.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ExternalLibrarySmokeTest.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/GameTimer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/PathResolver.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ResourceManager.cpp"
 )

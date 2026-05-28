@@ -1,6 +1,7 @@
 #include "App/AppConfig.h"
 
-#include <Windows.h>
+#include "Core/PathResolver.h"
+
 #include <fstream>
 #include <nlohmann/json.hpp>
 
@@ -15,29 +16,6 @@ namespace NeneEngine
 		constexpr uint32_t kDefaultWindowWidth = 1280;
 		constexpr uint32_t kDefaultWindowHeight = 720;
 		constexpr std::string_view kDefaultWindowTitle = "NeneEngine";
-
-		[[nodiscard]] std::filesystem::path FindConfigPathFrom(const std::filesystem::path& startDirectory)
-		{
-			std::filesystem::path resolvedPath;
-			for (auto current = startDirectory; !current.empty(); current = current.parent_path())
-			{
-				const auto candidate = current / "assets" / "config" / "engine.json";
-				if (std::filesystem::exists(candidate)) resolvedPath = candidate;
-
-				if (current == current.root_path()) break;
-			}
-
-			return resolvedPath;
-		}
-
-		[[nodiscard]] std::filesystem::path GetExecutableDirectory()
-		{
-			wchar_t modulePath[MAX_PATH]{};
-			const DWORD pathLength = GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-			if (pathLength == 0 || pathLength == MAX_PATH) return {};
-
-			return std::filesystem::path(modulePath).parent_path();
-		}
 
 		[[nodiscard]] glm::vec4 ReadBackgroundColorOrDefault(const nlohmann::json& root)
 		{
@@ -161,16 +139,10 @@ namespace NeneEngine
 
 	std::filesystem::path DefaultAppConfigPath()
 	{
-		if (const auto fromCurrentDirectory = FindConfigPathFrom(std::filesystem::current_path());
-		    !fromCurrentDirectory.empty())
-			return fromCurrentDirectory;
-
-		if (const auto executableDirectory = GetExecutableDirectory(); !executableDirectory.empty())
-		{
-			if (const auto fromExecutableDirectory = FindConfigPathFrom(executableDirectory);
-			    !fromExecutableDirectory.empty())
-				return fromExecutableDirectory;
-		}
+		if (const auto resolvedPath =
+		        ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "config" / "engine.json");
+		    !resolvedPath.empty())
+			return resolvedPath;
 
 		return std::filesystem::path{"assets"} / "config" / "engine.json";
 	}

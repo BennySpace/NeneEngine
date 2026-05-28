@@ -1,6 +1,7 @@
 #include "Rendering/ModelSpawner.h"
 
 #include "Core/CustomLogger.h"
+#include "Core/PathResolver.h"
 #include "Core/ResourceManager.h"
 #include "ECS/Components/MeshRenderRuntimeComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
@@ -19,24 +20,6 @@ namespace NeneEngine
 {
 	namespace
 	{
-		std::filesystem::path ResolveFromAncestors(const std::filesystem::path& start,
-		                                           const std::filesystem::path& relativePath)
-		{
-			std::error_code errorCode;
-			auto current = start;
-			while (!current.empty())
-			{
-				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode)) return candidate;
-
-				const auto parent = current.parent_path();
-				if (parent == current) break;
-				current = parent;
-			}
-
-			return {};
-		}
-
 		std::filesystem::path FindDiffuseTextureFromObjMaterial(const std::filesystem::path& objPath)
 		{
 			std::ifstream objFile(objPath);

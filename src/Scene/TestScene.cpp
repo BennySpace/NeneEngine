@@ -2,6 +2,7 @@
 
 #include "Scene/TestScene.h"
 
+#include "Core/PathResolver.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
 #include "ECS/Components/HierarchyComponent.h"
@@ -16,29 +17,6 @@ namespace NeneEngine::TestScene
 {
 	namespace
 	{
-		std::filesystem::path ResolveFromAncestors(const std::filesystem::path& start,
-		                                           const std::filesystem::path& relativePath,
-		                                           bool allowMissingLeaf = false)
-		{
-			std::error_code errorCode;
-			auto current = start;
-			std::filesystem::path resolvedPath;
-			while (!current.empty())
-			{
-				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode))
-					resolvedPath = candidate;
-				else if (allowMissingLeaf && std::filesystem::exists(candidate.parent_path(), errorCode))
-					resolvedPath = candidate;
-
-				const auto parent = current.parent_path();
-				if (parent == current) break;
-				current = parent;
-			}
-
-			return resolvedPath;
-		}
-
 		ECS::Entity CreatePrimitiveEntity(ECS::World& world, std::string_view name, PrimitiveType primitiveType,
 		                                  const glm::vec3& position, const glm::vec3& scale, const glm::vec4& tint)
 		{
@@ -121,11 +99,9 @@ namespace NeneEngine::TestScene
 	                  const std::filesystem::path& sceneConfigPath)
 	{
 		const std::filesystem::path resolvedScenePath =
-		    scenePath.is_absolute() ? scenePath
-		                            : ResolveFromAncestors(std::filesystem::current_path(), scenePath, true);
+		    scenePath.is_absolute() ? scenePath : ResolveFromExecutionRoots(scenePath, true);
 		const std::filesystem::path resolvedSceneConfigPath =
-		    sceneConfigPath.is_absolute() ? sceneConfigPath
-		                                  : ResolveFromAncestors(std::filesystem::current_path(), sceneConfigPath);
+		    sceneConfigPath.is_absolute() ? sceneConfigPath : ResolveFromExecutionRoots(sceneConfigPath);
 
 		const std::filesystem::path effectiveScenePath = resolvedScenePath.empty() ? scenePath : resolvedScenePath;
 		const std::filesystem::path effectiveSceneConfigPath =

@@ -18,15 +18,16 @@ namespace NeneEngine
 
 		[[nodiscard]] std::filesystem::path FindConfigPathFrom(const std::filesystem::path& startDirectory)
 		{
+			std::filesystem::path resolvedPath;
 			for (auto current = startDirectory; !current.empty(); current = current.parent_path())
 			{
 				const auto candidate = current / "assets" / "config" / "engine.json";
-				if (std::filesystem::exists(candidate)) return candidate;
+				if (std::filesystem::exists(candidate)) resolvedPath = candidate;
 
 				if (current == current.root_path()) break;
 			}
 
-			return {};
+			return resolvedPath;
 		}
 
 		[[nodiscard]] std::filesystem::path GetExecutableDirectory()

@@ -11,8 +11,7 @@ namespace NeneEngine::ECS
 	{
 		PrimitiveType primitiveType = PrimitiveType::Triangle;
 		bool visible = true;
-		MeshId meshId{};
-		Material material{};
+		glm::vec4 tint = {1.0f, 1.0f, 1.0f, 1.0f};
 	};
 
 } // namespace NeneEngine::ECS

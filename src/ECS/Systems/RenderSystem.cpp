@@ -4,6 +4,7 @@
 #include "Core/CustomLogger.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/HierarchyComponent.h"
+#include "ECS/Components/MeshRenderRuntimeComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/World.h"
@@ -118,11 +119,16 @@ namespace NeneEngine::ECS
 			item.viewProjectionMatrix = viewProjectionMatrix;
 			item.modelViewProjectionMatrix = viewProjectionMatrix * item.modelMatrix;
 			item.primitiveType = meshRenderer.primitiveType;
-			item.meshId = meshRenderer.meshId;
-			item.materialId = meshRenderer.material.materialId;
-			item.shaderId = meshRenderer.material.shaderId;
-			item.textureId = meshRenderer.material.textureId;
-			item.tint = meshRenderer.material.tint;
+			item.tint = meshRenderer.tint;
+
+			if (const auto* renderRuntime = world.GetComponent<MeshRenderRuntimeComponent>(entity);
+			    renderRuntime != nullptr)
+			{
+				item.meshId = renderRuntime->meshId;
+				item.materialId = renderRuntime->materialId;
+				item.shaderId = renderRuntime->shaderId;
+				item.textureId = renderRuntime->textureId;
+			}
 
 			m_renderer->SubmitRenderItem(item);
 

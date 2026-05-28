@@ -2,6 +2,7 @@
 
 #include "Core/CustomLogger.h"
 #include "Core/ResourceManager.h"
+#include "ECS/Components/MeshRenderRuntimeComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/World.h"
@@ -103,11 +104,13 @@ namespace NeneEngine
 			modelTransform.rotation = glm::quat(glm::radians(rotationOffsetDegrees));
 
 			auto& modelRenderer = world.AddComponent<ECS::MeshRendererComponent>(modelEntity);
-			modelRenderer.meshId = gpuMesh.meshId;
-			if (textureId.IsValid()) modelRenderer.material.textureId = textureId;
-			if (shaderId.IsValid() && textureId.IsValid()) modelRenderer.material.shaderId = shaderId;
-			modelRenderer.material.tint = {1.0f, 1.0f, 1.0f, 1.0f};
+			modelRenderer.tint = {1.0f, 1.0f, 1.0f, 1.0f};
 			modelRenderer.visible = visible;
+
+			auto& renderRuntime = world.AddComponent<ECS::MeshRenderRuntimeComponent>(modelEntity);
+			renderRuntime.meshId = gpuMesh.meshId;
+			renderRuntime.textureId = textureId;
+			if (shaderId.IsValid() && textureId.IsValid()) renderRuntime.shaderId = shaderId;
 
 			return modelEntity;
 		}

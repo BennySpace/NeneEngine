@@ -15,6 +15,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 
 namespace NeneEngine
 {
@@ -80,15 +81,9 @@ namespace NeneEngine
 			throw std::runtime_error("Unknown PrimitiveType: " + value);
 		}
 
-		uint32_t ToEntityId(ECS::Entity entity)
+		uint32_t ToEntityKey(ECS::Entity entity)
 		{
 			return static_cast<uint32_t>(entt::to_integral(entity));
-		}
-
-		ECS::Entity FromEntityId(uint32_t entityId)
-		{
-			// Entity ids are restored only within one serialized scene snapshot.
-			return static_cast<ECS::Entity>(entityId);
 		}
 
 		nlohmann::json SerializeTag(const ECS::TagComponent& tag)
@@ -127,12 +122,7 @@ namespace NeneEngine
 		{
 			return {{"primitiveType", ToString(renderer.primitiveType)},
 			        {"visible", renderer.visible},
-			        {"meshId", renderer.meshId.value},
-			        {"material",
-			         {{"materialId", renderer.material.materialId.value},
-			          {"shaderId", renderer.material.shaderId.value},
-			          {"textureId", renderer.material.textureId.value},
-			          {"tint", ToJson(renderer.material.tint)}}}};
+			        {"material", {{"tint", ToJson(renderer.tint)}}}};
 		}
 
 		nlohmann::json SerializeMovement(const ECS::MovementComponent& movement)
@@ -146,14 +136,31 @@ namespace NeneEngine
 			        {"useOscillation", movement.useOscillation}};
 		}
 
-		nlohmann::json SerializeHierarchy(const ECS::HierarchyComponent& hierarchy)
+		nlohmann::json SerializeHierarchy(const ECS::HierarchyComponent& hierarchy,
+		                                  const std::unordered_map<uint32_t, uint32_t>& sceneIdsByEntity)
 		{
 			nlohmann::json children = nlohmann::json::array();
-			for (ECS::Entity child : hierarchy.children) children.push_back(ToEntityId(child));
 
-			return {{"parent", hierarchy.parent == ECS::NullEntity ? nlohmann::json(nullptr)
-			                                                       : nlohmann::json(ToEntityId(hierarchy.parent))},
-			        {"children", std::move(children)}};
+			for (ECS::Entity child : hierarchy.children)
+			{
+				const auto childIt = sceneIdsByEntity.find(ToEntityKey(child));
+				if (childIt == sceneIdsByEntity.end())
+					throw std::runtime_error("Hierarchy child points to entity not present in serialized scene");
+
+				children.push_back(childIt->second);
+			}
+
+			nlohmann::json parent = nullptr;
+			if (hierarchy.parent != ECS::NullEntity)
+			{
+				const auto parentIt = sceneIdsByEntity.find(ToEntityKey(hierarchy.parent));
+				if (parentIt == sceneIdsByEntity.end())
+					throw std::runtime_error("Hierarchy parent points to entity not present in serialized scene");
+
+				parent = parentIt->second;
+			}
+
+			return {{"parent", std::move(parent)}, {"children", std::move(children)}};
 		}
 
 		nlohmann::json SerializePrimitiveControl(const ECS::PrimitiveControlComponent& control)
@@ -210,14 +217,9 @@ namespace NeneEngine
 			auto& renderer = world.AddComponent<ECS::MeshRendererComponent>(entity);
 			renderer.primitiveType = ReadPrimitiveType(value.at("primitiveType").get<std::string>());
 			renderer.visible = value.at("visible").get<bool>();
-			renderer.meshId = MeshId{value.at("meshId").get<uint32_t>()};
 
 			const auto& material = value.at("material");
-			renderer.material.materialId = MaterialId{material.at("materialId").get<uint32_t>()};
-			renderer.material.shaderId = ShaderId{material.at("shaderId").get<uint32_t>()};
-			if (material.contains("textureId"))
-				renderer.material.textureId = TextureId{material.at("textureId").get<uint32_t>()};
-			renderer.material.tint = ReadVec4(material.at("tint"));
+			renderer.tint = ReadVec4(material.at("tint"));
 		}
 
 		void DeserializeMovement(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
@@ -245,17 +247,34 @@ namespace NeneEngine
 			control.targetScale = ReadVec3(value.at("targetScale"));
 		}
 
-		void DeserializeHierarchy(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
+		void DeserializeHierarchy(const nlohmann::json& value, ECS::World& world, ECS::Entity entity,
+		                          const std::unordered_map<uint32_t, ECS::Entity>& entitiesBySceneId)
 		{
 			auto& hierarchy = world.AddComponent<ECS::HierarchyComponent>(entity);
 			if (value.contains("parent") && !value.at("parent").is_null())
-				hierarchy.parent = FromEntityId(value.at("parent").get<uint32_t>());
+			{
+				const uint32_t parentSceneId = value.at("parent").get<uint32_t>();
+				const auto parentIt = entitiesBySceneId.find(parentSceneId);
+				if (parentIt == entitiesBySceneId.end())
+					throw std::runtime_error("Hierarchy parent references unknown scene entity id " +
+					                         std::to_string(parentSceneId));
+
+				hierarchy.parent = parentIt->second;
+			}
 
 			hierarchy.children.clear();
 			if (value.contains("children"))
 			{
 				for (const auto& childValue : value.at("children"))
-					hierarchy.children.push_back(FromEntityId(childValue.get<uint32_t>()));
+				{
+					const uint32_t childSceneId = childValue.get<uint32_t>();
+					const auto childIt = entitiesBySceneId.find(childSceneId);
+					if (childIt == entitiesBySceneId.end())
+						throw std::runtime_error("Hierarchy child references unknown scene entity id " +
+						                         std::to_string(childSceneId));
+
+					hierarchy.children.push_back(childIt->second);
+				}
 			}
 		}
 
@@ -264,11 +283,20 @@ namespace NeneEngine
 	nlohmann::json SceneSerializer::Serialize(const ECS::World& world)
 	{
 		nlohmann::json sceneJson{{"version", CurrentVersion}, {"entities", nlohmann::json::array()}};
+		std::unordered_map<uint32_t, uint32_t> sceneIdsByEntity;
 
 		const auto allEntities = world.GetRegistry().view<entt::entity>();
+		uint32_t nextSceneId = 1;
+		for (auto entity : allEntities)
+			sceneIdsByEntity.emplace(ToEntityKey(entity), nextSceneId++);
+
 		for (auto entity : allEntities)
 		{
-			nlohmann::json entityJson{{"components", nlohmann::json::object()}};
+			const auto sceneIdIt = sceneIdsByEntity.find(ToEntityKey(entity));
+			if (sceneIdIt == sceneIdsByEntity.end())
+				throw std::runtime_error("Serialized entity is missing a scene-local id");
+
+			nlohmann::json entityJson{{"id", sceneIdIt->second}, {"components", nlohmann::json::object()}};
 
 			const auto* tag = world.GetRegistry().try_get<ECS::TagComponent>(entity);
 			if (tag != nullptr) entityJson["components"]["Tag"] = SerializeTag(*tag);
@@ -284,7 +312,8 @@ namespace NeneEngine
 				entityJson["components"]["CameraControllerComponent"] = SerializeCameraController(*cameraController);
 
 			const auto* hierarchy = world.GetRegistry().try_get<ECS::HierarchyComponent>(entity);
-			if (hierarchy != nullptr) entityJson["components"]["HierarchyComponent"] = SerializeHierarchy(*hierarchy);
+			if (hierarchy != nullptr)
+				entityJson["components"]["HierarchyComponent"] = SerializeHierarchy(*hierarchy, sceneIdsByEntity);
 
 			const auto* meshRenderer = world.GetRegistry().try_get<ECS::MeshRendererComponent>(entity);
 			if (meshRenderer != nullptr)
@@ -311,10 +340,25 @@ namespace NeneEngine
 			throw std::runtime_error("Unsupported scene version: " + std::to_string(version));
 
 		world.GetRegistry().clear();
+		std::unordered_map<uint32_t, ECS::Entity> entitiesBySceneId;
 
 		for (const auto& entityJson : sceneJson.at("entities"))
 		{
 			const ECS::Entity entity = world.GetRegistry().create();
+			const uint32_t sceneId = entityJson.at("id").get<uint32_t>();
+			const auto [_, inserted] = entitiesBySceneId.emplace(sceneId, entity);
+			if (!inserted)
+				throw std::runtime_error("Duplicate scene entity id: " + std::to_string(sceneId));
+		}
+
+		for (const auto& entityJson : sceneJson.at("entities"))
+		{
+			const uint32_t sceneId = entityJson.at("id").get<uint32_t>();
+			const auto entityIt = entitiesBySceneId.find(sceneId);
+			if (entityIt == entitiesBySceneId.end())
+				throw std::runtime_error("Missing ECS entity for scene entity id: " + std::to_string(sceneId));
+
+			const ECS::Entity entity = entityIt->second;
 			const auto& components = entityJson.at("components");
 
 			if (components.contains("Tag")) DeserializeTag(components.at("Tag"), world, entity);
@@ -324,7 +368,7 @@ namespace NeneEngine
 			if (components.contains("CameraControllerComponent"))
 				DeserializeCameraController(components.at("CameraControllerComponent"), world, entity);
 			if (components.contains("HierarchyComponent"))
-				DeserializeHierarchy(components.at("HierarchyComponent"), world, entity);
+				DeserializeHierarchy(components.at("HierarchyComponent"), world, entity, entitiesBySceneId);
 			if (components.contains("MeshRenderer"))
 				DeserializeMeshRenderer(components.at("MeshRenderer"), world, entity);
 			if (components.contains("MovementComponent"))

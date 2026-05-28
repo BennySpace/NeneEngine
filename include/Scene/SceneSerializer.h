@@ -13,7 +13,7 @@ namespace NeneEngine
 	class SceneSerializer final
 	{
 	  public:
-		static constexpr int CurrentVersion = 1;
+		static constexpr int CurrentVersion = 2;
 
 		[[nodiscard]] static nlohmann::json Serialize(const ECS::World& world);
 		static void Deserialize(const nlohmann::json& sceneJson, ECS::World& world);

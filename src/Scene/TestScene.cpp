@@ -22,23 +22,25 @@ namespace NeneEngine::TestScene
 		{
 			std::error_code errorCode;
 			auto current = start;
+			std::filesystem::path resolvedPath;
 			while (!current.empty())
 			{
 				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode)) return candidate;
-				if (allowMissingLeaf && std::filesystem::exists(candidate.parent_path(), errorCode)) return candidate;
+				if (std::filesystem::exists(candidate, errorCode))
+					resolvedPath = candidate;
+				else if (allowMissingLeaf && std::filesystem::exists(candidate.parent_path(), errorCode))
+					resolvedPath = candidate;
 
 				const auto parent = current.parent_path();
 				if (parent == current) break;
 				current = parent;
 			}
 
-			return {};
+			return resolvedPath;
 		}
 
 		ECS::Entity CreatePrimitiveEntity(ECS::World& world, std::string_view name, PrimitiveType primitiveType,
-		                                  const glm::vec3& position, const glm::vec3& scale, const glm::vec4& tint,
-		                                  MeshId meshId, MaterialId materialId, ShaderId shaderId)
+		                                  const glm::vec3& position, const glm::vec3& scale, const glm::vec4& tint)
 		{
 			const ECS::Entity entity = world.CreateEntity(std::string(name));
 			auto& transform = world.AddComponent<ECS::TransformComponent>(entity);
@@ -47,10 +49,7 @@ namespace NeneEngine::TestScene
 
 			auto& renderer = world.AddComponent<ECS::MeshRendererComponent>(entity);
 			renderer.primitiveType = primitiveType;
-			renderer.meshId = meshId;
-			renderer.material.materialId = materialId;
-			renderer.material.shaderId = shaderId;
-			renderer.material.tint = tint;
+			renderer.tint = tint;
 
 			return entity;
 		}
@@ -86,11 +85,11 @@ namespace NeneEngine::TestScene
 		cameraController.moveSpeed = 4.0f;
 
 		CreatePrimitiveEntity(world, "SceneLine", PrimitiveType::Line, {-3.5f, 1.8f, 0.0f}, {2.5f, 1.0f, 1.0f},
-		                      {1.0f, 0.35f, 0.35f, 1.0f}, MeshId{}, MaterialId{1u}, ShaderId{1u});
+		                      {1.0f, 0.35f, 0.35f, 1.0f});
 
 		const ECS::Entity controllableTriangle = CreatePrimitiveEntity(
 		    world, "SceneTriangle", PrimitiveType::Triangle, {-1.2f, -1.4f, 0.0f}, {1.4f, 1.4f, 1.0f},
-		    {0.35f, 1.0f, 0.45f, 1.0f}, MeshId{}, MaterialId{2u}, ShaderId{1u});
+		    {0.35f, 1.0f, 0.45f, 1.0f});
 
 		auto& primitiveControl = world.AddComponent<ECS::PrimitiveControlComponent>(controllableTriangle);
 		primitiveControl.currentScaleLevel = 0;
@@ -98,7 +97,7 @@ namespace NeneEngine::TestScene
 
 		const ECS::Entity movingQuad =
 		    CreatePrimitiveEntity(world, "SceneQuad", PrimitiveType::Quad, {1.4f, 1.0f, 0.0f}, {2.1f, 1.2f, 1.0f},
-		                          {0.25f, 0.75f, 1.0f, 1.0f}, MeshId{}, MaterialId{3u}, ShaderId{1u});
+		                          {0.25f, 0.75f, 1.0f, 1.0f});
 
 		auto& movement = world.AddComponent<ECS::MovementComponent>(movingQuad);
 		movement.origin = {1.4f, 1.0f, 0.0f};
@@ -109,7 +108,7 @@ namespace NeneEngine::TestScene
 
 		const ECS::Entity sceneCube =
 		    CreatePrimitiveEntity(world, "SceneCube", PrimitiveType::Cube, {1.5f, -1.2f, 0.0f}, {0.9f, 0.9f, 0.9f},
-		                          {1.0f, 0.85f, 0.3f, 1.0f}, MeshId{}, MaterialId{4u}, ShaderId{1u});
+		                          {1.0f, 0.85f, 0.3f, 1.0f});
 
 		auto& quadHierarchy = world.AddComponent<ECS::HierarchyComponent>(movingQuad);
 		quadHierarchy.children.push_back(sceneCube);

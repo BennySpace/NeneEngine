@@ -188,7 +188,7 @@ namespace NeneEngine
 				if (tag.name != overrideConfig.tag) continue;
 
 				auto& meshRenderer = renderView.get<ECS::MeshRendererComponent>(entity);
-				if (overrideConfig.tint.has_value()) meshRenderer.material.tint = *overrideConfig.tint;
+				if (overrideConfig.tint.has_value()) meshRenderer.tint = *overrideConfig.tint;
 				++matchedCount;
 			}
 

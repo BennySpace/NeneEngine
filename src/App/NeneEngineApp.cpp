@@ -32,17 +32,18 @@ namespace NeneEngine
 			// The app may run from the repo root or a build folder, so asset lookup walks upward from both anchors.
 			std::error_code errorCode;
 			auto current = start;
+			std::filesystem::path resolvedPath;
 			while (!current.empty())
 			{
 				const auto candidate = current / relativePath;
-				if (std::filesystem::exists(candidate, errorCode)) return candidate;
+				if (std::filesystem::exists(candidate, errorCode)) resolvedPath = candidate;
 
 				const auto parent = current.parent_path();
 				if (parent == current) break;
 				current = parent;
 			}
 
-			return {};
+			return resolvedPath;
 		}
 
 		std::filesystem::path ResolveAssetPath(const std::filesystem::path& relativePath)

@@ -237,9 +237,8 @@ namespace NeneEngine
 		}
 
 		windowContext.renderSystem = std::make_unique<ECS::RenderSystem>(windowContext.renderer.get(), cameraEntity);
-		m_world.AddSystem(
-		    std::make_unique<ECS::CameraControllerSystem>(windowContext.window->GetInput(), cameraEntity));
-		m_world.AddSystem(std::make_unique<ECS::PrimitiveControlSystem>(windowContext.window->GetInput()));
+		AddAppSystem(std::make_unique<ECS::CameraControllerSystem>(windowContext.window->GetInput(), cameraEntity));
+		AddAppSystem(std::make_unique<ECS::PrimitiveControlSystem>(windowContext.window->GetInput()));
 
 		const size_t windowIndex = m_windows.size();
 		windowContext.resizeHandle =
@@ -249,6 +248,11 @@ namespace NeneEngine
 		m_windows.push_back(std::move(windowContext));
 		HandleWindowResize(windowIndex, width, height);
 		return true;
+	}
+
+	void NeneEngineApp::AddAppSystem(std::unique_ptr<ECS::ISystem> system)
+	{
+		m_appSystems.push_back(std::move(system));
 	}
 
 	std::vector<ECS::Entity> NeneEngineApp::CreateAdditionalWindowCameras(size_t count, uint32_t width, uint32_t height)
@@ -436,6 +440,12 @@ namespace NeneEngine
 		m_appConfigLastWriteTime = currentWriteTime;
 
 		NENE_LOG_INFO("App config hot-reloaded from '{}'", m_appConfigPath.string());
+	}
+
+	void NeneEngineApp::UpdateAppSystems(float deltaTime)
+	{
+		// Window-bound input systems stay app-owned so World contains gameplay logic only.
+		for (auto& system : m_appSystems) system->Update(m_world, deltaTime);
 	}
 
 	void NeneEngineApp::Run()

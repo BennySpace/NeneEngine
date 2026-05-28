@@ -29,6 +29,7 @@ void NeneEngine::PlayState::OnExit()
 
 void NeneEngine::PlayState::Update(float dt)
 {
+	m_context.app.UpdateAppSystems(dt);
 	m_context.world.Update(dt);
 }
 

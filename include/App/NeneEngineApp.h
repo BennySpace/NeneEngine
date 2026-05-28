@@ -7,6 +7,7 @@
 #include "Core/Delegate.h"
 #include "Core/GameTimer.h"
 #include "ECS/Entity.h"
+#include "ECS/Systems/ISystem.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/World.h"
 #include "Input/InputDevice.h"
@@ -33,6 +34,7 @@ namespace NeneEngine
 		bool Init(uint32_t width = 1280, uint32_t height = 720, const std::string& title = "NeneEngine");
 		void Run();
 		void RequestShutdown();
+		void UpdateAppSystems(float deltaTime);
 		InputDevice* GetFocusedInput();
 		const InputDevice* GetFocusedInput() const;
 
@@ -49,6 +51,7 @@ namespace NeneEngine
 		};
 
 		std::vector<WindowContext> m_windows;
+		std::vector<std::unique_ptr<ECS::ISystem>> m_appSystems;
 
 		GameTimer m_timer;
 		GameStateMachine m_gameStateMachine;
@@ -61,6 +64,7 @@ namespace NeneEngine
 		std::atomic<bool> m_isPaused{false};
 
 		bool CreateWindowContext(uint32_t width, uint32_t height, const std::string& title, ECS::Entity cameraEntity);
+		void AddAppSystem(std::unique_ptr<ECS::ISystem> system);
 		std::vector<ECS::Entity> CreateAdditionalWindowCameras(size_t count, uint32_t width, uint32_t height);
 		ECS::Entity FindPrimaryCameraEntity() const;
 		bool AreAllWindowsClosed() const;

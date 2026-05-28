@@ -65,6 +65,7 @@ namespace NeneEngine
 		std::atomic<bool> m_isPaused{false};
 
 		bool CreateWindowContext(uint32_t width, uint32_t height, const std::string& title, ECS::Entity cameraEntity);
+		void RunDemoBootstrap();
 		void AddAppSystem(std::unique_ptr<ECS::ISystem> system);
 		std::vector<ECS::Entity> CreateAdditionalWindowCameras(size_t count, uint32_t width, uint32_t height);
 		ECS::Entity FindPrimaryCameraEntity() const;

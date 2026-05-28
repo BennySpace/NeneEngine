@@ -153,17 +153,7 @@ namespace NeneEngine
 					return false;
 			}
 
-			if (!m_windows.empty() && m_windows.front().renderer)
-			{
-				IRenderAdapter& renderer = *m_windows.front().renderer;
-				// Demo resource spawn still happens at startup until scene files own persistent asset references.
-				const auto shaderPath = ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "shaders" /
-				                                                  "textured_mesh.shader");
-				const ShaderId shaderId = CreateTexturedMeshShader(renderer, shaderPath);
-				const auto manifestPath = ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "models" /
-				                                                    "spawn_manifest.json");
-				SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
-			}
+			RunDemoBootstrap();
 
 			ApplyAppConfig(appConfig);
 
@@ -177,6 +167,32 @@ namespace NeneEngine
 
 			return false;
 		}
+	}
+
+	void NeneEngineApp::RunDemoBootstrap()
+	{
+		if (m_windows.empty() || !m_windows.front().renderer)
+		{
+			NENE_LOG_INFO("Demo bootstrap skipped: no primary renderer is available");
+			return;
+		}
+
+		IRenderAdapter& renderer = *m_windows.front().renderer;
+		const auto shaderPath =
+		    ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "shaders" / "textured_mesh.shader");
+		const auto manifestPath =
+		    ResolveFromExecutionRoots(std::filesystem::path{"assets"} / "models" / "spawn_manifest.json");
+
+		if (shaderPath.empty() || manifestPath.empty())
+		{
+			NENE_LOG_INFO("Demo bootstrap skipped: demo shader or spawn manifest was not found");
+			return;
+		}
+
+		NENE_LOG_INFO("Demo bootstrap: spawning demo models from '{}'", manifestPath.string());
+		const ShaderId shaderId = CreateTexturedMeshShader(renderer, shaderPath);
+		SpawnModelsFromManifest(m_world, renderer, shaderId, manifestPath);
+		NENE_LOG_INFO("Demo bootstrap completed");
 	}
 
 	bool NeneEngineApp::CreateWindowContext(uint32_t width, uint32_t height, const std::string& title,

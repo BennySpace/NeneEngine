@@ -56,6 +56,7 @@ namespace NeneEngine
 		GameTimer m_timer;
 		GameStateMachine m_gameStateMachine;
 		ECS::World m_world;
+		AppConfig m_loadedAppConfig{};
 		std::filesystem::path m_appConfigPath;
 		std::filesystem::file_time_type m_appConfigLastWriteTime{};
 		float m_configReloadAccumulator = 0.0f;

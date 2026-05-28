@@ -20,7 +20,7 @@ NeneEngine is an experimental game engine built with modern C++ practices by Ben
 - Game state machine with Play / Pause / Menu flow
 - JSON-based engine and scene configuration
 - Scene serialization and loading from JSON
-- Runtime-configurable windows and background color via `assets/config/engine.json`
+- Runtime hot-reload for background color via `assets/config/engine.json` with window layout changes applied on next launch
 - Hierarchical transforms with parent-child scene relationships
 - Built-in primitive rendering for Line, Triangle, Quad, and Cube entities
 - Assimp-based mesh loading pipeline with ResourceManager integration

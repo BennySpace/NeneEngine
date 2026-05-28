@@ -27,6 +27,24 @@ namespace NeneEngine
 	{
 		constexpr float kConfigReloadIntervalSeconds = 0.5f;
 
+		bool WindowDefinitionsEqual(const WindowDefinitionConfig& lhs, const WindowDefinitionConfig& rhs)
+		{
+			return lhs.title == rhs.title && lhs.width == rhs.width && lhs.height == rhs.height &&
+			       lhs.isMain == rhs.isMain;
+		}
+
+		bool WindowListsEqual(const std::vector<WindowDefinitionConfig>& lhs, const std::vector<WindowDefinitionConfig>& rhs)
+		{
+			if (lhs.size() != rhs.size()) return false;
+
+			for (size_t index = 0; index < lhs.size(); ++index)
+			{
+				if (!WindowDefinitionsEqual(lhs[index], rhs[index])) return false;
+			}
+
+			return true;
+		}
+
 		std::filesystem::path ResolveFrom(const std::filesystem::path& start, const std::filesystem::path& relativePath)
 		{
 			// The app may run from the repo root or a build folder, so asset lookup walks upward from both anchors.
@@ -119,6 +137,7 @@ namespace NeneEngine
 
 			m_appConfigPath = DefaultAppConfigPath();
 			const AppConfig appConfig = LoadAppConfig(m_appConfigPath);
+			m_loadedAppConfig = appConfig;
 			if (std::filesystem::exists(m_appConfigPath))
 				m_appConfigLastWriteTime = std::filesystem::last_write_time(m_appConfigPath);
 
@@ -436,10 +455,18 @@ namespace NeneEngine
 		if (!pathChanged && currentWriteTime == m_appConfigLastWriteTime) return;
 
 		const AppConfig updatedConfig = LoadAppConfig(m_appConfigPath);
+		if (!WindowListsEqual(updatedConfig.windows, m_loadedAppConfig.windows))
+		{
+			NENE_LOG_WARN("App config hot-reload: window definitions changed, but window creation, resizing, titles, "
+			              "and main-window reassignment require application restart");
+		}
+
 		ApplyAppConfig(updatedConfig);
+		m_loadedAppConfig.window = updatedConfig.window;
+		m_loadedAppConfig.windows = updatedConfig.windows;
 		m_appConfigLastWriteTime = currentWriteTime;
 
-		NENE_LOG_INFO("App config hot-reloaded from '{}'", m_appConfigPath.string());
+		NENE_LOG_INFO("App config hot-reloaded from '{}'; applied runtime-supported changes only", m_appConfigPath.string());
 	}
 
 	void NeneEngineApp::UpdateAppSystems(float deltaTime)

@@ -3,13 +3,13 @@
 #include "Core/CustomLogger.h"
 #include "Core/PathResolver.h"
 #include "Core/ResourceManager.h"
-#include "ECS/Components/MeshRenderRuntimeComponent.h"
 #include "ECS/Components/MeshRendererComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/World.h"
 #include "RenderAdapters/IRenderAdapter.h"
 #include "Rendering/MeshLoader.h"
 #include "Rendering/ModelInstanceConfig.h"
+#include "Rendering/RenderRuntimeBinder.h"
 #include "Rendering/ModelSpawnManifest.h"
 
 #include <fstream>
@@ -90,10 +90,11 @@ namespace NeneEngine
 			modelRenderer.tint = {1.0f, 1.0f, 1.0f, 1.0f};
 			modelRenderer.visible = visible;
 
-			auto& renderRuntime = world.AddComponent<ECS::MeshRenderRuntimeComponent>(modelEntity);
-			renderRuntime.meshId = gpuMesh.meshId;
-			renderRuntime.textureId = textureId;
-			if (shaderId.IsValid() && textureId.IsValid()) renderRuntime.shaderId = shaderId;
+			MeshRenderRuntimeBinding runtimeBinding{};
+			runtimeBinding.meshId = gpuMesh.meshId;
+			runtimeBinding.textureId = textureId;
+			if (shaderId.IsValid() && textureId.IsValid()) runtimeBinding.shaderId = shaderId;
+			BindMeshRenderRuntime(world, modelEntity, runtimeBinding);
 
 			return modelEntity;
 		}

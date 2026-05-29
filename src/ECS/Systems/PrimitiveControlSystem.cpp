@@ -4,7 +4,7 @@
 #include "ECS/Components/PrimitiveControlComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/World.h"
-#include "Input/InputDevice.h"
+#include "Input/IInputHandler.h"
 
 #include <algorithm>
 #include <glm/common.hpp>
@@ -21,8 +21,6 @@ namespace NeneEngine::ECS
 
 	void PrimitiveControlSystem::Update(World& world, float deltaTime)
 	{
-		if (!m_input.IsFocused()) return;
-
 		auto view = world.GetRegistry().view<TransformComponent, PrimitiveControlComponent>();
 		for (auto entity : view)
 		{

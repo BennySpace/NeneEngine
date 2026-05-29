@@ -19,6 +19,7 @@ namespace NeneEngine
 		virtual bool IsMouseButtonDown(int buttonIndex) const = 0;
 		virtual bool IsMouseButtonPressed(int buttonIndex) const = 0;
 		virtual glm::vec2 GetMousePosition() const = 0;
+		virtual glm::vec2 GetMouseDelta() const = 0;
 	};
 
 } // namespace NeneEngine

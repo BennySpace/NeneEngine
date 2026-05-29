@@ -106,6 +106,8 @@ namespace NeneEngine
 				NENE_LOG_WARN(
 				    "App config: multiple windows marked as main, only the first one will control the primary camera");
 
+			m_windows.reserve(appConfig.windows.size());
+
 			const auto secondaryCameraEntities = CreateAdditionalWindowCameras(secondaryWindowCount, width, height);
 			size_t secondaryCameraIndex = 0;
 			bool mainWindowCreated = false;
@@ -168,16 +170,19 @@ namespace NeneEngine
 			return false;
 		}
 
-		windowContext.renderSystem = std::make_unique<ECS::RenderSystem>(windowContext.renderer.get(), cameraEntity);
-		AddAppSystem(std::make_unique<ECS::CameraControllerSystem>(windowContext.window->GetInput(), cameraEntity));
-		AddAppSystem(std::make_unique<ECS::PrimitiveControlSystem>(windowContext.window->GetInput()));
-
 		const size_t windowIndex = m_windows.size();
 		windowContext.resizeHandle =
 		    windowContext.window->OnResized().AddLambda([this, windowIndex](uint32_t newWidth, uint32_t newHeight)
 		                                                { HandleWindowResize(windowIndex, newWidth, newHeight); });
 
 		m_windows.push_back(std::move(windowContext));
+		auto& storedWindowContext = m_windows.back();
+		storedWindowContext.inputManager.SetInputDevice(&storedWindowContext.window->GetInput());
+		storedWindowContext.renderSystem =
+		    std::make_unique<ECS::RenderSystem>(storedWindowContext.renderer.get(), cameraEntity);
+		AddAppSystem(std::make_unique<ECS::CameraControllerSystem>(storedWindowContext.inputManager, cameraEntity));
+		AddAppSystem(std::make_unique<ECS::PrimitiveControlSystem>(storedWindowContext.inputManager));
+
 		HandleWindowResize(windowIndex, width, height);
 		return true;
 	}
@@ -395,6 +400,11 @@ namespace NeneEngine
 	{
 		m_inputManager.SetInputDevice(GetFocusedInput());
 		m_inputManager.UpdateState();
+
+		for (auto& windowContext : m_windows)
+		{
+			if (windowContext.window) windowContext.inputManager.UpdateState();
+		}
 
 		// Window-bound input systems stay app-owned so World contains gameplay logic only.
 		for (auto& system : m_appSystems) system->Update(m_world, deltaTime);

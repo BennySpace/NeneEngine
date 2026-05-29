@@ -28,6 +28,7 @@ namespace NeneEngine
 		bool IsMouseButtonDown(int buttonIndex) const override;
 		bool IsMouseButtonPressed(int buttonIndex) const override;
 		glm::vec2 GetMousePosition() const override { return m_mousePosition; }
+		glm::vec2 GetMouseDelta() const override { return m_mouseDelta; }
 
 		void BindAction(const std::string& actionName, KeyCode keyCode);
 		bool IsActionActive(const std::string& actionName) const;
@@ -43,6 +44,7 @@ namespace NeneEngine
 		std::unordered_map<int, bool> m_mouseButtonDownStates;
 		std::unordered_map<int, bool> m_mouseButtonPressedStates;
 		glm::vec2 m_mousePosition = {0.0f, 0.0f};
+		glm::vec2 m_mouseDelta = {0.0f, 0.0f};
 		std::unordered_map<std::string, KeyCode> m_actionsMap;
 	};
 

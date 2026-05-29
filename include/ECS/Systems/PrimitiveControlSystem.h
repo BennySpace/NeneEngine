@@ -6,7 +6,7 @@
 
 namespace NeneEngine
 {
-	class InputDevice;
+	class IInputHandler;
 }
 
 namespace NeneEngine::ECS
@@ -15,12 +15,12 @@ namespace NeneEngine::ECS
 	class PrimitiveControlSystem final : public ISystem
 	{
 	  public:
-		explicit PrimitiveControlSystem(InputDevice& input) : m_input(input) {}
+		explicit PrimitiveControlSystem(const IInputHandler& input) : m_input(input) {}
 
 		void Update(World& world, float deltaTime) override;
 
 	  private:
-		InputDevice& m_input;
+		const IInputHandler& m_input;
 	};
 
 } // namespace NeneEngine::ECS

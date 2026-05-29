@@ -36,11 +36,17 @@ namespace NeneEngine
 		for (int buttonIndex = 0; buttonIndex < kMouseButtonCount; ++buttonIndex)
 		{
 			const KeyCode mouseKey = MouseButtonIndexToKeyCode(buttonIndex);
-			m_mouseButtonDownStates[buttonIndex] = m_inputDevice->IsKeyDown(mouseKey);
-			m_mouseButtonPressedStates[buttonIndex] = m_inputDevice->IsKeyPressed(mouseKey);
+			const bool isDown = m_inputDevice->IsKeyDown(mouseKey);
+			const bool isPressed = m_inputDevice->IsKeyPressed(mouseKey);
+
+			m_mouseButtonDownStates[buttonIndex] = isDown;
+			m_mouseButtonPressedStates[buttonIndex] = isPressed;
+			m_keyDownStates[mouseKey] = isDown;
+			m_keyPressedStates[mouseKey] = isPressed;
 		}
 
 		m_mousePosition = m_inputDevice->GetMousePosition();
+		m_mouseDelta = m_inputDevice->GetMouseDelta();
 	}
 
 	bool InputManager::IsKeyDown(KeyCode key) const
@@ -95,6 +101,7 @@ namespace NeneEngine
 		m_mouseButtonDownStates.clear();
 		m_mouseButtonPressedStates.clear();
 		m_mousePosition = {0.0f, 0.0f};
+		m_mouseDelta = {0.0f, 0.0f};
 	}
 
 	KeyCode InputManager::MouseButtonIndexToKeyCode(int buttonIndex)

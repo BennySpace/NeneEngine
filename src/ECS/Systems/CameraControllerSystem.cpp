@@ -5,7 +5,7 @@
 #include "ECS/Components/CameraControllerComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/World.h"
-#include "Input/InputDevice.h"
+#include "Input/IInputHandler.h"
 
 #include <algorithm>
 #include <glm/geometric.hpp>
@@ -16,8 +16,6 @@ namespace NeneEngine::ECS
 
 	void CameraControllerSystem::Update(World& world, float deltaTime)
 	{
-		if (!m_input.IsFocused()) return;
-
 		auto view = world.GetRegistry().view<TransformComponent, const CameraComponent, CameraControllerComponent>();
 
 		for (auto entity : view)

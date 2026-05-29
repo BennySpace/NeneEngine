@@ -7,7 +7,7 @@
 
 namespace NeneEngine
 {
-	class InputDevice;
+	class IInputHandler;
 }
 
 namespace NeneEngine::ECS
@@ -16,7 +16,7 @@ namespace NeneEngine::ECS
 	class CameraControllerSystem : public ISystem
 	{
 	  public:
-		CameraControllerSystem(const InputDevice& input, Entity controlledCamera = NullEntity)
+		CameraControllerSystem(const IInputHandler& input, Entity controlledCamera = NullEntity)
 		    : m_input(input), m_controlledCamera(controlledCamera)
 		{
 		}
@@ -24,7 +24,7 @@ namespace NeneEngine::ECS
 		void Update(World& world, float deltaTime) override;
 
 	  private:
-		const InputDevice& m_input;
+		const IInputHandler& m_input;
 		Entity m_controlledCamera = NullEntity;
 	};
 

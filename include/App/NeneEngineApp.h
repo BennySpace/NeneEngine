@@ -12,6 +12,7 @@
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/World.h"
 #include "Input/InputDevice.h"
+#include "Input/InputManager.h"
 #include "Platform/IWindow.h"
 #include "RenderAdapters/IRenderAdapter.h"
 
@@ -37,6 +38,8 @@ namespace NeneEngine
 		void RequestShutdown();
 		InputDevice* GetFocusedInput();
 		const InputDevice* GetFocusedInput() const;
+		InputManager& GetInputManager() { return m_inputManager; }
+		const InputManager& GetInputManager() const { return m_inputManager; }
 
 	  private:
 		// Each OS window owns its rendering path and camera binding; the ECS world is shared.
@@ -56,6 +59,7 @@ namespace NeneEngine
 		GameTimer m_timer;
 		GameStateMachine m_gameStateMachine;
 		ECS::World m_world;
+		InputManager m_inputManager;
 		LoadedAppConfigState m_loadedAppConfigState{};
 		float m_configReloadAccumulator = 0.0f;
 

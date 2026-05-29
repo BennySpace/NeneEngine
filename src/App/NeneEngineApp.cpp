@@ -61,6 +61,8 @@ namespace NeneEngine
 
 			m_loadedAppConfigState = LoadStartupAppConfigState();
 			const AppConfig& appConfig = m_loadedAppConfigState.config;
+			m_inputManager.BindAction("Pause", KeyCode::Escape);
+			m_inputManager.BindAction("Quit", KeyCode::Q);
 
 			// 2. States
 			AppStateContext stateContext{*this, m_world, m_gameStateMachine};
@@ -391,6 +393,9 @@ namespace NeneEngine
 
 	void NeneEngineApp::InputPhase(float deltaTime)
 	{
+		m_inputManager.SetInputDevice(GetFocusedInput());
+		m_inputManager.UpdateState();
+
 		// Window-bound input systems stay app-owned so World contains gameplay logic only.
 		for (auto& system : m_appSystems) system->Update(m_world, deltaTime);
 	}

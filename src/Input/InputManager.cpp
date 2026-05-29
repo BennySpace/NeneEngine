@@ -3,6 +3,8 @@
 #include "Input/InputManager.h"
 #include "Input/InputDevice.h"
 
+#include <algorithm>
+
 namespace NeneEngine
 {
 	namespace
@@ -75,7 +77,29 @@ namespace NeneEngine
 
 	void InputManager::BindAction(const std::string& actionName, KeyCode keyCode)
 	{
-		m_actionsMap[actionName] = keyCode;
+		auto& bindings = m_actionsMap[actionName];
+		if (std::find(bindings.begin(), bindings.end(), keyCode) == bindings.end()) bindings.push_back(keyCode);
+	}
+
+	void InputManager::SetActionBindings(const std::string& actionName, std::vector<KeyCode> keyCodes)
+	{
+		if (keyCodes.empty())
+		{
+			m_actionsMap.erase(actionName);
+			return;
+		}
+
+		auto& bindings = m_actionsMap[actionName];
+		bindings.clear();
+		for (KeyCode keyCode : keyCodes)
+		{
+			if (std::find(bindings.begin(), bindings.end(), keyCode) == bindings.end()) bindings.push_back(keyCode);
+		}
+	}
+
+	void InputManager::ClearActionBindings()
+	{
+		m_actionsMap.clear();
 	}
 
 	bool InputManager::IsActionActive(const std::string& actionName) const
@@ -83,7 +107,12 @@ namespace NeneEngine
 		const auto it = m_actionsMap.find(actionName);
 		if (it == m_actionsMap.end()) return false;
 
-		return IsKeyDown(it->second);
+		for (KeyCode keyCode : it->second)
+		{
+			if (IsKeyDown(keyCode)) return true;
+		}
+
+		return false;
 	}
 
 	bool InputManager::IsActionPressed(const std::string& actionName) const
@@ -91,7 +120,12 @@ namespace NeneEngine
 		const auto it = m_actionsMap.find(actionName);
 		if (it == m_actionsMap.end()) return false;
 
-		return IsKeyPressed(it->second);
+		for (KeyCode keyCode : it->second)
+		{
+			if (IsKeyPressed(keyCode)) return true;
+		}
+
+		return false;
 	}
 
 	void InputManager::ResetState()

@@ -30,6 +30,7 @@ namespace NeneEngine
 		AppConfigHotReloadPolicyResult result{};
 		result.runtimeAppliedConfig = currentConfig;
 		result.runtimeAppliedConfig.window = updatedConfig.window;
+		result.runtimeAppliedConfig.input = updatedConfig.input;
 		result.requiresRestart = !WindowListsEqual(currentConfig.windows, updatedConfig.windows);
 		return result;
 	}

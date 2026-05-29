@@ -6,6 +6,16 @@
       "b": 200
     }
   },
+  "input": {
+    "actions": {
+      "Pause": ["Escape"],
+      "Quit": ["Q"],
+      "MoveForward": ["W", "Up"],
+      "MoveBackward": ["S", "Down"],
+      "MoveLeft": ["A", "Left"],
+      "MoveRight": ["D", "Right"]
+    }
+  },
   "windows": [
     {
       "title": "NeneEngine - Main View",

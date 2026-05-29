@@ -8,6 +8,10 @@
 #include "../external/DiligentEngine/DiligentCore/Graphics/GraphicsAccessories/interface/ColorConversion.h"
 #include "Core/CustomLogger.h"
 
+#include <algorithm>
+#include <array>
+#include <optional>
+
 namespace NeneEngine
 {
 	namespace
@@ -16,6 +20,46 @@ namespace NeneEngine
 		constexpr uint32_t kDefaultWindowWidth = 1280;
 		constexpr uint32_t kDefaultWindowHeight = 720;
 		constexpr std::string_view kDefaultWindowTitle = "NeneEngine";
+
+		[[nodiscard]] InputConfig DefaultInputConfig()
+		{
+			InputConfig config{};
+			config.actions["Pause"] = {KeyCode::Escape};
+			config.actions["Quit"] = {KeyCode::Q};
+			return config;
+		}
+
+		[[nodiscard]] std::optional<KeyCode> TryParseKeyCode(std::string_view value)
+		{
+			static constexpr std::array<std::pair<std::string_view, KeyCode>, 19> keyMappings{{
+			    {"Escape", KeyCode::Escape},
+			    {"Space", KeyCode::Space},
+			    {"Q", KeyCode::Q},
+			    {"W", KeyCode::W},
+			    {"A", KeyCode::A},
+			    {"S", KeyCode::S},
+			    {"D", KeyCode::D},
+			    {"Up", KeyCode::Up},
+			    {"Down", KeyCode::Down},
+			    {"Left", KeyCode::Left},
+			    {"Right", KeyCode::Right},
+			    {"LeftShift", KeyCode::LeftShift},
+			    {"RightShift", KeyCode::RightShift},
+			    {"LeftControl", KeyCode::LeftControl},
+			    {"RightControl", KeyCode::RightControl},
+			    {"MouseLeft", KeyCode::MouseLeft},
+			    {"MouseRight", KeyCode::MouseRight},
+			    {"MouseMiddle", KeyCode::MouseMiddle},
+			    {"Enter", KeyCode::Enter},
+			}};
+
+			for (const auto& [name, keyCode] : keyMappings)
+			{
+				if (name == value) return keyCode;
+			}
+
+			return std::nullopt;
+		}
 
 		[[nodiscard]] glm::vec4 ReadBackgroundColorOrDefault(const nlohmann::json& root)
 		{
@@ -135,6 +179,94 @@ namespace NeneEngine
 
 			return windows;
 		}
+
+		[[nodiscard]] InputConfig ReadInputConfigOrDefault(const nlohmann::json& root)
+		{
+			InputConfig config = DefaultInputConfig();
+
+			const auto inputIt = root.find("input");
+			if (inputIt == root.end())
+			{
+				return config;
+			}
+
+			if (!inputIt->is_object())
+			{
+				NENE_LOG_WARN("App config: 'input' section is invalid, using default input bindings");
+				return config;
+			}
+
+			const auto actionsIt = inputIt->find("actions");
+			if (actionsIt == inputIt->end())
+			{
+				return config;
+			}
+
+			if (!actionsIt->is_object())
+			{
+				NENE_LOG_WARN("App config: 'input.actions' must be an object, using default input bindings");
+				return config;
+			}
+
+			config.actions.clear();
+			for (const auto& [actionName, actionValue] : actionsIt->items())
+			{
+				std::vector<KeyCode> bindings;
+
+				if (actionValue.is_string())
+				{
+					if (const auto keyCode = TryParseKeyCode(actionValue.get<std::string>()); keyCode.has_value())
+					{
+						bindings.push_back(*keyCode);
+					}
+					else
+					{
+						NENE_LOG_WARN("App config: input.actions.{} contains unknown key '{}', skipping binding",
+						              actionName, actionValue.get<std::string>());
+					}
+				}
+				else if (actionValue.is_array())
+				{
+					for (const auto& bindingValue : actionValue)
+					{
+						if (!bindingValue.is_string())
+						{
+							NENE_LOG_WARN(
+							    "App config: input.actions.{} must contain only string key names, skipping entry",
+							    actionName);
+							continue;
+						}
+
+						const std::string keyName = bindingValue.get<std::string>();
+						if (const auto keyCode = TryParseKeyCode(keyName); keyCode.has_value())
+						{
+							if (std::find(bindings.begin(), bindings.end(), *keyCode) == bindings.end())
+								bindings.push_back(*keyCode);
+						}
+						else
+						{
+							NENE_LOG_WARN("App config: input.actions.{} contains unknown key '{}', skipping binding",
+							              actionName, keyName);
+						}
+					}
+				}
+				else
+				{
+					NENE_LOG_WARN("App config: input.actions.{} must be a string or array of strings, skipping",
+					              actionName);
+				}
+
+				if (!bindings.empty()) config.actions[actionName] = std::move(bindings);
+			}
+
+			if (config.actions.empty())
+			{
+				NENE_LOG_WARN("App config: no valid input bindings found, using default input bindings");
+				return DefaultInputConfig();
+			}
+
+			return config;
+		}
 	} // namespace
 
 	std::filesystem::path DefaultAppConfigPath()
@@ -151,6 +283,7 @@ namespace NeneEngine
 	{
 		AppConfig config{};
 		config.window.backgroundColor = kDefaultBackgroundColor;
+		config.input = DefaultInputConfig();
 		config.windows.push_back(
 		    WindowDefinitionConfig{std::string(kDefaultWindowTitle), kDefaultWindowWidth, kDefaultWindowHeight, true});
 
@@ -167,10 +300,13 @@ namespace NeneEngine
 			input >> root;
 
 			config.window.backgroundColor = ReadBackgroundColorOrDefault(root);
+			config.input = ReadInputConfigOrDefault(root);
 			config.windows = ReadWindowsOrDefault(root);
-			NENE_LOG_INFO("App config loaded from '{}'; backgroundColor=({:.2f}, {:.2f}, {:.2f}, {:.2f}), windows={}",
+			NENE_LOG_INFO(
+			    "App config loaded from '{}'; backgroundColor=({:.2f}, {:.2f}, {:.2f}, {:.2f}), windows={}, actions={}",
 			              configPath.string(), config.window.backgroundColor.r, config.window.backgroundColor.g,
-			              config.window.backgroundColor.b, config.window.backgroundColor.a, config.windows.size());
+			              config.window.backgroundColor.b, config.window.backgroundColor.a, config.windows.size(),
+			              config.input.actions.size());
 		}
 		catch (const std::exception& ex)
 		{

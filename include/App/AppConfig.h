@@ -1,8 +1,11 @@
 #pragma once
 
+#include "Input/KeyCode.h"
+
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -22,9 +25,15 @@ namespace NeneEngine
 		glm::vec4 backgroundColor{0.1f, 0.1f, 0.2f, 1.0f};
 	};
 
+	struct InputConfig
+	{
+		std::unordered_map<std::string, std::vector<KeyCode>> actions{};
+	};
+
 	struct AppConfig
 	{
 		WindowConfig window{};
+		InputConfig input{};
 		std::vector<WindowDefinitionConfig> windows{};
 	};
 

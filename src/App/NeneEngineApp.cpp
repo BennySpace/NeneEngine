@@ -26,6 +26,15 @@ namespace NeneEngine
 	namespace
 	{
 		constexpr float kConfigReloadIntervalSeconds = 0.5f;
+
+		void ApplyInputBindings(InputManager& inputManager, const InputConfig& inputConfig)
+		{
+			inputManager.ClearActionBindings();
+			for (const auto& [actionName, keyCodes] : inputConfig.actions)
+			{
+				inputManager.SetActionBindings(actionName, keyCodes);
+			}
+		}
 	} // namespace
 
 	NeneEngineApp::NeneEngineApp() = default;
@@ -61,8 +70,6 @@ namespace NeneEngine
 
 			m_loadedAppConfigState = LoadStartupAppConfigState();
 			const AppConfig& appConfig = m_loadedAppConfigState.config;
-			m_inputManager.BindAction("Pause", KeyCode::Escape);
-			m_inputManager.BindAction("Quit", KeyCode::Q);
 
 			// 2. States
 			AppStateContext stateContext{*this, m_world, m_gameStateMachine};
@@ -254,6 +261,8 @@ namespace NeneEngine
 
 	void NeneEngineApp::ApplyRuntimeAppConfig(const AppConfig& config)
 	{
+		ApplyInputBindings(m_inputManager, config.input);
+
 		for (auto& windowContext : m_windows)
 		{
 			if (windowContext.renderer) windowContext.renderer->SetClearColor(config.window.backgroundColor);

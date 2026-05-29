@@ -6,6 +6,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace NeneEngine
 {
@@ -31,6 +32,8 @@ namespace NeneEngine
 		glm::vec2 GetMouseDelta() const override { return m_mouseDelta; }
 
 		void BindAction(const std::string& actionName, KeyCode keyCode);
+		void SetActionBindings(const std::string& actionName, std::vector<KeyCode> keyCodes);
+		void ClearActionBindings();
 		bool IsActionActive(const std::string& actionName) const;
 		bool IsActionPressed(const std::string& actionName) const;
 
@@ -45,7 +48,7 @@ namespace NeneEngine
 		std::unordered_map<int, bool> m_mouseButtonPressedStates;
 		glm::vec2 m_mousePosition = {0.0f, 0.0f};
 		glm::vec2 m_mouseDelta = {0.0f, 0.0f};
-		std::unordered_map<std::string, KeyCode> m_actionsMap;
+		std::unordered_map<std::string, std::vector<KeyCode>> m_actionsMap;
 	};
 
 } // namespace NeneEngine

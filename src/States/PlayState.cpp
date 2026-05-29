@@ -4,6 +4,7 @@
 #include "App/GameStateMachine.h"
 #include "App/NeneEngineApp.h"
 #include "Core/CustomLogger.h"
+#include "Input/InputActions.h"
 #include "Input/InputManager.h"
 #include "States/PauseState.h"
 
@@ -35,6 +36,6 @@ void NeneEngine::PlayState::Update(float dt)
 void NeneEngine::PlayState::HandleInput()
 {
 	const InputManager& input = m_context.app.GetInputManager();
-	if (input.IsActionPressed("Pause"))
+	if (input.IsActionPressed(InputActions::Pause))
 		m_context.stateMachine.PushState(eastl::make_unique<PauseState>(m_context));
 }

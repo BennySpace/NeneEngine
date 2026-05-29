@@ -265,6 +265,7 @@ namespace NeneEngine
 
 		for (auto& windowContext : m_windows)
 		{
+			ApplyInputBindings(windowContext.inputManager, config.input);
 			if (windowContext.renderer) windowContext.renderer->SetClearColor(config.window.backgroundColor);
 		}
 	}

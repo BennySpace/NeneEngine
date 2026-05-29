@@ -5,6 +5,7 @@
 #include "Input/IInputHandler.h"
 
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -34,8 +35,8 @@ namespace NeneEngine
 		void BindAction(const std::string& actionName, KeyCode keyCode);
 		void SetActionBindings(const std::string& actionName, std::vector<KeyCode> keyCodes);
 		void ClearActionBindings();
-		bool IsActionActive(const std::string& actionName) const;
-		bool IsActionPressed(const std::string& actionName) const;
+		bool IsActionActive(std::string_view actionName) const override;
+		bool IsActionPressed(std::string_view actionName) const override;
 
 	  private:
 		void ResetState();

@@ -4,6 +4,7 @@
 #include "ECS/Components/PrimitiveControlComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/World.h"
+#include "Input/InputActions.h"
 #include "Input/IInputHandler.h"
 
 #include <algorithm>
@@ -28,10 +29,10 @@ namespace NeneEngine::ECS
 			auto& control = view.get<PrimitiveControlComponent>(entity);
 
 			glm::vec2 moveAxis{0.0f, 0.0f};
-			if (m_input.IsKeyDown(KeyCode::Left)) moveAxis.x -= 1.0f;
-			if (m_input.IsKeyDown(KeyCode::Right)) moveAxis.x += 1.0f;
-			if (m_input.IsKeyDown(KeyCode::Down)) moveAxis.y -= 1.0f;
-			if (m_input.IsKeyDown(KeyCode::Up)) moveAxis.y += 1.0f;
+			if (m_input.IsActionActive(InputActions::MoveLeft)) moveAxis.x -= 1.0f;
+			if (m_input.IsActionActive(InputActions::MoveRight)) moveAxis.x += 1.0f;
+			if (m_input.IsActionActive(InputActions::MoveBackward)) moveAxis.y -= 1.0f;
+			if (m_input.IsActionActive(InputActions::MoveForward)) moveAxis.y += 1.0f;
 
 			if (glm::dot(moveAxis, moveAxis) > 0.0f)
 			{
@@ -40,13 +41,14 @@ namespace NeneEngine::ECS
 				transform.position.y += normalizedAxis.y * control.moveSpeed * deltaTime;
 			}
 
-			if (m_input.IsKeyPressed(KeyCode::MouseLeft))
+			if (m_input.IsActionPressed(InputActions::ScaleStep))
 			{
 				control.currentScaleLevel = (control.currentScaleLevel + 1) % std::size(kScaleLevels);
 				control.targetScale = glm::vec3(kScaleLevels[control.currentScaleLevel]);
 			}
 
-			if (m_input.IsKeyPressed(KeyCode::MouseRight)) control.targetRotationRadians += control.rotationStepRadians;
+			if (m_input.IsActionPressed(InputActions::RotateStep))
+				control.targetRotationRadians += control.rotationStepRadians;
 
 			// Clicks update intent; smoothing makes the visible transform interpolate toward that target.
 			const float scaleAlpha = std::clamp(control.scaleSmoothing * deltaTime, 0.0f, 1.0f);

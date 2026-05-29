@@ -1,6 +1,7 @@
 #include "App/AppConfig.h"
 
 #include "Core/PathResolver.h"
+#include "Input/InputActions.h"
 
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -24,8 +25,18 @@ namespace NeneEngine
 		[[nodiscard]] InputConfig DefaultInputConfig()
 		{
 			InputConfig config{};
-			config.actions["Pause"] = {KeyCode::Escape};
-			config.actions["Quit"] = {KeyCode::Q};
+			config.actions[std::string(InputActions::Pause)] = {KeyCode::Escape};
+			config.actions[std::string(InputActions::Quit)] = {KeyCode::Q};
+			config.actions[std::string(InputActions::MoveForward)] = {KeyCode::W, KeyCode::Up};
+			config.actions[std::string(InputActions::MoveBackward)] = {KeyCode::S, KeyCode::Down};
+			config.actions[std::string(InputActions::MoveLeft)] = {KeyCode::A, KeyCode::Left};
+			config.actions[std::string(InputActions::MoveRight)] = {KeyCode::D, KeyCode::Right};
+			config.actions[std::string(InputActions::MoveUp)] = {KeyCode::Space};
+			config.actions[std::string(InputActions::MoveDown)] = {KeyCode::LeftControl, KeyCode::RightControl};
+			config.actions[std::string(InputActions::Sprint)] = {KeyCode::LeftShift, KeyCode::RightShift};
+			config.actions[std::string(InputActions::LookModifier)] = {KeyCode::MouseRight};
+			config.actions[std::string(InputActions::ScaleStep)] = {KeyCode::MouseLeft};
+			config.actions[std::string(InputActions::RotateStep)] = {KeyCode::MouseRight};
 			return config;
 		}
 

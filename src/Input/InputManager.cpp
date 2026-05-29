@@ -102,9 +102,9 @@ namespace NeneEngine
 		m_actionsMap.clear();
 	}
 
-	bool InputManager::IsActionActive(const std::string& actionName) const
+	bool InputManager::IsActionActive(std::string_view actionName) const
 	{
-		const auto it = m_actionsMap.find(actionName);
+		const auto it = m_actionsMap.find(std::string(actionName));
 		if (it == m_actionsMap.end()) return false;
 
 		for (KeyCode keyCode : it->second)
@@ -115,9 +115,9 @@ namespace NeneEngine
 		return false;
 	}
 
-	bool InputManager::IsActionPressed(const std::string& actionName) const
+	bool InputManager::IsActionPressed(std::string_view actionName) const
 	{
-		const auto it = m_actionsMap.find(actionName);
+		const auto it = m_actionsMap.find(std::string(actionName));
 		if (it == m_actionsMap.end()) return false;
 
 		for (KeyCode keyCode : it->second)

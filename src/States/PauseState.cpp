@@ -4,6 +4,7 @@
 #include "App/GameStateMachine.h"
 #include "App/NeneEngineApp.h"
 #include "Core/CustomLogger.h"
+#include "Input/InputActions.h"
 #include "Input/InputManager.h"
 
 void NeneEngine::PauseState::OnEnter()
@@ -32,7 +33,7 @@ void NeneEngine::PauseState::HandleInput()
 {
 	const InputManager& input = m_context.app.GetInputManager();
 
-	if (input.IsActionPressed("Pause")) m_context.stateMachine.PopState();
+	if (input.IsActionPressed(InputActions::Pause)) m_context.stateMachine.PopState();
 
-	if (input.IsActionPressed("Quit")) m_context.app.RequestShutdown();
+	if (input.IsActionPressed(InputActions::Quit)) m_context.app.RequestShutdown();
 }

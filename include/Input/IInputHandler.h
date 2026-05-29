@@ -5,6 +5,7 @@
 #include "Input/KeyCode.h"
 
 #include <glm/glm.hpp>
+#include <string_view>
 
 namespace NeneEngine
 {
@@ -20,6 +21,8 @@ namespace NeneEngine
 		virtual bool IsMouseButtonPressed(int buttonIndex) const = 0;
 		virtual glm::vec2 GetMousePosition() const = 0;
 		virtual glm::vec2 GetMouseDelta() const = 0;
+		virtual bool IsActionActive(std::string_view actionName) const = 0;
+		virtual bool IsActionPressed(std::string_view actionName) const = 0;
 	};
 
 } // namespace NeneEngine

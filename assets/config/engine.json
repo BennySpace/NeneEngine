@@ -13,7 +13,13 @@
       "MoveForward": ["W", "Up"],
       "MoveBackward": ["S", "Down"],
       "MoveLeft": ["A", "Left"],
-      "MoveRight": ["D", "Right"]
+      "MoveRight": ["D", "Right"],
+      "MoveUp": ["Space"],
+      "MoveDown": ["LeftControl", "RightControl"],
+      "Sprint": ["LeftShift", "RightShift"],
+      "LookModifier": ["MouseRight"],
+      "ScaleStep": ["MouseLeft"],
+      "RotateStep": ["MouseRight"]
     }
   },
   "windows": [

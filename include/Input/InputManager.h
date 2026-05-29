@@ -37,6 +37,7 @@ namespace NeneEngine
 		void ClearActionBindings();
 		bool IsActionActive(std::string_view actionName) const override;
 		bool IsActionPressed(std::string_view actionName) const override;
+		const std::unordered_map<std::string, std::vector<KeyCode>>& GetActionBindings() const { return m_actionsMap; }
 
 	  private:
 		void ResetState();

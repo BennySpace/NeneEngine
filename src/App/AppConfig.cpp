@@ -2,6 +2,7 @@
 
 #include "Core/PathResolver.h"
 #include "Input/InputActions.h"
+#include "Input/KeyCodeStrings.h"
 
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -10,8 +11,6 @@
 #include "Core/CustomLogger.h"
 
 #include <algorithm>
-#include <array>
-#include <optional>
 
 namespace NeneEngine
 {
@@ -27,49 +26,21 @@ namespace NeneEngine
 			InputConfig config{};
 			config.actions[std::string(InputActions::Pause)] = {KeyCode::Escape};
 			config.actions[std::string(InputActions::Quit)] = {KeyCode::Q};
-			config.actions[std::string(InputActions::MoveForward)] = {KeyCode::W, KeyCode::Up};
-			config.actions[std::string(InputActions::MoveBackward)] = {KeyCode::S, KeyCode::Down};
-			config.actions[std::string(InputActions::MoveLeft)] = {KeyCode::A, KeyCode::Left};
-			config.actions[std::string(InputActions::MoveRight)] = {KeyCode::D, KeyCode::Right};
+			config.actions[std::string(InputActions::MoveForward)] = {KeyCode::W};
+			config.actions[std::string(InputActions::MoveBackward)] = {KeyCode::S};
+			config.actions[std::string(InputActions::MoveLeft)] = {KeyCode::A};
+			config.actions[std::string(InputActions::MoveRight)] = {KeyCode::D};
 			config.actions[std::string(InputActions::MoveUp)] = {KeyCode::Space};
 			config.actions[std::string(InputActions::MoveDown)] = {KeyCode::LeftControl, KeyCode::RightControl};
 			config.actions[std::string(InputActions::Sprint)] = {KeyCode::LeftShift, KeyCode::RightShift};
 			config.actions[std::string(InputActions::LookModifier)] = {KeyCode::MouseRight};
+			config.actions[std::string(InputActions::PrimitiveMoveUp)] = {KeyCode::Up};
+			config.actions[std::string(InputActions::PrimitiveMoveDown)] = {KeyCode::Down};
+			config.actions[std::string(InputActions::PrimitiveMoveLeft)] = {KeyCode::Left};
+			config.actions[std::string(InputActions::PrimitiveMoveRight)] = {KeyCode::Right};
 			config.actions[std::string(InputActions::ScaleStep)] = {KeyCode::MouseLeft};
 			config.actions[std::string(InputActions::RotateStep)] = {KeyCode::MouseRight};
 			return config;
-		}
-
-		[[nodiscard]] std::optional<KeyCode> TryParseKeyCode(std::string_view value)
-		{
-			static constexpr std::array<std::pair<std::string_view, KeyCode>, 19> keyMappings{{
-			    {"Escape", KeyCode::Escape},
-			    {"Space", KeyCode::Space},
-			    {"Q", KeyCode::Q},
-			    {"W", KeyCode::W},
-			    {"A", KeyCode::A},
-			    {"S", KeyCode::S},
-			    {"D", KeyCode::D},
-			    {"Up", KeyCode::Up},
-			    {"Down", KeyCode::Down},
-			    {"Left", KeyCode::Left},
-			    {"Right", KeyCode::Right},
-			    {"LeftShift", KeyCode::LeftShift},
-			    {"RightShift", KeyCode::RightShift},
-			    {"LeftControl", KeyCode::LeftControl},
-			    {"RightControl", KeyCode::RightControl},
-			    {"MouseLeft", KeyCode::MouseLeft},
-			    {"MouseRight", KeyCode::MouseRight},
-			    {"MouseMiddle", KeyCode::MouseMiddle},
-			    {"Enter", KeyCode::Enter},
-			}};
-
-			for (const auto& [name, keyCode] : keyMappings)
-			{
-				if (name == value) return keyCode;
-			}
-
-			return std::nullopt;
 		}
 
 		[[nodiscard]] glm::vec4 ReadBackgroundColorOrDefault(const nlohmann::json& root)
@@ -277,6 +248,18 @@ namespace NeneEngine
 			}
 
 			return config;
+		}
+
+		[[nodiscard]] std::string FormatBindings(const std::vector<KeyCode>& bindings)
+		{
+			std::string formattedBindings;
+			for (size_t index = 0; index < bindings.size(); ++index)
+			{
+				if (index > 0) formattedBindings += ", ";
+				formattedBindings += ToString(bindings[index]);
+			}
+
+			return formattedBindings;
 		}
 	} // namespace
 

@@ -29,10 +29,10 @@ namespace NeneEngine::ECS
 			auto& control = view.get<PrimitiveControlComponent>(entity);
 
 			glm::vec2 moveAxis{0.0f, 0.0f};
-			if (m_input.IsActionActive(InputActions::MoveLeft)) moveAxis.x -= 1.0f;
-			if (m_input.IsActionActive(InputActions::MoveRight)) moveAxis.x += 1.0f;
-			if (m_input.IsActionActive(InputActions::MoveBackward)) moveAxis.y -= 1.0f;
-			if (m_input.IsActionActive(InputActions::MoveForward)) moveAxis.y += 1.0f;
+			if (m_input.IsActionActive(InputActions::PrimitiveMoveLeft)) moveAxis.x -= 1.0f;
+			if (m_input.IsActionActive(InputActions::PrimitiveMoveRight)) moveAxis.x += 1.0f;
+			if (m_input.IsActionActive(InputActions::PrimitiveMoveDown)) moveAxis.y -= 1.0f;
+			if (m_input.IsActionActive(InputActions::PrimitiveMoveUp)) moveAxis.y += 1.0f;
 
 			if (glm::dot(moveAxis, moveAxis) > 0.0f)
 			{

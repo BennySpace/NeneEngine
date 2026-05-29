@@ -17,6 +17,7 @@ namespace NeneEngine::ECS
 	{
 		ColliderType type = ColliderType::Box;
 		glm::vec3 halfExtents = {0.5f, 0.5f, 0.5f};
+		float radius = 0.5f;
 		glm::vec3 offset = {0.0f, 0.0f, 0.0f};
 	};
 

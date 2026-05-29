@@ -33,6 +33,7 @@ NeneEngine is an experimental game engine built with modern C++ practices by Ben
 
 Requirements:
 - Windows
+- x64 target environment
 - Visual Studio with MSVC toolchain
 - CMake 3.19+
 - Ninja

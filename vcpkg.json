@@ -5,6 +5,7 @@
     "entt",
     "nlohmann-json",
     "spdlog",
-    "glm"
+    "glm",
+    "stb"
   ]
 }

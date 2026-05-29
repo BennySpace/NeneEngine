@@ -22,7 +22,6 @@ add_subdirectory(States)
 target_include_directories(NeneEngine
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../external>
 )
 
 find_package(spdlog         CONFIG REQUIRED)
@@ -48,16 +47,31 @@ target_link_libraries(NeneEngine
         Diligent-TextureLoader
 )
 
-if(EXISTS "${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/debug/bin")
-    file(GLOB NENEENGINE_VCPKG_DEBUG_DLLS "${CMAKE_BINARY_DIR}/vcpkg_installed/x64-windows/debug/bin/*.dll")
-    if(NENEENGINE_VCPKG_DEBUG_DLLS)
-        add_custom_command(TARGET NeneEngine POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                ${NENEENGINE_VCPKG_DEBUG_DLLS}
-                $<TARGET_FILE_DIR:NeneEngine>
-            COMMAND_EXPAND_LISTS
-        )
+set(NENEENGINE_VCPKG_TRIPLET "${VCPKG_TARGET_TRIPLET}")
+if(NOT NENEENGINE_VCPKG_TRIPLET)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(NENEENGINE_VCPKG_TRIPLET "x64-windows")
+    else()
+        set(NENEENGINE_VCPKG_TRIPLET "x86-windows")
     endif()
+endif()
+
+set(NENEENGINE_VCPKG_ROOT_DIR "${CMAKE_BINARY_DIR}/vcpkg_installed/${NENEENGINE_VCPKG_TRIPLET}")
+file(GLOB NENEENGINE_VCPKG_DEBUG_DLLS   "${NENEENGINE_VCPKG_ROOT_DIR}/debug/bin/*.dll")
+file(GLOB NENEENGINE_VCPKG_RELEASE_DLLS "${NENEENGINE_VCPKG_ROOT_DIR}/bin/*.dll")
+
+set(NENEENGINE_VCPKG_RUNTIME_DLLS "${NENEENGINE_VCPKG_RELEASE_DLLS}")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(NENEENGINE_VCPKG_RUNTIME_DLLS "${NENEENGINE_VCPKG_DEBUG_DLLS}")
+endif()
+
+if(NENEENGINE_VCPKG_RUNTIME_DLLS)
+    add_custom_command(TARGET NeneEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${NENEENGINE_VCPKG_RUNTIME_DLLS}
+            $<TARGET_FILE_DIR:NeneEngine>
+        COMMAND_EXPAND_LISTS
+    )
 endif()
 
 if(COMMAND copy_required_dlls)

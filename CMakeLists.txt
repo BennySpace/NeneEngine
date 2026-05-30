@@ -24,6 +24,7 @@ neneengine_set_default_option(DILIGENT_BUILD_SAMPLES OFF "Build Diligent samples
 neneengine_set_default_option(DILIGENT_BUILD_TOOLS   OFF "Build Diligent tools")
 neneengine_set_default_option(DILIGENT_BUILD_FX      OFF "Build Diligent FX")
 neneengine_set_default_option(DILIGENT_BUILD_TESTS   OFF "Build Diligent tests")
+neneengine_set_default_option(DILIGENT_INSTALL_CORE  OFF "Install Diligent core")
 neneengine_set_default_option(DILIGENT_INSTALL_TOOLS OFF "Install Diligent tools")
 
 neneengine_set_default_option(DILIGENT_NO_DIRECT3D11 ON  "Disable Direct3D11 backend")

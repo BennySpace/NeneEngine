@@ -53,6 +53,12 @@ cmake --preset x64-release
 cmake --build out/build/x64-release --config Release
 ```
 
+Install a runnable package:
+
+```bash
+cmake --install out/build/x64-debug --component Runtime
+```
+
 ### Licenses
 
 - Project license: [LICENSE.txt](LICENSE.txt)

@@ -74,6 +74,45 @@ if(NENEENGINE_VCPKG_RUNTIME_DLLS)
     )
 endif()
 
+install(TARGETS
+    NeneEngine
+    Diligent-GraphicsEngineD3D12-shared
+    Diligent-Archiver-shared
+    RUNTIME DESTINATION bin
+    COMPONENT Runtime
+)
+
+if(NENEENGINE_VCPKG_DEBUG_DLLS)
+    install(FILES ${NENEENGINE_VCPKG_DEBUG_DLLS}
+        CONFIGURATIONS Debug
+        DESTINATION bin
+        COMPONENT Runtime
+    )
+endif()
+
+if(NENEENGINE_VCPKG_RELEASE_DLLS)
+    install(FILES ${NENEENGINE_VCPKG_RELEASE_DLLS}
+        CONFIGURATIONS Release RelWithDebInfo MinSizeRel
+        DESTINATION bin
+        COMPONENT Runtime
+    )
+endif()
+
+if(D3D_COMPILER_PATH)
+    install(FILES "${D3D_COMPILER_PATH}" DESTINATION bin COMPONENT Runtime)
+endif()
+
+if(DXC_COMPILER_PATH AND DXIL_SIGNER_PATH)
+    install(FILES
+        "${DXC_COMPILER_PATH}"
+        "${DXIL_SIGNER_PATH}"
+        DESTINATION bin
+        COMPONENT Runtime
+    )
+endif()
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../assets" DESTINATION . COMPONENT Runtime)
+
 if(COMMAND copy_required_dlls)
     copy_required_dlls(NeneEngine)
 else()

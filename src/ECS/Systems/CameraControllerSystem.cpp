@@ -14,6 +14,11 @@
 
 namespace NeneEngine::ECS
 {
+	namespace
+	{
+		constexpr glm::vec3 kLocalForward{0.0f, 0.0f, -1.0f};
+		constexpr glm::vec3 kLocalUp{0.0f, 1.0f, 0.0f};
+	}
 
 	void CameraControllerSystem::Update(World& world, float deltaTime)
 	{
@@ -62,6 +67,13 @@ namespace NeneEngine::ECS
 				    isSprinting ? controller.moveSpeed * controller.sprintMultiplier : controller.moveSpeed;
 				const glm::vec3 worldDirection = transform.rotation * glm::normalize(direction);
 				transform.position += worldDirection * moveSpeed * deltaTime;
+			}
+
+			auto* mutableCamera = world.GetComponent<CameraComponent>(entity);
+			if (mutableCamera != nullptr)
+			{
+				mutableCamera->forward = glm::normalize(transform.rotation * kLocalForward);
+				mutableCamera->up = glm::normalize(transform.rotation * kLocalUp);
 			}
 
 			return;

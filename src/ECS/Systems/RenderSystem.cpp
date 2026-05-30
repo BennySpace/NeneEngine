@@ -94,11 +94,11 @@ namespace NeneEngine::ECS
 
 		const glm::mat4 cameraWorldMatrix =
 		    ComputeWorldMatrix(world, activeCameraEntity, worldMatrixCache, recursionStack);
-		// Camera transform is stored as a regular world matrix; the view matrix is its inverse.
-		const glm::mat4 viewMatrix = glm::inverse(cameraWorldMatrix);
-		const glm::mat4 projectionMatrix =
-		    glm::perspective(glm::radians(activeCamera->fovDegrees), activeCamera->aspectRatio, activeCamera->nearPlane,
-		                     activeCamera->farPlane);
+		const glm::vec3 cameraPosition = glm::vec3(cameraWorldMatrix[3]);
+		const glm::vec3 cameraForward = glm::normalize(glm::vec3(cameraWorldMatrix * glm::vec4(activeCamera->forward, 0.0f)));
+		const glm::vec3 cameraUp = glm::normalize(glm::vec3(cameraWorldMatrix * glm::vec4(activeCamera->up, 0.0f)));
+		const glm::mat4 viewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraForward, cameraUp);
+		const glm::mat4 projectionMatrix = activeCamera->GetProjectionMatrix();
 		const glm::mat4 viewProjectionMatrix = projectionMatrix * viewMatrix;
 
 		auto view = world.GetRegistry().view<const TransformComponent, const MeshRendererComponent>();

@@ -100,7 +100,9 @@ namespace NeneEngine
 
 		nlohmann::json SerializeCamera(const ECS::CameraComponent& camera)
 		{
-			return {{"fovDegrees", camera.fovDegrees},
+			return {{"forward", ToJson(camera.forward)},
+			        {"up", ToJson(camera.up)},
+			        {"fovDegrees", camera.fovDegrees},
 			        {"nearPlane", camera.nearPlane},
 			        {"farPlane", camera.farPlane},
 			        {"aspectRatio", camera.aspectRatio},
@@ -192,6 +194,8 @@ namespace NeneEngine
 		void DeserializeCamera(const nlohmann::json& value, ECS::World& world, ECS::Entity entity)
 		{
 			auto& camera = world.AddComponent<ECS::CameraComponent>(entity);
+			if (value.contains("forward")) camera.forward = ReadVec3(value.at("forward"));
+			if (value.contains("up")) camera.up = ReadVec3(value.at("up"));
 			camera.fovDegrees = value.at("fovDegrees").get<float>();
 			camera.nearPlane = value.at("nearPlane").get<float>();
 			camera.farPlane = value.at("farPlane").get<float>();

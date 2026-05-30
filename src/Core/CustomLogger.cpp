@@ -2,6 +2,7 @@
 
 #include "Core/CustomLogger.h"
 
+#include <filesystem>
 #include <iostream>
 #include <spdlog/async_logger.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -39,6 +40,13 @@ namespace NeneEngine
 
 			if (!logFileName.empty())
 			{
+				const std::filesystem::path logPath{logFileName};
+				if (const auto parentPath = logPath.parent_path(); !parentPath.empty())
+				{
+					std::error_code errorCode;
+					std::filesystem::create_directories(parentPath, errorCode);
+				}
+
 				auto file = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFileName.c_str(), true);
 				file->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
 				sinks.push_back(file);

@@ -7,6 +7,7 @@
 #include "App/DemoBootstrapRunner.h"
 #include "Core/CustomLogger.h"
 #include "Core/ExternalLibrarySmokeTest.h"
+#include "Core/PathResolver.h"
 #include "Core/ResourceManager.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CameraControllerComponent.h"
@@ -20,6 +21,7 @@
 #include "Input/KeyCodeStrings.h"
 #include "States/PlayState.h"
 
+#include <filesystem>
 #include <sstream>
 #include <stdexcept>
 
@@ -60,6 +62,13 @@ namespace NeneEngine
 			}
 			LogAppliedInputBindings(inputManager, managerName);
 		}
+
+		std::filesystem::path ResolveLogFilePath()
+		{
+			auto logRoot = GetExecutableDirectory();
+			if (logRoot.empty()) logRoot = std::filesystem::current_path();
+			return logRoot / "logs" / "nene_engine.log";
+		}
 	} // namespace
 
 	NeneEngineApp::NeneEngineApp() = default;
@@ -87,7 +96,7 @@ namespace NeneEngine
 		try
 		{
 			// 1. Logger
-			CustomLogger::GetInstance().Initialize("../../../../logs/nene_engine.log", false, spdlog::level::info,
+			CustomLogger::GetInstance().Initialize(ResolveLogFilePath().string(), false, spdlog::level::info,
 			                                       true);
 			NENE_LOG_INFO("===== NeneEngine v0.3 starting =====");
 			ResourceManager::GetInstance().RegisterDefaultLoaders();

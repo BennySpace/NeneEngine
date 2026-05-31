@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "EventBus.h"
 #include "Entity.h"
 #include "Systems/ISystem.h"
 
@@ -49,10 +50,14 @@ namespace NeneEngine::ECS
 		void Update(float deltaTime);
 		void Render();
 
+		EventBus& GetEventBus() { return m_eventBus; }
+		const EventBus& GetEventBus() const { return m_eventBus; }
+
 		entt::registry& GetRegistry() { return m_registry; }
 		const entt::registry& GetRegistry() const { return m_registry; }
 
 	  private:
+		EventBus m_eventBus;
 		entt::registry m_registry;
 		std::vector<std::unique_ptr<ISystem>> m_systems;
 	};
